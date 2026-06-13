@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { LayoutDashboard, GitBranch, Briefcase, Plus, BookmarkCheck, BarChart2, Plug, Building2, Settings, MapPin, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 
 const sidebarItems: SidebarItem[] = [
   { key: "beranda", label: "Dashboard", icon: <LayoutDashboard size={16} />, path: "/dashboard/perusahaan" },

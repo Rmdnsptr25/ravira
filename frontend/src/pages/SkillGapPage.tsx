@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { ChangeCareerTargetModal } from "../components/Modals";
 
 const sidebarItems: SidebarItem[] = [

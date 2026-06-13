@@ -6,7 +6,8 @@ import {
   ArrowLeft, CheckCircle, Clock, Calendar, Video,
   ExternalLink, AlertTriangle, X,
 } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { ContactRecruiterModal } from "../components/Modals";
 import { useAppContext } from "../contexts/AppContext";
 

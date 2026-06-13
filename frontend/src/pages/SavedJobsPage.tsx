@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings, Search, MapPin, ChevronDown, BookmarkX } from "lucide-react";
 import { toast } from "sonner";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { ApplicationConfirmModal, ApplicationSuccessModal } from "../components/Modals";
-import { useAppContext, SavedJob } from "../contexts/AppContext";
+import { useAppContext } from "../contexts/AppContext";
+import type { SavedJob } from "../contexts/AppContext";
 
 const sidebarItems: SidebarItem[] = [
   { key: "beranda", label: "Beranda", icon: <Home size={16} />, path: "/dashboard/kandidat" },

@@ -5,7 +5,8 @@ import {
   Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings,
   ArrowLeft, CheckCircle, Circle, Award, Clock, BookMarked, Play, Square,
 } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 
 const sidebarItems: SidebarItem[] = [
   { key: "beranda", label: "Beranda", icon: <Home size={16} />, path: "/dashboard/kandidat" },

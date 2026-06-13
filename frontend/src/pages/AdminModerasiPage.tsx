@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { LayoutDashboard, Building2, Shield, AlertTriangle, Activity, ClipboardList, Cpu, Users, Settings, CheckCircle2, XCircle, Eye, Flag } from "lucide-react";
 import { toast } from "sonner";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { RejectionReasonModal } from "../components/Modals";
 
 const sidebarItems: SidebarItem[] = [

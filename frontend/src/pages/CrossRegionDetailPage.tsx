@@ -5,7 +5,8 @@ import {
   Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings,
   ArrowLeft, MapPin, DollarSign, Sparkles, CheckCircle2, Building2, TrendingUp,
 } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { ApplicationConfirmModal, ApplicationSuccessModal } from "../components/Modals";
 import { useAppContext } from "../contexts/AppContext";
 

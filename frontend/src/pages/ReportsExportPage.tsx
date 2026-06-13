@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { LayoutDashboard, Users, TrendingUp, MapPin, BarChart2, BookOpen, FileText, Settings, Download, Eye, Clock } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { ExportReportModal } from "../components/Modals";
 
 const sidebarItems: SidebarItem[] = [

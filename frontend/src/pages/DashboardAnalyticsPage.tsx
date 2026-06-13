@@ -5,7 +5,8 @@ import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { ExportReportModal } from "../components/Modals";
 
 const sidebarItems: SidebarItem[] = [

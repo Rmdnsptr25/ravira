@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Search, Filter, Plus, Users, Briefcase, TrendingUp, Clock, MoreHorizontal, ChevronRight, Star, MapPin, LayoutDashboard, GitBranch, BarChart2, Plug, Building2, Settings, BookmarkCheck } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { useAppContext } from "../contexts/AppContext";
 
 const sidebarItems: SidebarItem[] = [

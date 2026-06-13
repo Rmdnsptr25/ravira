@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Shield, Eye, Bell, Lock, Trash2, CheckCircle2, Home, Briefcase, BarChart2, BookOpen, FileText, Globe, User, Settings, Bookmark, ChevronRight } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { RevokeConsentModal, DeleteAccountModal } from "../components/Modals";
 import { toast } from "sonner";
 

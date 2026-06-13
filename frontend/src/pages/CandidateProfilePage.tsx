@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { ArrowLeft, MapPin, Briefcase, GraduationCap, CheckCircle2, XCircle, Star, Mail, Phone, Linkedin, Download, MessageSquare, ChevronRight } from "lucide-react";
+import { ArrowLeft, MapPin, Briefcase, GraduationCap, CheckCircle2, XCircle, Star, Mail, Phone, Link2, Download, MessageSquare, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { InterviewScheduleModal } from "../components/Modals";
 
@@ -183,7 +183,7 @@ export default function CandidateProfilePage() {
               Jadwalkan Interview <ChevronRight size={14} />
             </button>
             <button style={{ padding: "12px", borderRadius: 12, border: "1px solid rgba(22,119,255,0.2)", background: "#f0f7ff", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#1677FF", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              <Linkedin size={14} /> Lihat LinkedIn
+              <Link2 size={14} /> Lihat LinkedIn
             </button>
             <button onClick={() => { toast.success("Kandidat berhasil dimasukkan ke pipeline"); navigate("/dashboard/perusahaan/pipeline"); }} style={{ padding: "12px", borderRadius: 12, border: "1px solid rgba(22,119,255,0.2)", background: "#f0f7ff", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#1677FF", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               Masukkan ke Pipeline

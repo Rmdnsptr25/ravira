@@ -5,8 +5,10 @@ import {
   FileText, Globe, User, Settings,
   MapPin, Calendar, ChevronRight, CheckCircle, Circle,
 } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
-import { useAppContext, AppStatus } from "../contexts/AppContext";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
+import { useAppContext } from "../contexts/AppContext";
+import type { AppStatus } from "../contexts/AppContext";
 
 const sidebarItems: SidebarItem[] = [
   { key: "beranda", label: "Beranda", icon: <Home size={16} />, path: "/dashboard/kandidat" },

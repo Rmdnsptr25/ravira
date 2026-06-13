@@ -5,7 +5,8 @@ import {
   MapPin, Mail, Phone, Calendar, Download, Edit2, CheckCircle,
   GraduationCap, Star, FolderOpen, UploadCloud,
 } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { toast } from "sonner";
 
 const sidebarItems: SidebarItem[] = [

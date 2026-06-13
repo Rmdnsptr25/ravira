@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Home, Briefcase, BarChart2, BookOpen, FileText, Globe, User, Settings, MapPin, Clock, TrendingUp, ChevronRight, Bookmark } from "lucide-react";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { ApplicationConfirmModal, ApplicationSuccessModal } from "../components/Modals";
 import { useAppContext } from "../contexts/AppContext";
 

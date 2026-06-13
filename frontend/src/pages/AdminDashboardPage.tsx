@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Users, Building2, Landmark, AlertTriangle, CheckCircle2, Clock, TrendingUp, Shield, Search, MoreHorizontal, Eye, LayoutDashboard, ClipboardList, Cpu, Settings, Activity } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 
 const sidebarItems: SidebarItem[] = [
   { key: "overview", label: "Overview", icon: <LayoutDashboard size={16} />, path: "/dashboard/admin" },

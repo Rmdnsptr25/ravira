@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { MapPin, Clock, DollarSign, Bookmark, CheckCircle2, XCircle, BookOpen, Building2, ChevronRight, Home, Briefcase, BarChart2, FileText, Globe, User, Settings } from "lucide-react";
 import { toast } from "sonner";
-import { DashboardLayout, SidebarItem } from "../components/DashboardLayout";
+import { DashboardLayout } from "../components/DashboardLayout";
+import type { SidebarItem } from "../components/DashboardLayout";
 import { ApplicationConfirmModal, ApplicationSuccessModal } from "../components/Modals";
 import { useAppContext } from "../contexts/AppContext";
 
