@@ -30,7 +30,7 @@ Buat file `.env` berdasarkan `.env.example`.
 Minimal:
 
 ```env
-DATABASE_URL="postgresql://postgres:<password>@<host>:5432/postgres?schema=public"
+DATABASE_URL="postgresql://postgres:<url-encoded-password>@<host>:5432/postgres?schema=public"
 JWT_SECRET="replace-with-secure-secret"
 JWT_EXPIRES_IN="7d"
 BCRYPT_SALT_ROUNDS="10"
@@ -43,6 +43,8 @@ Catatan:
 
 - Jangan commit `.env`.
 - Gunakan connection string Supabase PostgreSQL yang sesuai environment.
+- Untuk Prisma 6, jangan tambahkan parameter `pgbouncer=true` ke `DATABASE_URL`.
+- Jika password database berisi karakter khusus seperti `]`, `[`, `@`, `#`, `?`, `/`, atau spasi, encode password lebih dulu sebelum dimasukkan ke URL. Contoh: `]` menjadi `%5D`.
 - `JWT_SECRET` wajib diisi sebelum server start.
 
 ## Prisma Validate
