@@ -80,7 +80,7 @@ npm run seed
 Default seed login:
 
 ```text
-seed-admin@ravira.local
+ 
 seed-candidate@ravira.local
 seed-recruiter@ravira.local
 Password123!
