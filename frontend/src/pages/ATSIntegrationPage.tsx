@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { LayoutDashboard, GitBranch, Briefcase, Plus, BookmarkCheck, BarChart2, Plug, Building2, Settings, CheckCircle, Copy } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
+import { useAppContext } from "../contexts/AppContext";
 import type { SidebarItem } from "../components/DashboardLayout";
 
 const sidebarItems: SidebarItem[] = [
@@ -22,13 +24,18 @@ const integrations = [
   { name: "Greenhouse", initials: "GH", color: "#8b5cf6", connected: true, lastSync: "1 jam lalu" },
 ];
 
-const WEBHOOK_URL = "https://api.ravira.id/webhook/ats/tokopedia/abc123xyz";
 
 export default function ATSIntegrationPage() {
+  const { user } = useAppContext();
+  const displayName = user?.fullName || "Recruiter";
+  const displayCompany = user?.recruiter?.company?.name || "Perusahaan";
+  const displayRole = `${user?.recruiter?.position || "HR Manager"} · ${displayCompany}`;
+  const displayInitial = (displayName[0] || "R").toUpperCase();
+  const webhookUrl = `https://api.ravira.id/webhook/ats/${encodeURIComponent(displayCompany.toLowerCase().replace(/\s+/g, "-"))}/key-${user?.id?.slice(0, 8) || "live"}`;
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(WEBHOOK_URL).then(() => {
+    navigator.clipboard.writeText(webhookUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -38,9 +45,9 @@ export default function ATSIntegrationPage() {
     <DashboardLayout
       sidebarItems={sidebarItems}
       activeKey="ats"
-      userName="Siti Rahayu"
-      userRole="HR Manager · Tokopedia"
-      userInitial="S"
+      userName={displayName}
+      userRole={displayRole}
+      userInitial={displayInitial}
     >
       <div style={{ padding: "32px", minHeight: "100vh", backgroundColor: "#f0f7ff" }}>
         <div style={{ marginBottom: "28px" }}>
@@ -111,7 +118,7 @@ export default function ATSIntegrationPage() {
               </div>
 
               <button
-                onClick={() => alert(ats.connected ? `Menyinkronkan ${ats.name}...` : `Menghubungkan ke ${ats.name}...`)}
+                onClick={() => toast.info(ats.connected ? `Sinkronisasi dengan ${ats.name} dijadwalkan.` : `Integrasi langsung dengan ${ats.name} sedang dalam pengujian (Beta).`)}
                 style={{
                   fontFamily: "Inter, sans-serif",
                   fontSize: "13px",
@@ -159,7 +166,7 @@ export default function ATSIntegrationPage() {
                 whiteSpace: "nowrap",
               }}
             >
-              {WEBHOOK_URL}
+              {webhookUrl}
             </span>
             <button
               onClick={handleCopy}

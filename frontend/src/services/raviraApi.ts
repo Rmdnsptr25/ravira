@@ -870,6 +870,98 @@ export async function updateAppealDecision(appealId: string, body: AppealDecisio
   return api.post<AdminAppeal>(`/admin/appeals/${appealId}/decision`, body, signal)
 }
 
+export type SavedJobItem = {
+  id: string
+  jobId: string
+  savedAt: string
+  job: {
+    id: string
+    title: string
+    description: string
+    location?: string | null
+    jobType?: string | null
+    workType?: string | null
+    employmentType?: string | null
+    salaryMin?: number | null
+    salaryMax?: number | null
+    status: string
+    createdAt: string
+    company?: {
+      id: string
+      name: string
+      location?: string | null
+      industry?: string | null
+      verificationStatus: string
+    }
+    skills?: Array<{
+      id: string
+      skillName: string
+      required: boolean
+      weight: number
+    }>
+  }
+}
+
+export type SavedJobResult = {
+  id: string
+  jobId: string
+  savedAt: string
+  job: {
+    id: string
+    title: string
+    company?: {
+      id: string
+      name: string
+    }
+  }
+}
+
+export async function listCandidateSavedJobs(signal?: AbortSignal) {
+  return api.get<SavedJobItem[]>('/candidates/me/saved-jobs', signal)
+}
+
+export async function saveJobForCandidate(jobId: string, signal?: AbortSignal) {
+  return api.post<SavedJobResult>('/candidates/me/saved-jobs', { jobId }, signal)
+}
+
+export async function removeSavedJobForCandidate(jobId: string, signal?: AbortSignal) {
+  return api.delete<{ jobId: string; removed: boolean }>(`/candidates/me/saved-jobs/${jobId}`, signal)
+}
+
+export type RecruiterCompanyProfile = {
+  id: string
+  name: string
+  industry?: string | null
+  size?: string | null
+  location?: string | null
+  website?: string | null
+  description?: string | null
+  verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED'
+  verifiedAt?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type UpdateRecruiterCompanyInput = {
+  name?: string
+  industry?: string
+  size?: string
+  location?: string
+  website?: string
+  description?: string
+}
+
+export async function getRecruiterCompanyProfile(signal?: AbortSignal) {
+  return api.get<RecruiterCompanyProfile>('/recruiter/company', signal)
+}
+
+export async function updateRecruiterCompanyProfile(
+  body: UpdateRecruiterCompanyInput,
+  signal?: AbortSignal
+) {
+  return api.patch<RecruiterCompanyProfile>('/recruiter/company', body, signal)
+}
+
 export function logout() {
   clearAuthToken()
 }

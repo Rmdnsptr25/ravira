@@ -3,15 +3,19 @@ import {
   applyToJob as submitJobApplication,
   getAuthToken,
   getCurrentUser,
+  listCandidateSavedJobs,
   listMyApplications,
   listPublishedJobs,
   login as loginRequest,
   logout as logoutRequest,
   registerCandidate as registerCandidateRequest,
   registerRecruiter as registerRecruiterRequest,
+  removeSavedJobForCandidate,
+  saveJobForCandidate,
   type CandidateApplication,
   type PublicJob,
   type RaviraUser,
+  type SavedJobItem,
 } from "../services/raviraApi";
 
 import { ApiError, AUTH_TOKEN_KEY, SESSION_INVALIDATED } from "../services/api";
@@ -75,6 +79,7 @@ interface AppContextType {
   registerRecruiter: (input: RegisterRecruiterInput) => Promise<RaviraUser>;
   logout: () => void;
   refreshApplications: () => Promise<void>;
+  refreshSavedJobs: () => Promise<void>;
   addApplication: (app: Omit<Application, "id" | "tanggal" | "status" | "isNew">) => string;
   applyToJob: (job: Omit<Application, "id" | "tanggal" | "status" | "isNew"> & { jobId?: string }) => Promise<string>;
   updateApplicationStatus: (id: string, status: AppStatus) => void;
@@ -129,6 +134,23 @@ function mapBackendApplication(app: CandidateApplication): Application {
   };
 }
 
+function mapBackendSavedJob(item: SavedJobItem): SavedJob {
+  const minSal = item.job.salaryMin ? `Rp ${(item.job.salaryMin / 1000000).toFixed(0)} jt` : "";
+  const maxSal = item.job.salaryMax ? `Rp ${(item.job.salaryMax / 1000000).toFixed(0)} jt` : "";
+  const salary = minSal && maxSal ? `${minSal} - ${maxSal}` : (minSal || maxSal || "Gaji kompetitif");
+
+  return {
+    id: item.job.id,
+    title: item.job.title,
+    company: item.job.company?.name ?? "Perusahaan",
+    location: item.job.location ?? "Lokasi fleksibel",
+    type: item.job.workType || item.job.jobType || item.job.employmentType || "Full-time",
+    salary,
+    match: 85,
+    matchedSkills: item.job.skills?.map((s) => s.skillName) ?? [],
+  };
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<RaviraUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -162,6 +184,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const backendApplications = await listMyApplications();
     if (token && token === getAuthToken() && version === generation.current) {
       setApplications(backendApplications.map(mapBackendApplication));
+    }
+  }, []);
+
+  const refreshSavedJobs = useCallback(async () => {
+    const token = getAuthToken();
+    const version = generation.current;
+    try {
+      const backendSavedJobs = await listCandidateSavedJobs();
+      if (token && token === getAuthToken() && version === generation.current) {
+        setSavedJobs(backendSavedJobs.map(mapBackendSavedJob));
+      }
+    } catch {
+      // ignore non-critical saved jobs fetch failure
     }
   }, []);
 
@@ -209,9 +244,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (user?.role === "CANDIDATE") {
-      void refreshApplications().catch(() => setBackendOnline(false));
+      queueMicrotask(() => {
+        void refreshApplications().catch(() => setBackendOnline(false));
+        void refreshSavedJobs().catch(() => {});
+      });
     }
-  }, [user, refreshApplications]);
+  }, [user, refreshApplications, refreshSavedJobs]);
 
   useEffect(() => {
     if (!user) return;
@@ -303,10 +341,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const saveJob = useCallback((job: SavedJob) => {
     setSavedJobs(prev => prev.some(s => s.id === job.id) ? prev : [job, ...prev]);
+    if (getAuthToken()) {
+      saveJobForCandidate(job.id).catch((err) => {
+        setSavedJobs(prev => prev.filter(s => s.id !== job.id));
+        console.error("Failed to persist saved job:", err);
+      });
+    }
   }, []);
 
   const unsaveJob = useCallback((id: string) => {
-    setSavedJobs(prev => prev.filter(s => s.id !== id));
+    setSavedJobs(prev => {
+      const previous = prev;
+      if (getAuthToken()) {
+        removeSavedJobForCandidate(id).catch((err) => {
+          setSavedJobs(previous);
+          console.error("Failed to remove saved job:", err);
+        });
+      }
+      return prev.filter(s => s.id !== id);
+    });
   }, []);
 
   const isJobSaved = useCallback((id: string) => {
@@ -328,6 +381,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       registerRecruiter,
       logout,
       refreshApplications,
+      refreshSavedJobs,
       addApplication,
       applyToJob,
       updateApplicationStatus,

@@ -1,5 +1,6 @@
 import { LayoutDashboard, GitBranch, Briefcase, Plus, BookmarkCheck, BarChart2, Plug, Building2, Settings, Users, TrendingUp, CheckCircle, Activity } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
+import { useAppContext } from "../contexts/AppContext";
 import type { SidebarItem } from "../components/DashboardLayout";
 
 const sidebarItems: SidebarItem[] = [
@@ -48,13 +49,18 @@ const funnel = [
 ];
 
 export default function RecruitmentAnalyticsPage() {
+  const { user } = useAppContext();
+  const displayName = user?.fullName || "Recruiter";
+  const displayCompany = user?.recruiter?.company?.name || "Perusahaan";
+  const displayRole = `${user?.recruiter?.position || "HR Manager"} · ${displayCompany}`;
+  const displayInitial = (displayName[0] || "R").toUpperCase();
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
       activeKey="analitik"
-      userName="Siti Rahayu"
-      userRole="HR Manager · Tokopedia"
-      userInitial="S"
+      userName={displayName}
+      userRole={displayRole}
+      userInitial={displayInitial}
     >
       <div style={{ padding: "32px", minHeight: "100vh", backgroundColor: "#f0f7ff" }}>
         <div style={{ marginBottom: "28px" }}>
