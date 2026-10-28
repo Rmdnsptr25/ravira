@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { RaviraOwlIcon } from "../components/RaviraLogo";
+import { useAppContext } from "../contexts/AppContext";
+import {
+  updateCandidateProfile,
+  createCandidateSkill,
+  type UpdateCandidateProfileInput,
+  type ProfileVisibilityStatus,
+} from "../services/raviraApi";
+import { ApiError } from "../services/api";
 
 const steps = ["Lengkapi Profil", "Preferensi Karier", "Preferensi Mobilitas", "Visibilitas & Consent"];
 
@@ -12,16 +21,105 @@ const relocationOptions = ["Ya, bersedia relokasi", "Tidak, tetap di domisili", 
 
 export default function OnboardingCandidatePage() {
   const navigate = useNavigate();
+  const { user, retrySession } = useAppContext();
   const [step, setStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Step 0: Profil
+  const [bio, setBio] = useState("");
+  const [pengalaman, setPengalaman] = useState("");
+  const [pendidikan, setPendidikan] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+
+  // Step 1: Preferensi Karier
+  const [posisiDicari, setPosisiDicari] = useState("");
+  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>([]);
+  const [gaji, setGaji] = useState("");
+  const [lokasi, setLokasi] = useState("");
+
+  // Step 2: Preferensi Mobilitas
   const [relocation, setRelocation] = useState("");
+  const [targetCities, setTargetCities] = useState("");
+  const [availability, setAvailability] = useState("Segera (≤ 1 bulan)");
+
+  // Step 3: Visibilitas & Consent
   const [visibility, setVisibility] = useState("publik");
   const [consentAI, setConsentAI] = useState(true);
   const [consentAnon, setConsentAnon] = useState(true);
 
   const toggleSkill = (s: string) => setSelectedSkills(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
   const toggleWorkType = (t: string) => setSelectedWorkTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  const toggleIndustry = (ind: string) => setSelectedIndustries(prev => prev.includes(ind) ? prev.filter(x => x !== ind) : [...prev, ind]);
+
+  const handleCompleteOnboarding = async () => {
+    setIsSubmitting(true);
+    try {
+      const payload: UpdateCandidateProfileInput = {};
+
+      const summaryParts = [
+        bio.trim(),
+        pengalaman.trim() ? `Pengalaman: ${pengalaman.trim()}` : "",
+        posisiDicari.trim() ? `Minat Posisi: ${posisiDicari.trim()}` : "",
+      ].filter(Boolean);
+
+      if (summaryParts.length > 0) {
+        payload.experienceSummary = summaryParts.join(" | ");
+      }
+      if (pendidikan.trim()) {
+        payload.education = pendidikan.trim();
+      }
+      if (lokasi.trim()) {
+        payload.location = lokasi.trim();
+      }
+      if (gaji.trim()) {
+        const numGaji = parseInt(gaji.replace(/\D/g, ""), 10);
+        if (!isNaN(numGaji) && numGaji > 0) {
+          payload.salaryExpectation = numGaji;
+        }
+      }
+      if (relocation.trim()) {
+        payload.mobilityPreference = relocation.trim();
+      }
+
+      const visMap: Record<string, ProfileVisibilityStatus> = {
+        publik: "PUBLIC",
+        tertentu: "LIMITED",
+        private: "PRIVATE",
+      };
+      if (visibility) {
+        payload.visibilityStatus = visMap[visibility] || "PUBLIC";
+      }
+
+      if (Object.keys(payload).length > 0) {
+        await updateCandidateProfile(payload);
+      }
+
+      // Add selected skills to candidate profile
+      if (selectedSkills.length > 0) {
+        for (const skill of selectedSkills) {
+          try {
+            await createCandidateSkill({
+              skillName: skill,
+              level: "Menengah",
+              source: "ONBOARDING",
+            });
+          } catch {
+            // Ignore duplicate skill conflicts safely
+          }
+        }
+      }
+
+      void retrySession();
+      toast.success("Profil onboarding berhasil disimpan!");
+      navigate("/dashboard/kandidat");
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Gagal menyimpan data onboarding.";
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "11px 14px", borderRadius: 10,
@@ -29,6 +127,8 @@ export default function OnboardingCandidatePage() {
     fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#0A1B3D",
     background: "#f8fbff", boxSizing: "border-box",
   };
+
+  const userInitial = (user?.fullName?.[0] || "K").toUpperCase();
 
   return (
     <div style={{ minHeight: "100vh", background: "#f0f7ff", fontFamily: "'Inter', sans-serif" }}>
@@ -73,35 +173,53 @@ export default function OnboardingCandidatePage() {
 
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
                 <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #1677FF, #4DB8FF)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                  <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 800, color: "#fff" }}>B</span>
+                  <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 800, color: "#fff" }}>{userInitial}</span>
                 </div>
                 <div>
-                  <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>Foto Profil</div>
-                  <button style={{ padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(22,119,255,0.25)", background: "#f0f7ff", fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#1677FF", cursor: "pointer", fontWeight: 500 }}>
-                    Upload Foto
-                  </button>
+                  <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>
+                    {user?.fullName || "Kandidat"}
+                  </div>
+                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>
+                    {user?.email || ""}
+                  </div>
                 </div>
               </div>
 
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Ringkasan Diri</label>
-                <textarea rows={3} placeholder="Ceritakan tentang diri Anda, pengalaman, dan tujuan karier..." style={{ ...inputStyle, resize: "vertical" }}
+                <textarea
+                  rows={3}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Ceritakan tentang diri Anda, pengalaman, dan tujuan karier..."
+                  style={{ ...inputStyle, resize: "vertical" }}
                   onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")}
+                />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
                 <div>
                   <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Pengalaman Kerja</label>
-                  <input style={inputStyle} placeholder="Contoh: 2 tahun sebagai UI Designer"
+                  <input
+                    style={inputStyle}
+                    value={pengalaman}
+                    onChange={(e) => setPengalaman(e.target.value)}
+                    placeholder="Contoh: 2 tahun sebagai UI Designer"
                     onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
-                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
+                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")}
+                  />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Pendidikan</label>
-                  <input style={inputStyle} placeholder="Contoh: S1 Teknik Informatika, UI"
+                  <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Pendidikan Terakhir</label>
+                  <input
+                    style={inputStyle}
+                    value={pendidikan}
+                    onChange={(e) => setPendidikan(e.target.value)}
+                    placeholder="Contoh: S1 Teknik Informatika, UI"
                     onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
-                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
+                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")}
+                  />
                 </div>
               </div>
 
@@ -135,19 +253,39 @@ export default function OnboardingCandidatePage() {
 
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Posisi yang Dicari</label>
-                <input style={inputStyle} placeholder="Contoh: UI/UX Designer, Product Manager"
+                <input
+                  style={inputStyle}
+                  value={posisiDicari}
+                  onChange={(e) => setPosisiDicari(e.target.value)}
+                  placeholder="Contoh: UI/UX Designer, Product Manager"
                   onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")}
+                />
               </div>
 
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 10 }}>Industri yang Diminati</label>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {industryOptions.map((ind) => (
-                    <button key={ind} type="button" style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid rgba(22,119,255,0.2)", background: "#f8fbff", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", cursor: "pointer" }}>
-                      {ind}
-                    </button>
-                  ))}
+                  {industryOptions.map((ind) => {
+                    const isSelected = selectedIndustries.includes(ind);
+                    return (
+                      <button
+                        key={ind}
+                        type="button"
+                        onClick={() => toggleIndustry(ind)}
+                        style={{
+                          padding: "6px 12px", borderRadius: 8,
+                          border: isSelected ? "1px solid #1677FF" : "1px solid rgba(22,119,255,0.2)",
+                          background: isSelected ? "rgba(22,119,255,0.1)" : "#f8fbff",
+                          fontFamily: "'Inter', sans-serif", fontSize: 13,
+                          color: isSelected ? "#1677FF" : "#6a88b8",
+                          cursor: "pointer", fontWeight: isSelected ? 600 : 400,
+                        }}
+                      >
+                        {ind}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -173,15 +311,25 @@ export default function OnboardingCandidatePage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Ekspektasi Gaji (per bulan)</label>
-                  <input style={inputStyle} placeholder="Contoh: Rp 8.000.000"
+                  <input
+                    style={inputStyle}
+                    value={gaji}
+                    onChange={(e) => setGaji(e.target.value)}
+                    placeholder="Contoh: Rp 8.000.000"
                     onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
-                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
+                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")}
+                  />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Lokasi Kerja yang Diinginkan</label>
-                  <input style={inputStyle} placeholder="Contoh: Jakarta, Bandung"
+                  <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Lokasi Kerja yang Diinginkan (Pulau Jawa)</label>
+                  <input
+                    style={inputStyle}
+                    value={lokasi}
+                    onChange={(e) => setLokasi(e.target.value)}
+                    placeholder="Contoh: Jakarta, Bandung, Surabaya"
                     onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
-                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
+                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")}
+                  />
                 </div>
               </div>
             </div>
@@ -207,14 +355,23 @@ export default function OnboardingCandidatePage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
-                  <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Kota Tujuan yang Diminati</label>
-                  <input style={inputStyle} placeholder="Contoh: Bali, Surabaya, Makassar"
+                  <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Kota Tujuan yang Diminati (Pulau Jawa)</label>
+                  <input
+                    style={inputStyle}
+                    value={targetCities}
+                    onChange={(e) => setTargetCities(e.target.value)}
+                    placeholder="Contoh: Bandung, Surabaya, Yogyakarta"
                     onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
-                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
+                    onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")}
+                  />
                 </div>
                 <div>
                   <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Ketersediaan Mulai Kerja</label>
-                  <select style={{ ...inputStyle, cursor: "pointer" }}>
+                  <select
+                    style={{ ...inputStyle, cursor: "pointer" }}
+                    value={availability}
+                    onChange={(e) => setAvailability(e.target.value)}
+                  >
                     <option>Segera (≤ 1 bulan)</option>
                     <option>1–3 bulan</option>
                     <option>3–6 bulan</option>
@@ -269,14 +426,41 @@ export default function OnboardingCandidatePage() {
         {/* Navigation */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <button
+            type="button"
+            disabled={isSubmitting}
             onClick={() => step > 0 ? setStep(step - 1) : navigate("/daftar/kandidat")}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "11px 20px", borderRadius: 10, border: "1px solid rgba(22,119,255,0.2)", background: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", cursor: "pointer" }}>
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "11px 20px", borderRadius: 10, border: "1px solid rgba(22,119,255,0.2)", background: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", cursor: isSubmitting ? "not-allowed" : "pointer" }}>
             <ArrowLeft size={15} /> {step === 0 ? "Kembali" : "Sebelumnya"}
           </button>
           <button
-            onClick={() => step < steps.length - 1 ? setStep(step + 1) : navigate("/dashboard/kandidat")}
-            style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 24px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #1677FF, #0D47A1)", fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer", boxShadow: "0 4px 16px rgba(22,119,255,0.35)" }}>
-            {step === steps.length - 1 ? "Selesai dan Lihat Rekomendasi" : "Lanjut"} <ArrowRight size={15} />
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => {
+              if (step < steps.length - 1) {
+                setStep(step + 1);
+              } else {
+                void handleCompleteOnboarding();
+              }
+            }}
+            style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "11px 24px", borderRadius: 10, border: "none",
+              background: "linear-gradient(135deg, #1677FF, #0D47A1)", fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700,
+              color: "#fff", cursor: isSubmitting ? "not-allowed" : "pointer", boxShadow: "0 4px 16px rgba(22,119,255,0.35)",
+              opacity: isSubmitting ? 0.7 : 1,
+            }}>
+            {isSubmitting ? (
+              <>
+                <Loader2 size={16} className="animate-spin" /> Menyimpan Profil...
+              </>
+            ) : step === steps.length - 1 ? (
+              <>
+                Selesai dan Lihat Rekomendasi <ArrowRight size={15} />
+              </>
+            ) : (
+              <>
+                Lanjut <ArrowRight size={15} />
+              </>
+            )}
           </button>
         </div>
       </div>

@@ -35,6 +35,73 @@ export type AuthResult = {
   user: RaviraUser
 }
 
+export type ProfileVisibilityStatus = 'PRIVATE' | 'LIMITED' | 'PUBLIC'
+
+export type CandidateProfile = {
+  id: string
+  userId: string
+  email: string
+  fullName: string
+  phone: string | null
+  location: string | null
+  education: string | null
+  experienceSummary: string | null
+  salaryExpectation: number | null
+  mobilityPreference: string | null
+  visibilityStatus: ProfileVisibilityStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export type UpdateCandidateProfileInput = {
+  fullName?: string
+  phone?: string
+  location?: string
+  education?: string
+  experienceSummary?: string
+  salaryExpectation?: number
+  mobilityPreference?: string
+  visibilityStatus?: ProfileVisibilityStatus
+}
+
+export type CandidateSkill = {
+  id: string
+  skillName: string
+  level: string | null
+  source: string | null
+  confidenceScore: number | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type CreateCandidateSkillInput = {
+  skillName: string
+  level?: string
+  source?: string
+  confidenceScore?: number
+}
+
+export type CandidateDocument = {
+  id: string
+  candidateId: string
+  fileName: string
+  fileType: string
+  fileSize: number
+  parsingStatus: 'PENDING' | 'SUCCESS' | 'FAILED' | 'NEED_REVIEW'
+  parsedText: string | null
+  extractedSkills: Array<{
+    skillName: string
+    source?: string
+    confidenceScore?: number
+  }> | null
+  extractedEducation: unknown | null
+  extractedExperience: unknown | null
+  uploadedAt: string
+  parsedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export type PublicJob = {
   id: string
   title: string
@@ -136,6 +203,42 @@ export async function getCurrentUser() {
   return api.get<RaviraUser>('/auth/me')
 }
 
+// ── Candidate Profile & Skills APIs (Sprint 2A) ─────────────
+export async function getCandidateProfile(signal?: AbortSignal) {
+  return api.get<CandidateProfile>('/candidates/me', signal)
+}
+
+export async function updateCandidateProfile(input: UpdateCandidateProfileInput, signal?: AbortSignal) {
+  return api.patch<CandidateProfile>('/candidates/me', input, signal)
+}
+
+export async function listCandidateSkills(signal?: AbortSignal) {
+  return api.get<CandidateSkill[]>('/candidates/me/skills', signal)
+}
+
+export async function createCandidateSkill(input: CreateCandidateSkillInput, signal?: AbortSignal) {
+  return api.post<CandidateSkill>('/candidates/me/skills', input, signal)
+}
+
+export async function deleteCandidateSkill(skillId: string, signal?: AbortSignal) {
+  return api.delete<{ id: string }>(`/candidates/me/skills/${skillId}`, signal)
+}
+
+export async function uploadCandidateCv(file: File, signal?: AbortSignal) {
+  const formData = new FormData()
+  formData.append('cv', file)
+  return api.post<CandidateDocument>('/candidates/me/cv', formData, signal)
+}
+
+export async function listCandidateCvs(signal?: AbortSignal) {
+  return api.get<CandidateDocument[]>('/candidates/me/cv', signal)
+}
+
+export async function deleteCandidateCv(cvId: string, signal?: AbortSignal) {
+  return api.delete<{ id: string }>(`/candidates/me/cv/${cvId}`, signal)
+}
+
+// ── Jobs & Applications APIs ────────────────────────────────
 export async function listPublishedJobs(signal?: AbortSignal) {
   return api.get<PublicJob[]>('/jobs', signal)
 }

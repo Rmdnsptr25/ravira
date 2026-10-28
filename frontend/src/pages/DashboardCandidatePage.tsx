@@ -43,16 +43,18 @@ const crossRegion = [
 
 export default function DashboardCandidatePage() {
   const navigate = useNavigate();
-  const { addApplication } = useAppContext();
+  const { addApplication, user } = useAppContext();
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState<{ title: string; company: string; location: string; match: number } | null>(null);
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Budi Santoso" userRole="Kandidat" userInitial="B">
+    <DashboardLayout sidebarItems={sidebarItems} userName={displayName} userRole="Kandidat" userInitial={displayInitial}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 800, color: "#0A1B3D", letterSpacing: "-0.5px", marginBottom: 4 }}>
-          Halo, Budi Santoso 👋
+          Halo, {displayName} 👋
         </h1>
         <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8" }}>
           Ini rekomendasi terbaik untuk Anda hari ini. AI kami terus bekerja di balik layar!

@@ -256,11 +256,11 @@ function ChartTooltipContent({
                         {itemConfig?.label || item.name}
                       </span>
                     </div>
-                    {item.value && (
+                    {item.value != null ? (
                       <span className="text-foreground font-mono font-medium tabular-nums">
-                        {item.value.toLocaleString()}
+                        {typeof item.value === "number" ? item.value.toLocaleString() : String(item.value)}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 </>
               )}
@@ -316,7 +316,7 @@ function ChartLegendContent({
 
         return (
           <div
-            key={item.value || index}
+            key={typeof item.value === "string" || typeof item.value === "number" ? item.value : index}
             className={cn(
               "[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3",
             )}
