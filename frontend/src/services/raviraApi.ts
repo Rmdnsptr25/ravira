@@ -302,6 +302,13 @@ export type ApplicationDetail = CandidateApplication & {
       fullName: string
       phone: string | null
     }
+    skills?: Array<{
+      id: string
+      skillName: string
+      level?: string | null
+      source?: string
+      confidenceScore?: number | null
+    }>
   }
 }
 
@@ -502,6 +509,191 @@ export async function createTrainingProgress(body: { courseId: string; status?: 
 
 export async function updateTrainingProgress(progressId: string, body: { status?: string; progressPct?: number }, signal?: AbortSignal) {
   return api.patch<TrainingProgressItem>(`/candidates/me/training-progress/${progressId}`, body, signal)
+}
+
+// ── Recruiter & Pipeline APIs (Sprint 2C) ─────────────────────
+export type RecruiterJobStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED' | 'ARCHIVED'
+
+export type ApplicationStageStatus =
+  | 'APPLIED'
+  | 'SCREENING'
+  | 'SELEKSI_TAHAP_1'
+  | 'SELEKSI_TAHAP_2'
+  | 'INTERVIEW'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'NEED_VERIFICATION'
+
+export type RecruiterJobSkill = {
+  id: string
+  skillName: string
+  required: boolean
+  weight: number
+}
+
+export type RecruiterJobSkillInput = {
+  skillName: string
+  required?: boolean
+  weight?: number
+}
+
+export type CreateRecruiterJobInput = {
+  title: string
+  description: string
+  location?: string
+  jobType?: string
+  workType?: string
+  employmentType?: string
+  salaryMin?: number
+  salaryMax?: number
+  status?: RecruiterJobStatus
+  jobSkills?: RecruiterJobSkillInput[]
+}
+
+export type UpdateRecruiterJobInput = Partial<CreateRecruiterJobInput>
+
+export type RecruiterJob = {
+  id: string
+  title: string
+  description: string
+  location: string | null
+  jobType: string | null
+  workType: string | null
+  employmentType: string | null
+  salaryMin: number | null
+  salaryMax: number | null
+  status: RecruiterJobStatus
+  companyId: string
+  createdByRecruiterId: string
+  skills: RecruiterJobSkill[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type RecruiterJobApplication = {
+  id: string
+  status: ApplicationStageStatus
+  coverLetter: string | null
+  createdAt: string
+  updatedAt: string
+  candidate: {
+    id: string
+    location: string | null
+    education: string | null
+    experienceSummary: string | null
+    user: {
+      id: string
+      email: string
+      fullName: string
+      phone: string | null
+    }
+    skills: Array<{
+      id: string
+      skillName: string
+      level: string | null
+      source: string
+      confidenceScore: number | null
+    }>
+  }
+}
+
+export type RecruiterCandidateScore = {
+  applicationId: string
+  applicationStatus: ApplicationStageStatus
+  candidate: {
+    id: string
+    fullName: string
+    email: string
+    phone: string | null
+    location: string | null
+    education: string | null
+    experienceSummary: string | null
+  }
+  matchScore: number
+  matchExplanation: string
+  candidateScore: number
+  candidateScoreBreakdown: {
+    skillScore?: number
+    experienceScore?: number
+    educationScore?: number
+    ruleVersion?: string
+    notes?: string
+    [key: string]: unknown
+  } | null
+  explanation: string
+  ruleVersion: string
+}
+
+export type ApplicationCandidateScore = {
+  applicationId: string
+  applicationStatus: ApplicationStageStatus
+  job: {
+    id: string
+    title: string
+  }
+  candidate: {
+    id: string
+    fullName: string
+    email: string
+    phone: string | null
+    location: string | null
+    education: string | null
+    experienceSummary: string | null
+  }
+  matchScore: number
+  matchExplanation: string
+  candidateScore: number
+  candidateScoreBreakdown: {
+    skillScore?: number
+    experienceScore?: number
+    educationScore?: number
+    ruleVersion?: string
+    notes?: string
+    [key: string]: unknown
+  } | null
+  explanation: string
+  ruleVersion: string
+}
+
+export type UpdateApplicationStageInput = {
+  newStatus: ApplicationStageStatus
+  reason: string
+}
+
+export async function listRecruiterJobs(signal?: AbortSignal) {
+  return api.get<RecruiterJob[]>('/recruiter/jobs', signal)
+}
+
+export async function getRecruiterJob(jobId: string, signal?: AbortSignal) {
+  return api.get<RecruiterJob>(`/recruiter/jobs/${jobId}`, signal)
+}
+
+export async function createRecruiterJob(body: CreateRecruiterJobInput, signal?: AbortSignal) {
+  return api.post<RecruiterJob>('/recruiter/jobs', body, signal)
+}
+
+export async function updateRecruiterJob(jobId: string, body: UpdateRecruiterJobInput, signal?: AbortSignal) {
+  return api.patch<RecruiterJob>(`/recruiter/jobs/${jobId}`, body, signal)
+}
+
+export async function deleteRecruiterJob(jobId: string, signal?: AbortSignal) {
+  return api.delete<RecruiterJob>(`/recruiter/jobs/${jobId}`, signal)
+}
+
+export async function listApplicationsForRecruiterJob(jobId: string, signal?: AbortSignal) {
+  return api.get<RecruiterJobApplication[]>(`/recruiter/jobs/${jobId}/applications`, signal)
+}
+
+export async function getRecruiterJobCandidateScores(jobId: string, signal?: AbortSignal) {
+  return api.get<RecruiterCandidateScore[]>(`/recruiter/jobs/${jobId}/candidate-scores`, signal)
+}
+
+export async function getApplicationCandidateScore(applicationId: string, signal?: AbortSignal) {
+  return api.get<ApplicationCandidateScore>(`/applications/${applicationId}/score`, signal)
+}
+
+export async function updateApplicationStage(applicationId: string, body: UpdateApplicationStageInput, signal?: AbortSignal) {
+  return api.post<ApplicationDetail>(`/applications/${applicationId}/stage`, body, signal)
 }
 
 export function logout() {

@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { LayoutDashboard, GitBranch, Briefcase, Plus, BookmarkCheck, BarChart2, Plug, Building2, Settings, X } from "lucide-react";
+import { LayoutDashboard, GitBranch, Briefcase, Plus, BookmarkCheck, BarChart2, Plug, Building2, Settings, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
+import { useAppContext } from "../contexts/AppContext";
+import { createRecruiterJob, type CreateRecruiterJobInput } from "../services/raviraApi";
 
 const sidebarItems: SidebarItem[] = [
   { key: "beranda", label: "Dashboard", icon: <LayoutDashboard size={16} />, path: "/dashboard/perusahaan" },
@@ -41,11 +43,14 @@ const labelStyle: React.CSSProperties = {
 
 export default function CreateJobPage() {
   const navigate = useNavigate();
+  const { user } = useAppContext();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     posisi: "",
     departemen: "",
     lokasi: "",
     tipeKerja: "Full-time",
+    workType: "Onsite",
     gajiMin: "",
     gajiMax: "",
     deskripsi: "",
@@ -67,13 +72,79 @@ export default function CreateJobPage() {
 
   const removeSkill = (s: string) => setSkills((prev) => prev.filter((x) => x !== s));
 
+  const parseSalary = (val: string): number | undefined => {
+    const cleaned = val.replace(/\D/g, "");
+    if (!cleaned) return undefined;
+    const num = parseInt(cleaned, 10);
+    return isNaN(num) ? undefined : num;
+  };
+
+  const handleSubmit = async (targetStatus: "DRAFT" | "PUBLISHED") => {
+    if (!form.posisi.trim()) {
+      toast.error("Nama posisi lowongan wajib diisi.");
+      return;
+    }
+    if (!form.deskripsi.trim()) {
+      toast.error("Deskripsi pekerjaan wajib diisi.");
+      return;
+    }
+
+    const minSal = parseSalary(form.gajiMin);
+    const maxSal = parseSalary(form.gajiMax);
+
+    if (minSal !== undefined && maxSal !== undefined && maxSal < minSal) {
+      toast.error("Gaji maksimum harus lebih besar atau sama dengan gaji minimum.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const fullDescription = form.persyaratan.trim()
+        ? `${form.deskripsi.trim()}\n\nPersyaratan:\n${form.persyaratan.trim()}`
+        : form.deskripsi.trim();
+
+      const payload: CreateRecruiterJobInput = {
+        title: form.posisi.trim(),
+        description: fullDescription,
+        location: form.lokasi.trim() || undefined,
+        jobType: form.tipeKerja || undefined,
+        workType: form.workType || undefined,
+        salaryMin: minSal,
+        salaryMax: maxSal,
+        status: targetStatus,
+        jobSkills: skills.map((s) => ({
+          skillName: s,
+          required: true,
+          weight: 1,
+        })),
+      };
+
+      await createRecruiterJob(payload);
+      toast.success(
+        targetStatus === "PUBLISHED"
+          ? "Lowongan berhasil dipublikasikan!"
+          : "Draft lowongan berhasil disimpan!"
+      );
+      navigate("/dashboard/perusahaan/lowongan");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal membuat lowongan.";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const userName = user?.fullName || "Recruiter";
+  const userRole = `${user?.recruiter?.position || "HR Recruiter"} · ${user?.recruiter?.company?.name || "Perusahaan"}`;
+  const userInitial = (user?.fullName || "R").charAt(0).toUpperCase();
+
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
       activeKey="buat"
-      userName="Siti Rahayu"
-      userRole="HR Manager · Tokopedia"
-      userInitial="S"
+      userName={userName}
+      userRole={userRole}
+      userInitial={userInitial}
     >
       <div style={{ padding: "32px", minHeight: "100vh", backgroundColor: "#f0f7ff" }}>
         <div style={{ marginBottom: "28px" }}>
@@ -88,12 +159,13 @@ export default function CreateJobPage() {
         <div style={{ backgroundColor: "#fff", borderRadius: "14px", padding: "32px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", maxWidth: "760px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
             <div>
-              <label style={labelStyle}>Nama Posisi</label>
+              <label style={labelStyle}>Nama Posisi *</label>
               <input
                 style={inputStyle}
                 placeholder="e.g. Senior UX Designer"
                 value={form.posisi}
                 onChange={(e) => handleChange("posisi", e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -103,15 +175,17 @@ export default function CreateJobPage() {
                 placeholder="e.g. Product Design"
                 value={form.departemen}
                 onChange={(e) => handleChange("departemen", e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div>
               <label style={labelStyle}>Lokasi</label>
               <input
                 style={inputStyle}
-                placeholder="e.g. Jakarta / Remote"
+                placeholder="e.g. Jakarta, Jawa Barat"
                 value={form.lokasi}
                 onChange={(e) => handleChange("lokasi", e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -120,12 +194,36 @@ export default function CreateJobPage() {
                 style={{ ...inputStyle, cursor: "pointer" }}
                 value={form.tipeKerja}
                 onChange={(e) => handleChange("tipeKerja", e.target.value)}
+                disabled={isSubmitting}
               >
-                <option>Full-time</option>
-                <option>Part-time</option>
-                <option>Hybrid</option>
-                <option>Remote</option>
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
               </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Model Kerja (Work Type)</label>
+              <select
+                style={{ ...inputStyle, cursor: "pointer" }}
+                value={form.workType}
+                onChange={(e) => handleChange("workType", e.target.value)}
+                disabled={isSubmitting}
+              >
+                <option value="Onsite">Onsite (WFO)</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Remote">Remote (WFH)</option>
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Tanggal Tutup (Opsional)</label>
+              <input
+                type="date"
+                style={inputStyle}
+                value={form.tanggalTutup}
+                onChange={(e) => handleChange("tanggalTutup", e.target.value)}
+                disabled={isSubmitting}
+              />
             </div>
             <div>
               <label style={labelStyle}>Range Gaji (Min)</label>
@@ -134,6 +232,7 @@ export default function CreateJobPage() {
                 placeholder="e.g. 15.000.000"
                 value={form.gajiMin}
                 onChange={(e) => handleChange("gajiMin", e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -143,17 +242,19 @@ export default function CreateJobPage() {
                 placeholder="e.g. 25.000.000"
                 value={form.gajiMax}
                 onChange={(e) => handleChange("gajiMax", e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
           </div>
 
           <div style={{ marginTop: "20px" }}>
-            <label style={labelStyle}>Deskripsi Pekerjaan</label>
+            <label style={labelStyle}>Deskripsi Pekerjaan *</label>
             <textarea
               style={{ ...inputStyle, height: "120px", resize: "vertical" }}
               placeholder="Jelaskan tanggung jawab dan lingkup pekerjaan..."
               value={form.deskripsi}
               onChange={(e) => handleChange("deskripsi", e.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -164,6 +265,7 @@ export default function CreateJobPage() {
               placeholder="Tulis persyaratan kandidat..."
               value={form.persyaratan}
               onChange={(e) => handleChange("persyaratan", e.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -189,6 +291,7 @@ export default function CreateJobPage() {
                   {s}
                   <button
                     onClick={() => removeSkill(s)}
+                    disabled={isSubmitting}
                     style={{ background: "none", border: "none", cursor: "pointer", color: "#1677FF", padding: 0, display: "flex" }}
                   >
                     <X size={12} />
@@ -203,9 +306,11 @@ export default function CreateJobPage() {
                 value={skillInput}
                 onChange={(e) => setSkillInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
+                disabled={isSubmitting}
               />
               <button
                 onClick={addSkill}
+                disabled={isSubmitting}
                 style={{
                   fontFamily: "Inter, sans-serif",
                   fontSize: "13px",
@@ -223,19 +328,10 @@ export default function CreateJobPage() {
             </div>
           </div>
 
-          <div style={{ marginTop: "20px" }}>
-            <label style={labelStyle}>Tanggal Tutup</label>
-            <input
-              type="date"
-              style={inputStyle}
-              value={form.tanggalTutup}
-              onChange={(e) => handleChange("tanggalTutup", e.target.value)}
-            />
-          </div>
-
           <div style={{ display: "flex", gap: "12px", marginTop: "32px" }}>
             <button
-              onClick={() => toast.success("Draft lowongan berhasil disimpan!")}
+              onClick={() => handleSubmit("DRAFT")}
+              disabled={isSubmitting}
               style={{
                 fontFamily: "Inter, sans-serif",
                 fontSize: "14px",
@@ -245,25 +341,34 @@ export default function CreateJobPage() {
                 border: "1px solid #e5eaf3",
                 borderRadius: "10px",
                 padding: "12px 24px",
-                cursor: "pointer",
+                cursor: isSubmitting ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
               }}
             >
+              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
               Simpan Draft
             </button>
             <button
-              onClick={() => { toast.success("Lowongan berhasil dipublikasikan!"); navigate("/dashboard/perusahaan/lowongan"); }}
+              onClick={() => handleSubmit("PUBLISHED")}
+              disabled={isSubmitting}
               style={{
                 fontFamily: "Inter, sans-serif",
                 fontSize: "14px",
                 fontWeight: 600,
                 color: "#fff",
-                backgroundColor: "#1677FF",
+                backgroundColor: isSubmitting ? "#8ab7f8" : "#1677FF",
                 border: "none",
                 borderRadius: "10px",
                 padding: "12px 24px",
-                cursor: "pointer",
+                cursor: isSubmitting ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
               }}
             >
+              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
               Publikasikan Lowongan
             </button>
           </div>
