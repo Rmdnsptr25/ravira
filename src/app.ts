@@ -30,6 +30,14 @@ if (env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
 }
 
+app.get("/", (_req, res) => {
+  sendSuccess(res, "Ravira backend is running.", {
+    service: "ravira-backend",
+    health: "/health",
+    apiBase: "/api/v1"
+  });
+});
+
 app.get("/health", (_req, res) => {
   sendSuccess(res, "Ravira backend is running.", {
     service: "ravira-backend",
