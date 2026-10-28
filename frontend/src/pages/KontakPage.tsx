@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Navbar } from "../components/Navbar";
 import { Mail, MessageSquare } from "lucide-react";
@@ -7,7 +6,6 @@ import { Mail, MessageSquare } from "lucide-react";
 const categories = ["Kandidat", "Perusahaan", "Pemerintah / Institusi", "Partnership", "Lainnya"];
 
 export default function KontakPage() {
-  const navigate = useNavigate();
   const [form, setForm] = useState({ nama: "", email: "", whatsapp: "", kategori: "Kandidat", pesan: "" });
 
   const set = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));

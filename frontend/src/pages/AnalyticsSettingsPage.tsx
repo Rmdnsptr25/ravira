@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import { LayoutDashboard, Users, TrendingUp, MapPin, BarChart2, BookOpen, FileText, Settings, Copy, Check, X } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
@@ -54,7 +53,6 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
 }
 
 export default function AnalyticsSettingsPage() {
-  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [notifEmail, setNotifEmail] = useState(true);
   const [notifSystem, setNotifSystem] = useState(true);

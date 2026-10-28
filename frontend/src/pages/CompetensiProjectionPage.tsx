@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import { LayoutDashboard, Users, TrendingUp, MapPin, BarChart2, BookOpen, FileText, Settings } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
@@ -49,7 +48,6 @@ const sectorData: Record<string, { label: string; value: string; delta: string; 
 };
 
 export default function CompetensiProjectionPage() {
-  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState("2026");
   const data = sectorData[selectedYear];
 

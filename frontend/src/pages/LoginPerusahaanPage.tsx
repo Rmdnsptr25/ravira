@@ -2,18 +2,30 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { RaviraOwlIcon } from "../components/RaviraLogo";
+import { toast } from "sonner";
+import { useAppContext } from "../contexts/AppContext";
 
 export default function LoginPerusahaanPage() {
   const navigate = useNavigate();
+  const { login } = useAppContext();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate: if not onboarded yet → onboarding, else → dashboard
-    navigate("/dashboard/perusahaan");
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await login(email, password, "RECRUITER");
+      navigate("/dashboard/perusahaan", { replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Login gagal.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -106,11 +118,11 @@ export default function LoginPerusahaanPage() {
               </button>
             </div>
 
-            <button type="submit" style={{ width: "100%", padding: "13px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #8b5cf6, #6d28d9)", fontFamily: "'Poppins', sans-serif", fontSize: 15, fontWeight: 700, color: "#fff", cursor: "pointer", boxShadow: "0 6px 20px rgba(139,92,246,0.4)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20, transition: "transform 0.2s" }}
+            <button type="submit" disabled={isSubmitting} style={{ width: "100%", padding: "13px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #8b5cf6, #6d28d9)", fontFamily: "'Poppins', sans-serif", fontSize: 15, fontWeight: 700, color: "#fff", cursor: "pointer", boxShadow: "0 6px 20px rgba(139,92,246,0.4)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20, transition: "transform 0.2s" }}
               onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
               onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
             >
-              Masuk Perusahaan <ArrowRight size={16} />
+              {isSubmitting ? "Memproses..." : "Masuk Perusahaan"} <ArrowRight size={16} />
             </button>
           </form>
 

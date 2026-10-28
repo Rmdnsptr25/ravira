@@ -20,6 +20,7 @@ import {
 } from "../scoring/scoring.service";
 import { createNotification } from "../notifications/notifications.service";
 import { runBasicFraudCheckForCandidate } from "../fraud/fraud.service";
+import { requireApprovedRecruiter } from "../recruiters/recruiterAccess.service";
 
 type ApplyToJobInput = z.infer<typeof applyToJobSchema>;
 type UpdateApplicationStageInput = z.infer<typeof updateApplicationStageSchema>;
@@ -95,29 +96,31 @@ const getCandidateIdByUserId = async (userId: string) => {
   return candidate.id;
 };
 
-const getRecruiterCompanyIdByUserId = async (userId: string) => {
-  const recruiter = await prisma.recruiter.findUnique({
-    where: { userId },
-    select: {
-      id: true,
-      companyId: true
-    }
-  });
-
-  if (!recruiter) {
-    throw new AppError("Recruiter profile not found.", 404);
-  }
-
-  return recruiter.companyId;
-};
-
 const assertCanAccessApplication = async (
   applicationId: string,
   userId: string,
   role: Role
 ) => {
+  const where: Prisma.ApplicationWhereUniqueInput = { id: applicationId };
+
+  switch (role) {
+    case Role.CANDIDATE:
+      where.candidateId = await getCandidateIdByUserId(userId);
+      break;
+    case Role.RECRUITER: {
+      const recruiter = await requireApprovedRecruiter(userId);
+      where.job = { companyId: recruiter.companyId };
+      break;
+    }
+    case Role.ADMIN:
+    case Role.SUPER_ADMIN:
+      break;
+    default:
+      throw new AppError("You do not have permission to access this resource.", 403);
+  }
+
   const application = await prisma.application.findUnique({
-    where: { id: applicationId },
+    where,
     select: {
       id: true,
       candidateId: true,
@@ -133,25 +136,7 @@ const assertCanAccessApplication = async (
     throw new AppError("Application not found.", 404);
   }
 
-  if (role === Role.CANDIDATE) {
-    const candidateId = await getCandidateIdByUserId(userId);
-    if (application.candidateId !== candidateId) {
-      throw new AppError("Application not found.", 404);
-    }
-  }
-
-  if (role === Role.RECRUITER) {
-    const companyId = await getRecruiterCompanyIdByUserId(userId);
-    if (application.job.companyId !== companyId) {
-      throw new AppError("Application not found.", 404);
-    }
-  }
-
-  if (![Role.CANDIDATE, Role.RECRUITER, Role.ADMIN, Role.SUPER_ADMIN].includes(role)) {
-    throw new AppError("You do not have permission to access this resource.", 403);
-  }
-
-  return application;
+  return where;
 };
 
 export const applyToJob = async (
@@ -314,10 +299,10 @@ export const getApplicationById = async (
   userId: string,
   role: Role
 ) => {
-  await assertCanAccessApplication(applicationId, userId, role);
+  const where = await assertCanAccessApplication(applicationId, userId, role);
 
   const application = await prisma.application.findUnique({
-    where: { id: applicationId },
+    where,
     select: applicationSelect
   });
 
@@ -334,20 +319,20 @@ export const updateApplicationStage = async (
   actorRole: Role,
   input: UpdateApplicationStageInput
 ) => {
-  const companyId = await getRecruiterCompanyIdByUserId(userId);
+  const { companyId } = await requireApprovedRecruiter(userId);
 
   return prisma.$transaction(async (tx) => {
     const before = await tx.application.findUnique({
-      where: { id: applicationId },
+      where: { id: applicationId, job: { companyId } },
       select: applicationSelect
     });
 
-    if (!before || before.job.companyId !== companyId) {
+    if (!before) {
       throw new AppError("Application not found.", 404);
     }
 
     const after = await tx.application.update({
-      where: { id: applicationId },
+      where: { id: applicationId, job: { companyId } },
       data: { status: input.newStatus },
       select: applicationSelect
     });
@@ -395,10 +380,10 @@ export const getApplicationStatusHistory = async (
   userId: string,
   role: Role
 ) => {
-  await assertCanAccessApplication(applicationId, userId, role);
+  const applicationWhere = await assertCanAccessApplication(applicationId, userId, role);
 
   return prisma.applicationStatusHistory.findMany({
-    where: { applicationId },
+    where: { applicationId, application: applicationWhere },
     select: statusHistorySelect,
     orderBy: { createdAt: "asc" }
   });

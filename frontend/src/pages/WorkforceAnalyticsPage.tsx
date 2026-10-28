@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router";
 import { LayoutDashboard, Users, TrendingUp, MapPin, BarChart2, BookOpen, FileText, Settings } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
@@ -38,7 +37,6 @@ const barHeights = [55, 72, 68, 85, 90, 78, 62, 88, 76, 95, 82, 70];
 const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
 
 export default function WorkforceAnalyticsPage() {
-  const navigate = useNavigate();
 
   return (
     <DashboardLayout sidebarItems={sidebarItems} userName="Dr. Bambang Prasetyo" userRole="Disnaker DKI Jakarta" userInitial="B">

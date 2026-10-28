@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import { LayoutDashboard, Users, TrendingUp, MapPin, BarChart2, BookOpen, FileText, Settings, Download, Eye, Clock } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
@@ -32,7 +31,6 @@ const scheduled = [
 ];
 
 export default function ReportsExportPage() {
-  const navigate = useNavigate();
   const [exportTarget, setExportTarget] = useState<string | null>(null);
 
   return (

@@ -5,3 +5,5 @@ dist/
 .prisma-cache/
 .tmp/
 uploads/
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

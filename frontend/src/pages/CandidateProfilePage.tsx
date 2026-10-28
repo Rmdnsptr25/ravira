@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate } from "react-router";
 import { ArrowLeft, MapPin, Briefcase, GraduationCap, CheckCircle2, XCircle, Star, Mail, Phone, Link2, Download, MessageSquare, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { InterviewScheduleModal } from "../components/Modals";
@@ -35,9 +35,9 @@ const candidate = {
 
 export default function CandidateProfilePage() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  // const { id } = useParams();
   const [showInterviewModal, setShowInterviewModal] = useState(false);
-  const [showPipelineToast, setShowPipelineToast] = useState(false);
+  // const [showPipelineToast, setShowPipelineToast] = useState(false);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f0f7ff", fontFamily: "'Inter', sans-serif" }}>

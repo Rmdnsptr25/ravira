@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router";
-import { Clock, CheckCircle2, Mail, Phone, ArrowRight, FileCheck } from "lucide-react";
+import { Clock, CheckCircle2, Mail, Phone, ArrowRight } from "lucide-react";
 import { RaviraOwlIcon } from "../components/RaviraLogo";
 
 const steps = [
-  { label: "Formulir Diterima", desc: "Data dan dokumen Anda telah berhasil dikirim.", done: true },
-  { label: "Verifikasi Dokumen", desc: "Tim Ravira sedang memeriksa kelengkapan dokumen resmi.", done: false, active: true },
-  { label: "Review Internal", desc: "Proses persetujuan oleh tim keamanan dan legal.", done: false },
-  { label: "Akun Aktif", desc: "Akun lembaga Anda siap digunakan untuk mengakses analytics.", done: false },
+  { label: "Pendaftaran Belum Tersedia", desc: "Tidak ada formulir atau dokumen yang diterima melalui halaman ini.", done: false, active: false },
+  { label: "Verifikasi Belum Tersedia", desc: "Pemeriksaan dokumen pemerintah belum tersedia.", done: false, active: false },
+  { label: "Review Belum Tersedia", desc: "Tidak ada permohonan yang sedang ditinjau.", done: false, active: false },
+  { label: "Akses Belum Tersedia", desc: "Akun pemerintah dan akses analytics belum tersedia.", done: false, active: false },
 ];
 
 export default function VerificationPendingPage() {
@@ -39,20 +39,20 @@ export default function VerificationPendingPage() {
           </div>
 
           <span style={{ display: "inline-block", fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#4DB8FF", letterSpacing: "0.12em", textTransform: "uppercase", padding: "4px 14px", border: "1px solid rgba(77,184,255,0.25)", borderRadius: 100, background: "rgba(77,184,255,0.06)", marginBottom: 20 }}>
-            Sedang Diproses
+            Belum Tersedia
           </span>
 
           <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 32, fontWeight: 800, color: "#ffffff", letterSpacing: "-0.8px", marginBottom: 14, lineHeight: 1.2 }}>
-            Permohonan Sedang Diverifikasi
+            Registrasi Pemerintah Belum Tersedia
           </h1>
           <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 16, color: "#7a99c8", lineHeight: 1.7, marginBottom: 0 }}>
-            Terima kasih! Dokumen Anda telah kami terima. Tim verifikasi Ravira akan memproses permohonan lembaga Anda dalam <strong style={{ color: "#4DB8FF" }}>3–5 hari kerja</strong>.
+            Pendaftaran dan verifikasi lembaga pemerintah belum tersedia di RAVIRA. <strong style={{ color: "#4DB8FF" }}>Belum ada permohonan dibuat atau dokumen diterima.</strong>
           </p>
         </div>
 
         {/* Progress steps */}
         <div style={{ maxWidth: 480, width: "100%", background: "rgba(13,31,63,0.6)", backdropFilter: "blur(16px)", borderRadius: 20, border: "1px solid rgba(77,184,255,0.15)", padding: "28px", marginBottom: 24 }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#4DB8FF", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 20 }}>Status Permohonan</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#4DB8FF", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 20 }}>Ketersediaan Layanan</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {steps.map((s, i) => (
               <div key={s.label} style={{ display: "flex", gap: 14 }}>
@@ -82,7 +82,7 @@ export default function VerificationPendingPage() {
 
         {/* Contact info */}
         <div style={{ maxWidth: 480, width: "100%", background: "rgba(13,31,63,0.5)", backdropFilter: "blur(12px)", borderRadius: 16, border: "1px solid rgba(77,184,255,0.12)", padding: "20px 24px", marginBottom: 24 }}>
-          <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", marginBottom: 14 }}>Notifikasi akan dikirim ke email Anda. Pertanyaan? Hubungi kami:</div>
+          <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", marginBottom: 14 }}>Tidak ada notifikasi verifikasi yang dijadwalkan. Informasi kontak:</div>
           <div style={{ display: "flex", gap: 12 }}>
             <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 10, background: "rgba(22,119,255,0.06)", border: "1px solid rgba(22,119,255,0.15)" }}>
               <Mail size={14} color="#4DB8FF" />
@@ -100,8 +100,8 @@ export default function VerificationPendingPage() {
           <button onClick={() => navigate("/")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 12, border: "1px solid rgba(77,184,255,0.2)", background: "rgba(77,184,255,0.06)", fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4DB8FF", cursor: "pointer" }}>
             Kembali ke Beranda
           </button>
-          <button onClick={() => navigate("/dashboard/analytics")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #4DB8FF, #1677FF)", fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer", boxShadow: "0 4px 14px rgba(22,119,255,0.3)" }}>
-            Preview Dashboard <ArrowRight size={15} />
+          <button onClick={() => navigate("/daftar/pemerintah")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #4DB8FF, #1677FF)", fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer", boxShadow: "0 4px 14px rgba(22,119,255,0.3)" }}>
+            Informasi Registrasi <ArrowRight size={15} />
           </button>
         </div>
       </div>

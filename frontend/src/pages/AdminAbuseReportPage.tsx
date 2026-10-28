@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Shield, AlertTriangle, Activity, ClipboardList, Cpu, Users, Settings, Search } from "lucide-react";
+import { LayoutDashboard, Building2, Shield, AlertTriangle, Activity, ClipboardList, Cpu, Users, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
@@ -59,7 +59,7 @@ export default function AdminAbuseReportPage() {
         {reports.map((r) => (
           <div key={r.id} style={{ background: "#fff", borderRadius: 16, border: `1px solid ${severityColor[r.severity]}30`, padding: "18px 20px", boxShadow: "0 2px 8px rgba(10,27,61,0.04)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-              <div style={{ display: "flex", align: "center", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
                     <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D" }}>{r.entity}</span>

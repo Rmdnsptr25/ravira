@@ -63,12 +63,24 @@ const emergingSkills = [
   { name: "IoT Development", growth: "+76%", urgency: "low" },
 ];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface DashTooltipPayloadItem {
+  name?: string;
+  value?: number;
+  color?: string;
+}
+
+interface DashCustomTooltipProps {
+  active?: boolean;
+  payload?: DashTooltipPayloadItem[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: DashCustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div style={{ background: "#071228", border: "1px solid rgba(22,119,255,0.2)", borderRadius: 10, padding: "10px 14px" }}>
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#4DB8FF", marginBottom: 6 }}>{label}</div>
-        {payload.map((p: any) => (
+        {payload.map((p: DashTooltipPayloadItem) => (
           <div key={p.name} style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: p.color, marginBottom: 2 }}>
             {p.name}: <strong>{typeof p.value === "number" ? p.value.toLocaleString() : p.value}</strong>
           </div>

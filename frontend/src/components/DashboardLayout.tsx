@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { LogOut, Menu, X, Bell, ChevronDown } from "lucide-react";
 import { RaviraOwlIcon } from "./RaviraLogo";
+import { useAppContext } from "../contexts/AppContext";
+import { CompanyVerificationNotice } from "./CompanyVerificationNotice";
 
 export interface SidebarItem {
   key: string;
@@ -15,13 +17,26 @@ interface DashboardLayoutProps {
   userName: string;
   userRole: string;
   userInitial: string;
+  activeKey?: string;
   children: React.ReactNode;
 }
 
-export function DashboardLayout({ sidebarItems, userName, userRole, userInitial, children }: DashboardLayoutProps) {
+export function DashboardLayout({ sidebarItems, userName, userRole, userInitial, activeKey, children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAppContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    const loginPath = user ? {
+      CANDIDATE: "/masuk/kandidat",
+      RECRUITER: "/masuk/perusahaan",
+      ADMIN: "/masuk/admin",
+      SUPER_ADMIN: "/masuk/admin",
+    }[user.role] : "/masuk";
+    logout();
+    navigate(loginPath, { replace: true });
+  };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f0f7ff", fontFamily: "'Inter', sans-serif" }}>
@@ -67,7 +82,7 @@ export function DashboardLayout({ sidebarItems, userName, userRole, userInitial,
         {/* Nav items */}
         <nav style={{ flex: 1, padding: "12px 8px", overflowY: "auto" }}>
           {sidebarItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = activeKey ? item.key === activeKey : location.pathname === item.path;
             return (
               <button
                 key={item.key}
@@ -110,7 +125,7 @@ export function DashboardLayout({ sidebarItems, userName, userRole, userInitial,
             </div>
           </div>
           <button
-            onClick={() => navigate("/masuk")}
+            onClick={handleLogout}
             style={{
               display: "flex", alignItems: "center", gap: 8, width: "100%",
               padding: "9px 12px", borderRadius: 10, border: "none", cursor: "pointer",
@@ -188,7 +203,9 @@ export function DashboardLayout({ sidebarItems, userName, userRole, userInitial,
 
         {/* Page content */}
         <main style={{ flex: 1, padding: "28px 28px", overflowY: "auto" }}>
-          {children}
+          {user?.role === "RECRUITER" && user.recruiter?.company?.verificationStatus !== "APPROVED"
+            ? <CompanyVerificationNotice onLogout={handleLogout} />
+            : children}
         </main>
       </div>
 
