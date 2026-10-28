@@ -432,10 +432,25 @@ export function ContactRecruiterModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function ChangeCareerTargetModal({ onClose }: { onClose: () => void }) {
-  const [target, setTarget] = useState("Senior UX Designer");
+export function ChangeCareerTargetModal({
+  onClose,
+  currentTarget = "Frontend Engineer",
+  onSelectTarget,
+}: {
+  onClose: () => void;
+  currentTarget?: string;
+  onSelectTarget?: (target: string) => void;
+}) {
+  const [target, setTarget] = useState(currentTarget);
   const [saved, setSaved] = useState(false);
-  const options = ["Senior UX Designer", "Product Manager", "Frontend Developer", "Data Scientist", "UI Designer", "UX Researcher", "Design System Lead"];
+  const options = [
+    "Frontend Engineer",
+    "Backend Engineer",
+    "Full Stack Engineer",
+    "UI/UX Designer",
+    "Data Analyst",
+    "Machine Learning Engineer",
+  ];
   return (
     <Overlay onClose={onClose}>
       <ModalCard>
@@ -464,7 +479,15 @@ export function ChangeCareerTargetModal({ onClose }: { onClose: () => void }) {
                   </div>
                 ))}
               </div>
-              <button onClick={() => setSaved(true)} style={{ width: "100%", padding: "11px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #1677FF, #0D47A1)", fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer" }}>Simpan Target</button>
+              <button
+                onClick={() => {
+                  onSelectTarget?.(target);
+                  setSaved(true);
+                }}
+                style={{ width: "100%", padding: "11px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #1677FF, #0D47A1)", fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer" }}
+              >
+                Simpan Target
+              </button>
             </>
           )}
         </div>

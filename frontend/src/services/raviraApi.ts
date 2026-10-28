@@ -133,7 +133,190 @@ export type JobMatchScore = {
   jobId: string
   matchScore: number
   matchExplanation: string[]
+  breakdown?: {
+    skillMatch?: {
+      weight: number
+      score: number
+      coverage: number
+      matchedSkills: string[]
+      missingRequiredSkills: string[]
+    }
+    locationMatch?: {
+      weight: number
+      score: number
+      candidateLocation?: string | null
+      jobLocation?: string | null
+      matched: boolean
+    }
+    workTypeJobTypeMatch?: {
+      weight: number
+      score: number
+      mobilityPreference?: string | null
+      jobType?: string | null
+      workType?: string | null
+    }
+    experienceRelevance?: {
+      weight: number
+      score: number
+      matchedKeywords: string[]
+    }
+    [key: string]: unknown
+  }
   ruleVersion: string
+}
+
+export type JobRecommendation = {
+  job: {
+    id: string
+    title: string
+    location: string | null
+    jobType: string | null
+    workType: string | null
+  }
+  company: {
+    id: string
+    name: string
+    industry: string | null
+    location: string | null
+  }
+  matchScore: number
+  matchExplanation: string[]
+  breakdown: {
+    skillMatch?: {
+      weight: number
+      score: number
+      coverage: number
+      matchedSkills: string[]
+      missingRequiredSkills: string[]
+    }
+    locationMatch?: {
+      weight: number
+      score: number
+      candidateLocation?: string | null
+      jobLocation?: string | null
+      matched: boolean
+    }
+    workTypeJobTypeMatch?: {
+      weight: number
+      score: number
+      mobilityPreference?: string | null
+      jobType?: string | null
+      workType?: string | null
+    }
+    experienceRelevance?: {
+      weight: number
+      score: number
+      matchedKeywords: string[]
+    }
+    [key: string]: unknown
+  }
+  ruleVersion: string
+}
+
+export type SkillGapReport = {
+  id: string
+  candidateId: string
+  jobId: string | null
+  targetRole: string | null
+  ownedSkills: Array<{
+    skillName: string
+    level?: string | null
+    source?: string | null
+    confidenceScore?: number | null
+  }>
+  missingSkills: Array<{
+    skillName: string
+    required: boolean
+    weight: number
+    marketDemandCount: number
+  }>
+  matchedSkills: Array<{
+    skillName: string
+    required: boolean
+    weight: number
+    matchedCandidateSkill: string
+  }>
+  prioritySkills: Array<{
+    skillName: string
+    required: boolean
+    weight: number
+    marketDemandCount: number
+    priorityScore: number
+    reason: string[]
+  }>
+  summary: string
+  recommendationReason?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type CourseItem = {
+  id: string
+  title: string
+  provider: string
+  skillTargets: string[]
+  duration: string
+  price: number
+  difficulty: string
+  language: string
+  url: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type TrainingRecommendation = {
+  prioritySkill: string
+  recommendedCourses: CourseItem[]
+  reason: string
+}
+
+export type TrainingRecommendationsResult = {
+  jobId: string | null
+  targetRole: string | null
+  summary: string
+  emptyStateMessage?: string
+  recommendations: TrainingRecommendation[]
+}
+
+export type TrainingProgressItem = {
+  id: string
+  candidateId: string
+  courseId: string
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'
+  progressPct: number
+  completedAt: string | null
+  course: CourseItem
+  createdAt: string
+  updatedAt: string
+}
+
+export type ApplicationDetail = CandidateApplication & {
+  candidate: {
+    id: string
+    location: string | null
+    education: string | null
+    experienceSummary: string | null
+    user: {
+      id: string
+      email: string
+      fullName: string
+      phone: string | null
+    }
+  }
+}
+
+export type ApplicationStatusHistoryItem = {
+  id: string
+  fromStatus: string | null
+  toStatus: string
+  reason: string | null
+  changedBy: {
+    id: string
+    email: string
+    fullName: string
+    role: string
+  }
+  createdAt: string
 }
 
 export type CandidateApplication = {
@@ -243,33 +426,82 @@ export async function listPublishedJobs(signal?: AbortSignal) {
   return api.get<PublicJob[]>('/jobs', signal)
 }
 
+export async function getJobById(jobId: string, signal?: AbortSignal) {
+  return api.get<PublicJob>(`/jobs/${jobId}`, signal)
+}
+
 export async function searchPublishedJobs(params: {
   keyword?: string
   location?: string
   jobType?: string
   workType?: string
   skill?: string
-}) {
+}, signal?: AbortSignal) {
   const query = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
     if (value) query.set(key, value)
   })
   const suffix = query.size ? `?${query.toString()}` : ''
-  return api.get<PublicJob[]>(`/jobs/search${suffix}`)
+  return api.get<PublicJob[]>(`/jobs/search${suffix}`, signal)
 }
 
-export async function getJobMatchScore(jobId: string) {
-  return api.get<JobMatchScore>(`/jobs/${jobId}/match-score`)
+export async function getJobRecommendations(signal?: AbortSignal) {
+  return api.get<JobRecommendation[]>('/candidates/me/recommendations/jobs', signal)
 }
 
-export async function applyToJob(jobId: string, coverLetter?: string) {
+export async function getJobMatchScore(jobId: string, signal?: AbortSignal) {
+  return api.get<JobMatchScore>(`/jobs/${jobId}/match-score`, signal)
+}
+
+export async function applyToJob(jobId: string, coverLetter?: string, signal?: AbortSignal) {
   return api.post<CandidateApplication>(`/jobs/${jobId}/apply`, {
     coverLetter: coverLetter || 'Saya tertarik dengan posisi ini.',
-  })
+  }, signal)
 }
 
 export async function listMyApplications(signal?: AbortSignal) {
   return api.get<CandidateApplication[]>('/candidates/me/applications', signal)
+}
+
+export async function getApplicationById(applicationId: string, signal?: AbortSignal) {
+  return api.get<ApplicationDetail>(`/applications/${applicationId}`, signal)
+}
+
+export async function getApplicationStatusHistory(applicationId: string, signal?: AbortSignal) {
+  return api.get<ApplicationStatusHistoryItem[]>(`/applications/${applicationId}/status-history`, signal)
+}
+
+// ── Skill Gap & Training APIs ───────────────────────────────
+export async function getSkillGapReport(params?: { jobId?: string; targetRole?: string }, signal?: AbortSignal) {
+  const query = new URLSearchParams()
+  if (params?.jobId) query.set('jobId', params.jobId)
+  if (params?.targetRole) query.set('targetRole', params.targetRole)
+  const suffix = query.size ? `?${query.toString()}` : ''
+  return api.get<SkillGapReport>(`/candidates/me/skill-gap${suffix}`, signal)
+}
+
+export async function createSkillGapReport(body: { jobId?: string; targetRole?: string }, signal?: AbortSignal) {
+  return api.post<SkillGapReport>('/candidates/me/skill-gap', body, signal)
+}
+
+export async function getTrainingRecommendations(params?: { jobId?: string; targetRole?: string }, signal?: AbortSignal) {
+  const query = new URLSearchParams()
+  if (params?.jobId) query.set('jobId', params.jobId)
+  if (params?.targetRole) query.set('targetRole', params.targetRole)
+  const suffix = query.size ? `?${query.toString()}` : ''
+  return api.get<TrainingRecommendationsResult>(`/candidates/me/training-recommendations${suffix}`, signal)
+}
+
+export async function listMyTrainingProgress(signal?: AbortSignal) {
+  return api.get<TrainingProgressItem[]>('/candidates/me/training-progress', signal)
+}
+
+export async function createTrainingProgress(body: { courseId: string; status?: string; progressPct?: number }, signal?: AbortSignal) {
+  return api.post<TrainingProgressItem>('/candidates/me/training-progress', body, signal)
+}
+
+export async function updateTrainingProgress(progressId: string, body: { status?: string; progressPct?: number }, signal?: AbortSignal) {
+  return api.patch<TrainingProgressItem>(`/candidates/me/training-progress/${progressId}`, body, signal)
 }
 
 export function logout() {

@@ -1,15 +1,34 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router";
 import {
-  Home, Briefcase, Bookmark, BarChart2, BookOpen,
-  FileText, Globe, User, Settings,
-  ArrowLeft, CheckCircle, Clock, Calendar, Video,
-  ExternalLink, AlertTriangle, X,
+  Home,
+  Briefcase,
+  Bookmark,
+  BarChart2,
+  BookOpen,
+  FileText,
+  Globe,
+  User,
+  Settings,
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  Calendar,
+  Loader2,
+  AlertCircle,
+  Building2,
+  MapPin,
 } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
-import { ContactRecruiterModal } from "../components/Modals";
 import { useAppContext } from "../contexts/AppContext";
+import {
+  getApplicationById,
+  getApplicationStatusHistory,
+  getJobMatchScore,
+  type ApplicationDetail,
+  type ApplicationStatusHistoryItem,
+} from "../services/raviraApi";
 
 const sidebarItems: SidebarItem[] = [
   { key: "beranda", label: "Beranda", icon: <Home size={16} />, path: "/dashboard/kandidat" },
@@ -25,75 +44,23 @@ const sidebarItems: SidebarItem[] = [
 
 type AppStatus = "Dikirim" | "Screening" | "Interview" | "Offer" | "Diterima" | "Ditolak";
 
-interface TimelineStep {
-  label: string;
-  description: string;
-  date: string | null;
+function mapBackendStatusToAppStatus(status: string): AppStatus {
+  switch (status) {
+    case "SCREENING":
+    case "SELEKSI_TAHAP_1":
+    case "SELEKSI_TAHAP_2":
+    case "NEED_VERIFICATION":
+      return "Screening";
+    case "INTERVIEW":
+      return "Interview";
+    case "ACCEPTED":
+      return "Diterima";
+    case "REJECTED":
+      return "Ditolak";
+    default:
+      return "Dikirim";
+  }
 }
-
-interface AppData {
-  id: string;
-  posisi: string;
-  perusahaan: string;
-  lokasi: string;
-  tanggal: string;
-  status: AppStatus;
-  match: number;
-  timeline: TimelineStep[];
-  interview?: {
-    tanggal: string;
-    jam: string;
-    metode: string;
-    link: string;
-    catatan: string;
-  };
-}
-
-const mockApplications: Record<string, AppData> = {
-  "1": {
-    id: "1",
-    posisi: "Senior UX Designer",
-    perusahaan: "Tokopedia",
-    lokasi: "Jakarta",
-    tanggal: "28 Mei 2026",
-    status: "Interview",
-    match: 94,
-    timeline: [
-      {
-        label: "Lamaran Dikirim",
-        description: "Lamaran Anda telah berhasil dikirimkan ke tim rekrutmen Tokopedia.",
-        date: "28 Mei 2026",
-      },
-      {
-        label: "Screening",
-        description: "Tim HR sedang melakukan screening awal terhadap CV dan portofolio Anda.",
-        date: "2 Juni 2026",
-      },
-      {
-        label: "Interview",
-        description: "Anda dijadwalkan untuk sesi wawancara bersama tim hiring Tokopedia.",
-        date: "10 Juni 2026",
-      },
-      {
-        label: "Offer",
-        description: "Menunggu keputusan akhir dari tim rekrutmen.",
-        date: null,
-      },
-      {
-        label: "Diterima",
-        description: "Selamat! Anda resmi bergabung dengan tim.",
-        date: null,
-      },
-    ],
-    interview: {
-      tanggal: "10 Juni 2026",
-      jam: "10:00 WIB",
-      metode: "Online (Google Meet)",
-      link: "meet.google.com/xyz-abc-def",
-      catatan: "Silakan siapkan portfolio terbaru Anda.",
-    },
-  },
-};
 
 const statusOrder: Record<AppStatus, number> = {
   Dikirim: 0,
@@ -114,43 +81,116 @@ function getStatusStyle(status: AppStatus) {
       return { background: "rgba(124,58,237,0.1)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.25)" };
     case "Offer":
       return { background: "rgba(16,217,142,0.1)", color: "#10d98e", border: "1px solid rgba(16,217,142,0.3)" };
+    case "Diterima":
+      return { background: "rgba(16,217,142,0.15)", color: "#059669", border: "1px solid rgba(16,217,142,0.4)" };
     case "Ditolak":
       return { background: "rgba(255,107,107,0.1)", color: "#ff6b6b", border: "1px solid rgba(255,107,107,0.25)" };
   }
 }
 
+function formatDate(dateStr: string): string {
+  try {
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date(dateStr));
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function ApplicationDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id: paramId } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { applications } = useAppContext();
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [withdrawn, setWithdrawn] = useState(false);
-  const [showContactModal, setShowContactModal] = useState(false);
+  const { user } = useAppContext();
 
-  const ctxApp = id ? applications.find(a => a.id === id) : undefined;
-  const mockApp = id ? mockApplications[id] : undefined;
-  const app = ctxApp
-    ? { ...mockApp, id: ctxApp.id, posisi: ctxApp.posisi, perusahaan: ctxApp.perusahaan, lokasi: ctxApp.lokasi, tanggal: ctxApp.tanggal, status: ctxApp.status as AppStatus, match: ctxApp.match, timeline: mockApp?.timeline ?? [{ label: "Lamaran Dikirim", description: "Lamaran Anda telah dikirim ke recruiter", date: ctxApp.tanggal }], interview: mockApp?.interview }
-    : mockApp;
+  const applicationId = paramId || searchParams.get("id") || "";
 
-  if (!app) {
+  const [application, setApplication] = useState<ApplicationDetail | null>(null);
+  const [statusHistory, setStatusHistory] = useState<ApplicationStatusHistoryItem[]>([]);
+  const [matchScore, setMatchScore] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
+
+  const loadApplication = useCallback(async (signal?: AbortSignal) => {
+    if (!applicationId) {
+      setError("ID lamaran tidak ditemukan pada parameter URL.");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [appData, historyData] = await Promise.all([
+        getApplicationById(applicationId, signal),
+        getApplicationStatusHistory(applicationId, signal).catch(() => [] as ApplicationStatusHistoryItem[]),
+      ]);
+
+      if (signal?.aborted) return;
+      setApplication(appData);
+      setStatusHistory(historyData);
+
+      if (appData?.job?.id) {
+        try {
+          const matchResult = await getJobMatchScore(appData.job.id, signal);
+          if (!signal?.aborted) {
+            setMatchScore(matchResult.matchScore);
+          }
+        } catch {
+          // If match score calculation not available, fallback to 0
+        }
+      }
+    } catch (err) {
+      if (!signal?.aborted) {
+        setError(err instanceof Error ? err.message : "Lamaran tidak ditemukan atau Anda tidak memiliki akses ke lamaran ini.");
+      }
+    } finally {
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
+    }
+  }, [applicationId]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    queueMicrotask(() => {
+      if (!controller.signal.aborted) {
+        void loadApplication(controller.signal);
+      }
+    });
+    return () => controller.abort();
+  }, [loadApplication]);
+
+  if (loading) {
     return (
-      <DashboardLayout
-        sidebarItems={sidebarItems}
-        userName="Budi Santoso"
-        userRole="Kandidat"
-        userInitial="B"
-      >
-        <div style={{
-          background: "#fff",
-          borderRadius: 16,
-          border: "1px solid rgba(22,119,255,0.1)",
-          padding: "64px 24px",
-          textAlign: "center",
-        }}>
-          <FileText size={48} color="#c5d3f0" style={{ marginBottom: 16 }} />
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 15, color: "#9ab4cc", marginBottom: 20 }}>
-            Lamaran tidak ditemukan.
+      <DashboardLayout sidebarItems={sidebarItems} userName={displayName} userRole="Kandidat" userInitial={displayInitial}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 24px", background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", gap: 12 }}>
+          <Loader2 size={36} className="animate-spin" color="#1677FF" />
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", margin: 0 }}>
+            Memuat detail status lamaran...
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !application) {
+    return (
+      <DashboardLayout sidebarItems={sidebarItems} userName={displayName} userRole="Kandidat" userInitial={displayInitial}>
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(239,68,68,0.2)", padding: "64px 24px", textAlign: "center" }}>
+          <AlertCircle size={48} color="#dc2626" style={{ margin: "0 auto 16px" }} />
+          <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 18, fontWeight: 700, color: "#0A1B3D", marginBottom: 8 }}>
+            Lamaran Tidak Ditemukan
+          </h2>
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", maxWidth: 460, margin: "0 auto 24px" }}>
+            {error || "Data lamaran tidak ditemukan atau Anda tidak memiliki izin untuk melihat lamaran ini."}
           </p>
           <button
             onClick={() => navigate("/dashboard/kandidat/lamaran")}
@@ -173,159 +213,25 @@ export default function ApplicationDetailPage() {
     );
   }
 
-  const badge = getStatusStyle(app.status);
-  const currentStep = statusOrder[app.status];
-  const showInterview = ["Interview", "Offer"].includes(app.status);
+  const appStatus = mapBackendStatusToAppStatus(application.status);
+  const badge = getStatusStyle(appStatus);
+  const currentStep = statusOrder[appStatus];
 
-  const handleWithdraw = () => {
-    setWithdrawn(true);
-    setShowConfirm(false);
-    setTimeout(() => navigate("/dashboard/kandidat/lamaran"), 1500);
-  };
+  // Build standard timeline steps
+  const standardSteps = [
+    { label: "Lamaran Dikirim", description: "Lamaran Anda telah berhasil dikirimkan ke perusahaan.", stage: "APPLIED" },
+    { label: "Screening", description: "CV dan profil Anda sedang ditinjau oleh tim rekrutmen.", stage: "SCREENING" },
+    { label: "Interview", description: "Wawancara dengan tim hiring atau technical team.", stage: "INTERVIEW" },
+    { label: "Offer / Keputusan", description: "Tahap evaluasi penawaran atau keputusan seleksi.", stage: "ACCEPTED" },
+  ];
 
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
-      userName="Budi Santoso"
+      userName={displayName}
       userRole="Kandidat"
-      userInitial="B"
+      userInitial={displayInitial}
     >
-      {/* Confirm modal overlay */}
-      {showConfirm && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(10,27,61,0.45)",
-          zIndex: 100,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 24,
-        }}>
-          <div style={{
-            background: "#fff",
-            borderRadius: 20,
-            boxShadow: "0 20px 60px rgba(10,27,61,0.2)",
-            padding: "32px",
-            maxWidth: 420,
-            width: "100%",
-            position: "relative",
-          }}>
-            <button
-              onClick={() => setShowConfirm(false)}
-              style={{
-                position: "absolute",
-                top: 16,
-                right: 16,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "#9ab4cc",
-              }}
-            >
-              <X size={18} />
-            </button>
-
-            <div style={{
-              width: 52,
-              height: 52,
-              borderRadius: 16,
-              background: "rgba(255,107,107,0.1)",
-              border: "1px solid rgba(255,107,107,0.2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 20,
-            }}>
-              <AlertTriangle size={24} color="#ff6b6b" />
-            </div>
-
-            <h3 style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: 18,
-              fontWeight: 700,
-              color: "#0A1B3D",
-              marginBottom: 10,
-            }}>
-              Tarik Lamaran?
-            </h3>
-            <p style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 14,
-              color: "#6a88b8",
-              lineHeight: 1.6,
-              marginBottom: 24,
-            }}>
-              Anda yakin ingin menarik lamaran untuk posisi{" "}
-              <strong style={{ color: "#0A1B3D" }}>{app.posisi}</strong> di{" "}
-              <strong style={{ color: "#0A1B3D" }}>{app.perusahaan}</strong>?
-              Tindakan ini tidak dapat dibatalkan.
-            </p>
-
-            <div style={{ display: "flex", gap: 10 }}>
-              <button
-                onClick={() => setShowConfirm(false)}
-                style={{
-                  flex: 1,
-                  padding: "11px",
-                  borderRadius: 10,
-                  border: "1px solid rgba(22,119,255,0.2)",
-                  background: "#f0f7ff",
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#1677FF",
-                  cursor: "pointer",
-                }}
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleWithdraw}
-                style={{
-                  flex: 1,
-                  padding: "11px",
-                  borderRadius: 10,
-                  border: "none",
-                  background: "linear-gradient(135deg, #ff6b6b, #e53e3e)",
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#fff",
-                  cursor: "pointer",
-                  boxShadow: "0 2px 8px rgba(255,107,107,0.4)",
-                }}
-              >
-                Ya, Tarik Lamaran
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Withdrawn success toast */}
-      {withdrawn && (
-        <div style={{
-          position: "fixed",
-          top: 80,
-          right: 28,
-          zIndex: 200,
-          background: "#fff",
-          borderRadius: 12,
-          boxShadow: "0 8px 32px rgba(10,27,61,0.15)",
-          border: "1px solid rgba(16,217,142,0.3)",
-          padding: "14px 20px",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}>
-          <CheckCircle size={18} color="#10d98e" />
-          <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D", fontWeight: 500 }}>
-            Lamaran berhasil ditarik. Mengalihkan...
-          </span>
-        </div>
-      )}
-
       {/* Back button */}
       <button
         onClick={() => navigate("/dashboard/kandidat/lamaran")}
@@ -370,31 +276,31 @@ export default function ApplicationDetailPage() {
                   marginBottom: 6,
                   letterSpacing: "-0.4px",
                 }}>
-                  {app.posisi}
+                  {application.job.title}
                 </h1>
                 <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 15, color: "#6a88b8", marginBottom: 14 }}>
-                  {app.perusahaan} · {app.lokasi}
+                  {application.job.company.name} · {application.job.location ?? "-"}
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                   <span style={{
                     padding: "5px 14px",
                     borderRadius: 20,
                     fontFamily: "'Inter', sans-serif",
-                    fontSize: 13,
-                    fontWeight: 700,
+                    fontSize: 12,
+                    fontWeight: 600,
                     ...badge,
                   }}>
-                    {app.status}
+                    {appStatus}
                   </span>
                   <span style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 4,
+                    gap: 5,
                     fontFamily: "'Inter', sans-serif",
                     fontSize: 13,
-                    color: "#9ab4cc",
+                    color: "#6a88b8",
                   }}>
-                    <Calendar size={13} /> Dikirim {app.tanggal}
+                    <Calendar size={13} /> Dikirim {formatDate(application.createdAt)}
                   </span>
                 </div>
               </div>
@@ -406,9 +312,9 @@ export default function ApplicationDetailPage() {
                   color: "#1677FF",
                   lineHeight: 1,
                 }}>
-                  {app.match}%
+                  {matchScore}%
                 </div>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc" }}>match score</div>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc" }}>AI Match Score</div>
               </div>
             </div>
           </div>
@@ -429,15 +335,15 @@ export default function ApplicationDetailPage() {
               color: "#0A1B3D",
               marginBottom: 24,
             }}>
-              Status Lamaran
+              Tahap Seleksi Lamaran
             </h2>
 
             <div style={{ position: "relative" }}>
-              {app.timeline.map((step, idx) => {
-                const isDone = currentStep >= idx && app.status !== "Ditolak";
-                const isCurrent = currentStep === idx && app.status !== "Ditolak";
+              {standardSteps.map((step, idx) => {
+                const isDone = currentStep >= idx && appStatus !== "Ditolak";
+                const isCurrent = currentStep === idx && appStatus !== "Ditolak";
                 const isFuture = !isDone && !isCurrent;
-                const isLast = idx === app.timeline.length - 1;
+                const isLast = idx === standardSteps.length - 1;
 
                 const nodeColor = isDone || isCurrent ? "#1677FF" : "#d1ddf0";
                 const textColor = isCurrent ? "#0A1B3D" : isDone ? "#4a6a9a" : "#9ab4cc";
@@ -499,31 +405,19 @@ export default function ApplicationDetailPage() {
                             background: "rgba(22,119,255,0.1)",
                             color: "#1677FF",
                           }}>
-                            Saat Ini
+                            Saat ini
                           </span>
                         )}
                       </div>
-                      <div style={{
+                      <p style={{
                         fontFamily: "'Inter', sans-serif",
                         fontSize: 13,
-                        color: isFuture ? "#b0c0d8" : "#6a88b8",
-                        lineHeight: 1.6,
-                        marginBottom: 4,
+                        color: textColor,
+                        lineHeight: 1.5,
+                        margin: 0,
                       }}>
                         {step.description}
-                      </div>
-                      {step.date && (
-                        <div style={{
-                          fontFamily: "'JetBrains Mono', monospace",
-                          fontSize: 11,
-                          color: isDone || isCurrent ? "#4DB8FF" : "#c5d3f0",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}>
-                          <Calendar size={10} /> {step.date}
-                        </div>
-                      )}
+                      </p>
                     </div>
                   </div>
                 );
@@ -531,256 +425,172 @@ export default function ApplicationDetailPage() {
             </div>
           </div>
 
-          {/* Interview schedule */}
-          {showInterview && app.interview && (
+          {/* Status Change Log Audit Trail */}
+          {statusHistory.length > 0 && (
             <div style={{
               background: "#fff",
               borderRadius: 18,
-              border: "1px solid rgba(124,58,237,0.15)",
+              border: "1px solid rgba(22,119,255,0.1)",
               boxShadow: "0 2px 12px rgba(10,27,61,0.05)",
               padding: "28px",
               marginBottom: 20,
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <div style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 12,
-                  background: "rgba(124,58,237,0.08)",
-                  border: "1px solid rgba(124,58,237,0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  <Video size={18} color="#7c3aed" />
-                </div>
-                <h2 style={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: "#0A1B3D",
-                }}>
-                  Jadwal Interview
-                </h2>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-                {[
-                  { label: "Tanggal", value: app.interview.tanggal, icon: <Calendar size={13} color="#7c3aed" /> },
-                  { label: "Jam", value: app.interview.jam, icon: <Clock size={13} color="#7c3aed" /> },
-                  { label: "Metode", value: app.interview.metode, icon: <Video size={13} color="#7c3aed" /> },
-                ].map((item) => (
-                  <div key={item.label} style={{
-                    background: "rgba(124,58,237,0.04)",
-                    borderRadius: 12,
-                    border: "1px solid rgba(124,58,237,0.1)",
-                    padding: "14px 16px",
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                      {item.icon}
-                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc", fontWeight: 500 }}>
-                        {item.label}
+              <h2 style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: 16,
+                fontWeight: 700,
+                color: "#0A1B3D",
+                marginBottom: 16,
+              }}>
+                Riwayat Transisi Status (Audit Trail)
+              </h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {statusHistory.map((h) => (
+                  <div key={h.id} style={{ padding: "12px 16px", borderRadius: 10, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.1)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D" }}>
+                        Status: {h.toStatus}
+                      </span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#6a88b8" }}>
+                        {formatDate(h.createdAt)}
                       </span>
                     </div>
-                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: "#0A1B3D" }}>
-                      {item.value}
-                    </div>
+                    {h.reason && (
+                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#4a6a9a", margin: 0 }}>
+                        Catatan: {h.reason}
+                      </p>
+                    )}
                   </div>
                 ))}
-
-                {/* Link */}
-                <div style={{
-                  background: "rgba(22,119,255,0.04)",
-                  borderRadius: 12,
-                  border: "1px solid rgba(22,119,255,0.12)",
-                  padding: "14px 16px",
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                    <ExternalLink size={13} color="#1677FF" />
-                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc", fontWeight: 500 }}>
-                      Link Meeting
-                    </span>
-                  </div>
-                  <a
-                    href={`https://${app.interview.link}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "#1677FF",
-                      textDecoration: "none",
-                      wordBreak: "break-all",
-                    }}
-                  >
-                    {app.interview.link}
-                  </a>
-                </div>
-              </div>
-
-              {/* Catatan recruiter */}
-              <div style={{
-                background: "rgba(255,154,60,0.06)",
-                borderRadius: 12,
-                border: "1px solid rgba(255,154,60,0.2)",
-                padding: "16px",
-              }}>
-                <div style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "#ff9a3c",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: 8,
-                }}>
-                  Catatan Recruiter
-                </div>
-                <p style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 14,
-                  color: "#4a6a9a",
-                  lineHeight: 1.6,
-                  margin: 0,
-                }}>
-                  {app.interview.catatan}
-                </p>
               </div>
             </div>
           )}
+
+          {/* Cover Letter Section */}
+          <div style={{
+            background: "#fff",
+            borderRadius: 18,
+            border: "1px solid rgba(22,119,255,0.1)",
+            boxShadow: "0 2px 12px rgba(10,27,61,0.05)",
+            padding: "28px",
+          }}>
+            <h2 style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 16,
+              fontWeight: 700,
+              color: "#0A1B3D",
+              marginBottom: 14,
+            }}>
+              Cover Letter yang Dikirim
+            </h2>
+            <div style={{
+              padding: "16px 20px",
+              borderRadius: 12,
+              background: "#f8fbff",
+              border: "1px solid rgba(22,119,255,0.12)",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 14,
+              color: "#3a5480",
+              lineHeight: 1.7,
+              whiteSpace: "pre-line",
+            }}>
+              {application.coverLetter || "Tidak ada cover letter khusus yang disertakan pada lamaran ini."}
+            </div>
+          </div>
         </div>
 
-        {/* Right column — Actions */}
+        {/* Right column */}
         <div>
+          {/* Company details */}
           <div style={{
             background: "#fff",
             borderRadius: 18,
             border: "1px solid rgba(22,119,255,0.1)",
             boxShadow: "0 2px 12px rgba(10,27,61,0.05)",
             padding: "24px",
-            position: "sticky",
-            top: 80,
+            marginBottom: 20,
           }}>
             <h3 style={{
               fontFamily: "'Poppins', sans-serif",
               fontSize: 15,
               fontWeight: 700,
               color: "#0A1B3D",
-              marginBottom: 16,
+              marginBottom: 14,
             }}>
-              Aksi
+              Informasi Perusahaan
             </h3>
-
-            <button
-              onClick={() => navigate("/dashboard/kandidat/lamaran")}
-              style={{
-                width: "100%",
-                padding: "11px",
-                borderRadius: 10,
-                border: "1px solid rgba(22,119,255,0.2)",
-                background: "#f0f7ff",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 14,
-                fontWeight: 600,
-                color: "#1677FF",
-                cursor: "pointer",
-                marginBottom: 10,
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: "linear-gradient(135deg, #1677FF, #4DB8FF)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              <ArrowLeft size={14} /> Kembali ke Lamaran Saya
-            </button>
-
-            {app.status !== "Ditolak" && (
-              <button
-                onClick={() => setShowConfirm(true)}
-                style={{
-                  width: "100%",
-                  padding: "11px",
-                  borderRadius: 10,
-                  border: "1px solid rgba(255,107,107,0.3)",
-                  background: "rgba(255,107,107,0.06)",
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#ff6b6b",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  transition: "background 0.15s",
-                  marginBottom: 10,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,107,107,0.12)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,107,107,0.06)")}
-              >
-                <X size={14} /> Tarik Lamaran
-              </button>
-            )}
-
-            <button
-              onClick={() => setShowContactModal(true)}
-              style={{
-                width: "100%",
-                padding: "11px",
-                borderRadius: 10,
-                border: "1.5px solid rgba(22,119,255,0.3)",
-                background: "#fff",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 14,
-                fontWeight: 600,
-                color: "#1677FF",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              Hubungi Recruiter
-            </button>
-
-            {/* Summary info */}
-            <div style={{
-              marginTop: 24,
-              paddingTop: 20,
-              borderTop: "1px solid rgba(22,119,255,0.08)",
-            }}>
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc", marginBottom: 3 }}>Posisi</div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D" }}>{app.posisi}</div>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc", marginBottom: 3 }}>Perusahaan</div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D" }}>{app.perusahaan}</div>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc", marginBottom: 3 }}>Tanggal Melamar</div>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#4a6a9a" }}>{app.tanggal}</div>
+                color: "#fff",
+              }}>
+                <Building2 size={20} />
               </div>
               <div>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc", marginBottom: 3 }}>Match Score</div>
-                <div style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 24,
-                  fontWeight: 800,
-                  color: "#1677FF",
-                  lineHeight: 1,
-                }}>
-                  {app.match}%
+                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D" }}>
+                  {application.job.company.name}
+                </div>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>
+                  {application.job.company.industry || "Industri Teknologi"}
                 </div>
               </div>
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>
+              <MapPin size={13} /> {application.job.location || "Wilayah Jawa"}
+            </div>
+          </div>
+
+          {/* Quick link to job */}
+          <div style={{
+            background: "#f0f7ff",
+            borderRadius: 18,
+            border: "1px solid rgba(22,119,255,0.15)",
+            padding: "24px",
+          }}>
+            <h3 style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#0A1B3D",
+              marginBottom: 10,
+            }}>
+              Rincian Lowongan Asli
+            </h3>
+            <p style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              color: "#6a88b8",
+              lineHeight: 1.5,
+              marginBottom: 16,
+            }}>
+              Ingin meninjau kembali deskripsi lengkap atau persyaratan posisi ini?
+            </p>
+            <button
+              onClick={() => navigate(`/dashboard/kandidat/pekerjaan/${application.job.id}`)}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: 10,
+                border: "none",
+                background: "linear-gradient(135deg, #1677FF, #0D47A1)",
+                color: "#fff",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Lihat Detail Lowongan
+            </button>
           </div>
         </div>
       </div>
-
-      {showContactModal && <ContactRecruiterModal onClose={() => setShowContactModal(false)} />}
     </DashboardLayout>
   );
 }

@@ -275,17 +275,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const applyToJob = useCallback(async (job: Omit<Application, "id" | "tanggal" | "status" | "isNew"> & { jobId?: string }) => {
-    if (job.jobId && user?.role === "CANDIDATE") {
-      const version = generation.current;
-      const created = await submitJobApplication(job.jobId);
-      if (version !== generation.current) throw new ApiError("Sesi telah berubah.", 401);
-      const mapped = mapBackendApplication(created);
-      setApplications(prev => [mapped, ...prev.filter((app) => app.id !== mapped.id)]);
-      return mapped.id;
+    if (!user || user.role !== "CANDIDATE") {
+      throw new ApiError("Anda harus masuk sebagai kandidat untuk melamar lowongan pekerjaan.", 401);
+    }
+    if (!job.jobId) {
+      throw new ApiError("ID lowongan pekerjaan tidak valid.", 400);
     }
 
-    return addApplication(job);
-  }, [addApplication, user?.role]);
+    const version = generation.current;
+    const created = await submitJobApplication(job.jobId);
+    if (version !== generation.current) throw new ApiError("Sesi telah berubah.", 401);
+    const mapped: Application = {
+      ...mapBackendApplication(created),
+      match: typeof job.match === "number" ? job.match : 0,
+    };
+    setApplications(prev => [mapped, ...prev.filter((app) => app.id !== mapped.id)]);
+    return mapped.id;
+  }, [user]);
 
   const updateApplicationStatus = useCallback((id: string, status: AppStatus) => {
     setApplications(prev => prev.map(a => a.id === id ? { ...a, status, isNew: false } : a));

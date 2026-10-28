@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Home, Briefcase, Bookmark, BarChart2, BookOpen,
   FileText, Globe, User, Settings,
-  MapPin, Calendar, ChevronRight, CheckCircle, Circle,
+  MapPin, Calendar, ChevronRight, CheckCircle, Circle, Loader2, RefreshCw,
 } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
@@ -54,8 +54,31 @@ function getStatusStyle(status: AppStatus): { background: string; color: string;
 
 export default function MyApplicationsPage() {
   const navigate = useNavigate();
-  const { applications } = useAppContext();
+  const { applications, refreshApplications, user } = useAppContext();
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
+
   const [activeTab, setActiveTab] = useState<AppStatus | "Semua">("Semua");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await refreshApplications();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal memperbarui daftar lamaran.");
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshApplications]);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadData();
+    });
+  }, [loadData]);
 
   const filtered = activeTab === "Semua"
     ? applications
@@ -64,9 +87,9 @@ export default function MyApplicationsPage() {
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
-      userName="Budi Santoso"
+      userName={displayName}
       userRole="Kandidat"
-      userInitial="B"
+      userInitial={displayInitial}
     >
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
@@ -142,7 +165,55 @@ export default function MyApplicationsPage() {
 
       {/* Application cards */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {filtered.length === 0 && (
+        {loading && applications.length === 0 && (
+          <div style={{
+            background: "#fff",
+            borderRadius: 16,
+            border: "1px solid rgba(22,119,255,0.1)",
+            padding: "48px 24px",
+            textAlign: "center",
+          }}>
+            <Loader2 size={36} className="animate-spin" color="#1677FF" style={{ margin: "0 auto 12px" }} />
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", margin: 0 }}>
+              Memuat data riwayat lamaran Anda...
+            </p>
+          </div>
+        )}
+
+        {!loading && error && applications.length === 0 && (
+          <div style={{
+            background: "#fff",
+            borderRadius: 16,
+            border: "1px solid rgba(239,68,68,0.2)",
+            padding: "48px 24px",
+            textAlign: "center",
+          }}>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#dc2626", marginBottom: 16 }}>
+              {error}
+            </p>
+            <button
+              onClick={() => void loadData()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 18px",
+                borderRadius: 8,
+                background: "#1677FF",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              <RefreshCw size={14} /> Coba Lagi
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && filtered.length === 0 && (
           <div style={{
             background: "#fff",
             borderRadius: 16,
@@ -302,7 +373,7 @@ export default function MyApplicationsPage() {
               {/* Action button */}
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <button
-                  onClick={() => navigate(`/dashboard/kandidat/detail-lamaran`)}
+                  onClick={() => navigate(`/dashboard/kandidat/lamaran/${app.id}`)}
                   style={{
                     display: "flex",
                     alignItems: "center",

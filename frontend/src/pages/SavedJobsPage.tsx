@@ -82,7 +82,10 @@ function SkillTag({ label }: { label: string }) {
 
 export default function SavedJobsPage() {
   const navigate = useNavigate();
-  const { savedJobs, unsaveJob, addApplication } = useAppContext();
+  const { savedJobs, unsaveJob, applyToJob, user } = useAppContext();
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
+
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("Semua Lokasi");
   const [typeFilter, setTypeFilter] = useState("Semua Tipe");
@@ -90,6 +93,7 @@ export default function SavedJobsPage() {
   const [showModal, setShowModal] = useState<SavedJob | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [appliedJob, setAppliedJob] = useState<SavedJob | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRemove = (job: SavedJob) => {
     unsaveJob(job.id);
@@ -110,9 +114,9 @@ export default function SavedJobsPage() {
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
-      userName="Budi Santoso"
+      userName={displayName}
       userRole="Kandidat"
-      userInitial="B"
+      userInitial={displayInitial}
     >
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
         {/* Header */}
@@ -399,7 +403,7 @@ export default function SavedJobsPage() {
                   {/* Actions */}
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                     <button
-                      onClick={() => navigate(`/dashboard/kandidat/detail-pekerjaan`)}
+                      onClick={() => navigate(`/dashboard/kandidat/pekerjaan/${job.id}`)}
                       style={{
                         padding: "9px 18px",
                         borderRadius: 10,
@@ -459,7 +463,28 @@ export default function SavedJobsPage() {
         <ApplicationConfirmModal
           jobTitle={showModal.title}
           company={showModal.company}
-          onConfirm={() => { addApplication({ posisi: showModal.title, perusahaan: showModal.company, lokasi: showModal.location, match: showModal.match }); setAppliedJob(showModal); setShowModal(null); setShowSuccessModal(true); }}
+          onConfirm={() => {
+            if (isSubmitting) return;
+            setIsSubmitting(true);
+            applyToJob({
+              jobId: showModal.id,
+              posisi: showModal.title,
+              perusahaan: showModal.company,
+              lokasi: showModal.location,
+              match: showModal.match,
+            })
+              .then(() => {
+                setAppliedJob(showModal);
+                setShowModal(null);
+                setShowSuccessModal(true);
+              })
+              .catch((err) => {
+                toast.error(err instanceof Error ? err.message : "Lamaran gagal dikirim.");
+              })
+              .finally(() => {
+                setIsSubmitting(false);
+              });
+          }}
           onClose={() => setShowModal(null)}
         />
       )}
