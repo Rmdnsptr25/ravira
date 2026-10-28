@@ -9,9 +9,9 @@ export const updateRecruiterCompanySchema = z
     size: optionalText,
     location: optionalText,
     website: optionalText,
-    description: optionalTex
+    description: optionalText,
   })
   .strict()
   .refine((data) => Object.keys(data).length > 0, {
-    message: "At least one company profile field is required."
+    message: "At least one company profile field is required.",
   });
