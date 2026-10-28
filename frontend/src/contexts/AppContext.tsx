@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   applyToJob as submitJobApplication,
   getAuthToken,
@@ -13,6 +13,9 @@ import {
   type PublicJob,
   type RaviraUser,
 } from "../services/raviraApi";
+
+import { ApiError, AUTH_TOKEN_KEY, SESSION_INVALIDATED } from "../services/api";
+import type { RaviraRole } from "../services/raviraApi";
 
 export type AppStatus = "Dikirim" | "Screening" | "Interview" | "Offer" | "Diterima" | "Ditolak";
 
@@ -61,11 +64,13 @@ type RegisterRecruiterInput = {
 interface AppContextType {
   user: RaviraUser | null;
   authReady: boolean;
+  authError: string | null;
+  retrySession: () => Promise<void>;
   backendOnline: boolean;
   jobs: PublicJob[];
   applications: Application[];
   savedJobs: SavedJob[];
-  login: (email: string, password: string) => Promise<RaviraUser>;
+  login: (email: string, password: string, expectedRole?: RaviraRole | readonly RaviraRole[]) => Promise<RaviraUser>;
   registerCandidate: (input: RegisterCandidateInput) => Promise<RaviraUser>;
   registerRecruiter: (input: RegisterRecruiterInput) => Promise<RaviraUser>;
   logout: () => void;
@@ -85,18 +90,6 @@ function todayStr(): string {
   const d = new Date();
   return `${d.getDate()} ${["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][d.getMonth()]} ${d.getFullYear()}`;
 }
-
-const STATIC_APPS: Application[] = [
-  { id: "app-001", posisi: "Data Analyst", perusahaan: "Tokopedia", lokasi: "Jakarta", tanggal: "28 Mei 2026", status: "Screening", match: 88 },
-  { id: "app-002", posisi: "UX Researcher", perusahaan: "Gojek", lokasi: "Jakarta Selatan", tanggal: "20 Mei 2026", status: "Interview", match: 82 },
-  { id: "app-003", posisi: "Product Designer", perusahaan: "Bukalapak", lokasi: "Bandung", tanggal: "10 Mei 2026", status: "Dikirim", match: 76 },
-  { id: "app-004", posisi: "Frontend Developer", perusahaan: "Shopee", lokasi: "Jakarta Barat", tanggal: "5 Mei 2026", status: "Ditolak", match: 71 },
-];
-
-const STATIC_SAVED: SavedJob[] = [
-  { id: "saved-001", title: "Senior UX Designer", company: "Gojek", location: "Jakarta Selatan", type: "Full-time", salary: "Rp 18-28 Jt/bln", match: 94, matchedSkills: ["Figma", "Design Systems", "User Research"] },
-  { id: "saved-002", title: "Product Manager", company: "Tokopedia", location: "Jakarta", type: "Hybrid", salary: "Rp 22-35 Jt/bln", match: 87, matchedSkills: ["Agile", "Roadmapping", "Stakeholder Management"] },
-];
 
 function mapApplicationStatus(status: string): AppStatus {
   switch (status) {
@@ -141,74 +134,138 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [authReady, setAuthReady] = useState(false);
   const [backendOnline, setBackendOnline] = useState(false);
   const [jobs, setJobs] = useState<PublicJob[]>([]);
-  const [applications, setApplications] = useState<Application[]>(STATIC_APPS);
-  const [savedJobs, setSavedJobs] = useState<SavedJob[]>(STATIC_SAVED);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [savedJobs, setSavedJobs] = useState<SavedJob[]>([]);
 
-  const refreshApplications = useCallback(async () => {
-    const backendApplications = await listMyApplications();
-    setApplications(backendApplications.map(mapBackendApplication));
-  }, []);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const generation = useRef(0);
+  const authRequest = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    listPublishedJobs(controller.signal)
-      .then((publishedJobs) => {
-        setJobs(publishedJobs);
-        setBackendOnline(true);
-      })
-      .catch(() => setBackendOnline(false));
-
-    if (!getAuthToken()) {
-      setAuthReady(true);
-      return () => controller.abort();
-    }
-
-    getCurrentUser()
-      .then((currentUser) => {
-        setUser(currentUser);
-        setBackendOnline(true);
-        if (currentUser.role === "CANDIDATE") {
-          return refreshApplications();
-        }
-        return undefined;
-      })
-      .catch(() => logoutRequest())
-      .finally(() => setAuthReady(true));
-
-    return () => controller.abort();
-  }, [refreshApplications]);
-
-  const login = useCallback(async (email: string, password: string) => {
-    const result = await loginRequest(email, password);
-    setUser(result.user);
-    setBackendOnline(true);
-    if (result.user.role === "CANDIDATE") {
-      await refreshApplications();
-    }
-    return result.user;
-  }, [refreshApplications]);
-
-  const registerCandidate = useCallback(async (input: RegisterCandidateInput) => {
-    const result = await registerCandidateRequest(input);
-    setUser(result.user);
-    setBackendOnline(true);
-    await refreshApplications();
-    return result.user;
-  }, [refreshApplications]);
-
-  const registerRecruiter = useCallback(async (input: RegisterRecruiterInput) => {
-    const result = await registerRecruiterRequest(input);
-    setUser(result.user);
-    setBackendOnline(true);
-    return result.user;
+  const clearPrivateState = useCallback(() => {
+    generation.current += 1;
+    authRequest.current?.abort();
+    setUser(null);
+    setApplications([]);
+    setSavedJobs([]);
+    setAuthError(null);
   }, []);
 
   const logout = useCallback(() => {
     logoutRequest();
-    setUser(null);
-    setApplications(STATIC_APPS);
+    clearPrivateState();
+    setAuthReady(true);
+  }, [clearPrivateState]);
+
+  const refreshApplications = useCallback(async () => {
+    const token = getAuthToken();
+    const version = generation.current;
+    const backendApplications = await listMyApplications();
+    if (token && token === getAuthToken() && version === generation.current) {
+      setApplications(backendApplications.map(mapBackendApplication));
+    }
   }, []);
+
+  const retrySession = useCallback(async () => {
+    clearPrivateState();
+    const version = generation.current;
+    const token = getAuthToken();
+    setAuthReady(false);
+    try {
+      if (token) {
+        const currentUser = await getCurrentUser();
+        if (version !== generation.current || token !== getAuthToken()) return;
+        setUser(currentUser);
+        setBackendOnline(true);
+      }
+    } catch (error) {
+      if (version !== generation.current) return;
+      if (error instanceof ApiError && error.status === 401) logout();
+      else setAuthError(error instanceof ApiError && error.status === 403
+        ? "Akses sesi ditolak. Silakan masuk kembali atau hubungi administrator."
+        : "Sesi belum dapat diperiksa. Periksa koneksi lalu coba lagi.");
+    } finally {
+      if (version === generation.current) setAuthReady(true);
+    }
+  }, [clearPrivateState, logout]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    listPublishedJobs(controller.signal)
+      .then(publishedJobs => { setJobs(publishedJobs); setBackendOnline(true); })
+      .catch(() => setBackendOnline(false));
+    queueMicrotask(() => { if (!controller.signal.aborted) void retrySession(); });
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === AUTH_TOKEN_KEY || event.key === null) void retrySession();
+    };
+    window.addEventListener(SESSION_INVALIDATED, logout);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      controller.abort();
+      generation.current += 1;
+      window.removeEventListener(SESSION_INVALIDATED, logout);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [retrySession, logout]);
+
+  useEffect(() => {
+    if (user?.role === "CANDIDATE") {
+      void refreshApplications().catch(() => setBackendOnline(false));
+    }
+  }, [user, refreshApplications]);
+
+  useEffect(() => {
+    if (!user) return;
+    const token = getAuthToken();
+    let timer: ReturnType<typeof setTimeout>;
+    const checkExpiry = () => {
+      clearTimeout(timer);
+      try {
+        const payload: unknown = JSON.parse(atob((token?.split(".")[1] ?? "").replace(/-/g, "+").replace(/_/g, "/")));
+        if (typeof payload !== "object" || payload === null || !("exp" in payload) || typeof payload.exp !== "number") {
+          logout();
+          return;
+        }
+        const remaining = payload.exp * 1000 - Date.now();
+        if (remaining <= 0) logout();
+        else timer = setTimeout(checkExpiry, Math.min(remaining, 2147483647));
+      } catch {
+        logout();
+      }
+    };
+    checkExpiry();
+    window.addEventListener("focus", checkExpiry);
+    return () => { clearTimeout(timer); window.removeEventListener("focus", checkExpiry); };
+  }, [user, logout]);
+
+  const login = useCallback(async (email: string, password: string, expectedRole: RaviraRole | readonly RaviraRole[] = "CANDIDATE") => {
+    logout();
+    const controller = new AbortController();
+    authRequest.current = controller;
+    const result = await loginRequest(email, password, expectedRole, controller.signal);
+    setUser(result.user);
+    setBackendOnline(true);
+    return result.user;
+  }, [logout]);
+
+  const registerCandidate = useCallback(async (input: RegisterCandidateInput) => {
+    logout();
+    const controller = new AbortController();
+    authRequest.current = controller;
+    const result = await registerCandidateRequest(input, controller.signal);
+    setUser(result.user);
+    setBackendOnline(true);
+    return result.user;
+  }, [logout]);
+
+  const registerRecruiter = useCallback(async (input: RegisterRecruiterInput) => {
+    logout();
+    const controller = new AbortController();
+    authRequest.current = controller;
+    const result = await registerRecruiterRequest(input, controller.signal);
+    setUser(result.user);
+    setBackendOnline(true);
+    return result.user;
+  }, [logout]);
 
   const addApplication = useCallback((app: Omit<Application, "id" | "tanggal" | "status" | "isNew">): string => {
     const id = `app-${Date.now()}`;
@@ -219,7 +276,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const applyToJob = useCallback(async (job: Omit<Application, "id" | "tanggal" | "status" | "isNew"> & { jobId?: string }) => {
     if (job.jobId && user?.role === "CANDIDATE") {
+      const version = generation.current;
       const created = await submitJobApplication(job.jobId);
+      if (version !== generation.current) throw new ApiError("Sesi telah berubah.", 401);
       const mapped = mapBackendApplication(created);
       setApplications(prev => [mapped, ...prev.filter((app) => app.id !== mapped.id)]);
       return mapped.id;
@@ -252,6 +311,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       user,
       authReady,
+      authError,
+      retrySession,
       backendOnline,
       jobs,
       applications,
@@ -274,6 +335,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// The provider and its hook intentionally share this context module.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppContext(): AppContextType {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error("useAppContext must be used within AppProvider");

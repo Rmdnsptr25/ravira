@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { RaviraOwlIcon } from "../components/RaviraLogo";
 import { useAppContext } from "../contexts/AppContext";
 
-export default function LoginKandidatPage() {
+export default function LoginKandidatPage({ adminMode = false }: { adminMode?: boolean }) {
   const navigate = useNavigate();
   const { login } = useAppContext();
   const [showPassword, setShowPassword] = useState(false);
@@ -16,14 +16,11 @@ export default function LoginKandidatPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const user = await login(email, password);
-      if (user.role !== "CANDIDATE") {
-        toast.error("Akun ini bukan akun kandidat.");
-        return;
-      }
-      navigate("/dashboard/kandidat");
+      await login(email, password, adminMode ? ["ADMIN", "SUPER_ADMIN"] : "CANDIDATE");
+      navigate(adminMode ? "/admin" : "/dashboard/kandidat", { replace: true });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login gagal.");
     } finally {
@@ -76,10 +73,10 @@ export default function LoginKandidatPage() {
           </button>
 
           <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 26, fontWeight: 800, color: "#0A1B3D", letterSpacing: "-0.6px", marginBottom: 6 }}>
-            Masuk sebagai Kandidat
+            Masuk sebagai {adminMode ? "Admin" : "Kandidat"}
           </h2>
           <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", marginBottom: 28 }}>
-            Lanjutkan perjalanan karier Anda bersama Ravira.
+            {adminMode ? "Akses konsol administrasi RAVIRA dengan akun admin Anda." : "Lanjutkan perjalanan karier Anda bersama Ravira."}
           </p>
 
           <form onSubmit={handleLogin}>
@@ -129,12 +126,12 @@ export default function LoginKandidatPage() {
             </button>
           </form>
 
-          <p style={{ textAlign: "center", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8" }}>
+          {!adminMode && <p style={{ textAlign: "center", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8" }}>
             Belum punya akun?{" "}
             <button onClick={() => navigate("/daftar/kandidat")} style={{ background: "none", border: "none", cursor: "pointer", color: "#1677FF", fontWeight: 600, padding: 0, fontFamily: "'Inter', sans-serif", fontSize: 13 }}>
               Daftar sebagai Kandidat
             </button>
-          </p>
+          </p>}
         </div>
       </div>
 

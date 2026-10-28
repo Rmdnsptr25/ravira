@@ -20,13 +20,11 @@ const labelStyle: React.CSSProperties = {
 
 export default function RegisterGovernmentPage() {
   const navigate = useNavigate();
-  const [suratFile, setSuratFile] = useState<string | null>(null);
   const [consent1, setConsent1] = useState(false);
   const [consent2, setConsent2] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/daftar/pemerintah/verifikasi");
   };
 
   return (
@@ -59,14 +57,15 @@ export default function RegisterGovernmentPage() {
         <div style={{ background: "linear-gradient(135deg, rgba(77,184,255,0.06), rgba(22,119,255,0.04))", border: "1px solid rgba(77,184,255,0.2)", borderRadius: 16, padding: "16px 20px", marginBottom: 24, display: "flex", gap: 12 }}>
           <FileCheck size={18} color="#4DB8FF" style={{ flexShrink: 0, marginTop: 2 }} />
           <div>
-            <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#0A1B3D", marginBottom: 4 }}>Verifikasi Diperlukan</div>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", lineHeight: 1.6 }}>
-              Akun lembaga pemerintah memerlukan verifikasi dokumen resmi. Tim Ravira akan memproses permohonan Anda dalam 3–5 hari kerja.
+            <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#0A1B3D", marginBottom: 4 }}>Registrasi Belum Tersedia</div>
+            <p role="status" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", lineHeight: 1.6 }}>
+              Pendaftaran pemerintah / institusi dan unggah dokumen belum tersedia. Form dinonaktifkan; data tidak dikirim dan permohonan verifikasi tidak dibuat.
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit}>
+          <fieldset disabled style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
           <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(22,119,255,0.1)", boxShadow: "0 2px 16px rgba(10,27,61,0.06)", padding: "32px" }}>
 
             <h3 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D", marginBottom: 16, paddingBottom: 10, borderBottom: "1px solid rgba(22,119,255,0.1)" }}>Identitas Lembaga</h3>
@@ -146,24 +145,20 @@ export default function RegisterGovernmentPage() {
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>Surat Resmi/SK Lembaga *</label>
               <div
-                onClick={() => setSuratFile("surat_resmi_lembaga.pdf")}
+                aria-disabled="true"
                 style={{
                   border: "2px dashed rgba(77,184,255,0.3)", borderRadius: 12,
-                  padding: "28px 20px", textAlign: "center", cursor: "pointer",
-                  background: suratFile ? "rgba(77,184,255,0.04)" : "#f8fbff",
+                  padding: "28px 20px", textAlign: "center", cursor: "not-allowed",
+                  background: "#f8fbff",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#4DB8FF"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(77,184,255,0.3)"; }}
               >
-                {suratFile ? (
-                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: "#4DB8FF" }}>✓ {suratFile}</div>
-                ) : (
                   <div>
                     <Upload size={26} color="#4DB8FF" style={{ margin: "0 auto 8px" }} />
-                    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>Upload Dokumen Resmi</div>
+                    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>Upload Dokumen Belum Tersedia</div>
                     <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>SK, Surat Tugas, atau dokumen pengesahan • PDF • Maks. 10MB</div>
                   </div>
-                )}
               </div>
             </div>
 
@@ -185,24 +180,25 @@ export default function RegisterGovernmentPage() {
               </div>
             </div>
 
-            <button type="submit" disabled={!consent1 || !consent2 || !suratFile}
+            <button type="submit" disabled
               style={{
                 width: "100%", padding: "13px", borderRadius: 12, border: "none",
-                background: consent1 && consent2 && suratFile ? "linear-gradient(135deg, #4DB8FF, #1677FF)" : "rgba(77,184,255,0.3)",
+                background: "rgba(77,184,255,0.3)",
                 fontFamily: "'Poppins', sans-serif", fontSize: 15, fontWeight: 700, color: "#fff",
-                cursor: consent1 && consent2 && suratFile ? "pointer" : "not-allowed",
+                cursor: "not-allowed",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                boxShadow: consent1 && consent2 && suratFile ? "0 6px 20px rgba(22,119,255,0.3)" : "none",
+                boxShadow: "none",
               }}>
-              Kirim Permohonan Verifikasi <ArrowRight size={16} />
+              Registrasi Belum Tersedia <ArrowRight size={16} />
             </button>
           </div>
+          </fieldset>
         </form>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginTop: 20 }}>
           <Shield size={14} color="#10d98e" />
           <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>
-            Data lembaga diproses dengan standar keamanan tingkat pemerintah.
+            Belum ada data atau dokumen lembaga yang dikirim melalui form ini.
           </span>
         </div>
       </div>

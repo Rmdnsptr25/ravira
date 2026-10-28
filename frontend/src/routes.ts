@@ -15,11 +15,12 @@ import UntukPemerintahLaporanPage from "./pages/UntukPemerintahLaporanPage";
 import PublicAnalyticsPage from "./pages/PublicAnalyticsPage";
 import TentangPage from "./pages/TentangPage";
 import KontakPage from "./pages/KontakPage";
-import LoginPage from "./pages/LoginPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import LoginAdminPage from "./pages/LoginAdminPage";
 import LoginKandidatPage from "./pages/LoginKandidatPage";
 import LoginPerusahaanPage from "./pages/LoginPerusahaanPage";
 import LoginPemerintahPage from "./pages/LoginPemerintahPage";
-import PickRolePage from "./pages/PickRolePage";
+
 
 // Kandidat
 import RegisterCandidatePage from "./pages/RegisterCandidatePage";
@@ -77,7 +78,7 @@ import AdminModelAIPage from "./pages/AdminModelAIPage";
 import AdminUserManagementPage from "./pages/AdminUserManagementPage";
 import AdminSettingsPage from "./pages/AdminSettingsPage";
 
-export const router = createBrowserRouter([
+const routes = [
   { path: "/", Component: LandingPage },
   { path: "/fitur", Component: FiturPage },
   { path: "/untuk-kandidat", Component: UntukKandidatPage },
@@ -94,6 +95,7 @@ export const router = createBrowserRouter([
   { path: "/analytics", Component: PublicAnalyticsPage },
   { path: "/tentang", Component: TentangPage },
   { path: "/kontak", Component: KontakPage },
+  { path: "/masuk/admin", Component: LoginAdminPage },
   { path: "/masuk", Component: LoginKandidatPage },
   { path: "/masuk/kandidat", Component: LoginKandidatPage },
   { path: "/masuk/perusahaan", Component: LoginPerusahaanPage },
@@ -164,4 +166,13 @@ export const router = createBrowserRouter([
   { path: "/dashboard/admin/model-ai", Component: AdminModelAIPage },
   { path: "/dashboard/admin/user-management", Component: AdminUserManagementPage },
   { path: "/dashboard/admin/pengaturan", Component: AdminSettingsPage },
+];
+
+export const router = createBrowserRouter([
+  ...routes.filter(route => !isPrivate(route.path)),
+  { Component: ProtectedRoute, children: routes.filter(route => isPrivate(route.path)) },
 ]);
+
+function isPrivate(path: string) {
+  return path === "/admin" || path.startsWith("/dashboard/") || path.endsWith("/onboarding");
+}

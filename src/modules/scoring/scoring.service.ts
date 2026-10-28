@@ -2,6 +2,7 @@ import { JobStatus, Prisma, Role } from "@prisma/client";
 import prisma from "../../config/prisma";
 import { AppError } from "../../utils/appError";
 import { createAuditLog } from "../audit-logs/auditLog.service";
+import { requireApprovedRecruiter } from "../recruiters/recruiterAccess.service";
 
 const SCORING_RULE_VERSION = "mvp-rule-v1";
 
@@ -156,19 +157,6 @@ const getJobById = async (jobId: string, client: PrismaExecutor = prisma) => {
   }
 
   return job;
-};
-
-const getRecruiterCompanyIdByUserId = async (userId: string) => {
-  const recruiter = await prisma.recruiter.findUnique({
-    where: { userId },
-    select: { companyId: true }
-  });
-
-  if (!recruiter) {
-    throw new AppError("Recruiter profile not found.", 404);
-  }
-
-  return recruiter.companyId;
 };
 
 const calculateSkillMatch = (candidate: CandidateForScoring, job: JobForScoring) => {
@@ -562,7 +550,7 @@ export const getMyJobMatchScore = async (userId: string, jobId: string) => {
 };
 
 export const getRecruiterJobCandidateScores = async (userId: string, jobId: string) => {
-  const companyId = await getRecruiterCompanyIdByUserId(userId);
+  const { companyId } = await requireApprovedRecruiter(userId);
   const job = await prisma.job.findFirst({
     where: { id: jobId, companyId },
     select: { id: true }
@@ -573,7 +561,7 @@ export const getRecruiterJobCandidateScores = async (userId: string, jobId: stri
   }
 
   const applications = await prisma.application.findMany({
-    where: { jobId },
+    where: { jobId, job: { companyId } },
     select: {
       id: true,
       status: true,
@@ -646,12 +634,25 @@ export const getApplicationCandidateScore = async (
   userId: string,
   role: Role
 ) => {
-  if (role === Role.CANDIDATE) {
-    throw new AppError("Candidates cannot access Candidate Score.", 403);
+  const where: Prisma.ApplicationWhereUniqueInput = { id: applicationId };
+
+  switch (role) {
+    case Role.RECRUITER: {
+      const recruiter = await requireApprovedRecruiter(userId);
+      where.job = { companyId: recruiter.companyId };
+      break;
+    }
+    case Role.ADMIN:
+    case Role.SUPER_ADMIN:
+      break;
+    case Role.CANDIDATE:
+      throw new AppError("Candidates cannot access Candidate Score.", 403);
+    default:
+      throw new AppError("You do not have permission to access this resource.", 403);
   }
 
   const application = await prisma.application.findUnique({
-    where: { id: applicationId },
+    where,
     select: {
       id: true,
       status: true,
@@ -685,17 +686,6 @@ export const getApplicationCandidateScore = async (
 
   if (!application) {
     throw new AppError("Application not found.", 404);
-  }
-
-  if (role === Role.RECRUITER) {
-    const companyId = await getRecruiterCompanyIdByUserId(userId);
-    if (application.job.companyId !== companyId) {
-      throw new AppError("Application not found.", 404);
-    }
-  }
-
-  if (![Role.RECRUITER, Role.ADMIN, Role.SUPER_ADMIN].includes(role)) {
-    throw new AppError("You do not have permission to access this resource.", 403);
   }
 
   const matchScore = await upsertAiMatchScore(

@@ -1,4 +1,4 @@
-import { api, clearAuthToken, getAuthToken, setAuthToken } from './api'
+import { api, apiRequest, ApiError, clearAuthToken, getAuthToken, setAuthToken } from './api'
 
 export { getAuthToken }
 
@@ -89,10 +89,18 @@ export type CandidateApplication = {
   }
 }
 
-export async function login(email: string, password: string) {
-  const result = await api.post<AuthResult>('/auth/login', { email, password })
+function acceptSession(result: AuthResult, roles: readonly RaviraRole[], signal?: AbortSignal) {
+  signal?.throwIfAborted()
+  if (!result.user?.isActive || !roles.includes(result.user.role) || !result.token) {
+    throw new ApiError('Akun ini tidak memiliki role yang sesuai untuk halaman masuk ini.', 403)
+  }
   setAuthToken(result.token)
   return result
+}
+
+export async function login(email: string, password: string, expectedRole: RaviraRole | readonly RaviraRole[] = 'CANDIDATE', signal?: AbortSignal) {
+  const result = await apiRequest<AuthResult>('/auth/login', { method: 'POST', body: { email, password }, auth: false, signal })
+  return acceptSession(result, typeof expectedRole === 'string' ? [expectedRole] : expectedRole, signal)
 }
 
 export async function registerCandidate(input: {
@@ -101,13 +109,12 @@ export async function registerCandidate(input: {
   password: string
   phone?: string
   location?: string
-}) {
-  const result = await api.post<AuthResult>('/auth/register/candidate', {
+}, signal?: AbortSignal) {
+  const result = await apiRequest<AuthResult>('/auth/register/candidate', { method: 'POST', auth: false, signal, body: {
     ...input,
     consentAccepted: true,
-  })
-  setAuthToken(result.token)
-  return result
+  } })
+  return acceptSession(result, ['CANDIDATE'], signal)
 }
 
 export async function registerRecruiter(input: {
@@ -120,10 +127,9 @@ export async function registerRecruiter(input: {
   location?: string
   companyWebsite?: string
   position?: string
-}) {
-  const result = await api.post<AuthResult>('/auth/register/recruiter', input)
-  setAuthToken(result.token)
-  return result
+}, signal?: AbortSignal) {
+  const result = await apiRequest<AuthResult>('/auth/register/recruiter', { method: 'POST', auth: false, body: input, signal })
+  return acceptSession(result, ['RECRUITER'], signal)
 }
 
 export async function getCurrentUser() {

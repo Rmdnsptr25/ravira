@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1'
+  import.meta.env?.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1'
 
 type ApiRequestOptions = {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
@@ -15,7 +15,8 @@ type ApiEnvelope<TData> = {
   data: TData
 }
 
-const AUTH_TOKEN_KEY = 'ravira.auth.token'
+export const AUTH_TOKEN_KEY = 'ravira.auth.token'
+export const SESSION_INVALIDATED = 'ravira:session-invalidated'
 
 export function getAuthToken() {
   return window.localStorage.getItem(AUTH_TOKEN_KEY)
@@ -67,6 +68,11 @@ export async function apiRequest<TResponse>(
   })
 
   if (!response.ok) {
+    if (response.status === 401 && options.auth !== false &&
+        headers.get('Authorization') === `Bearer ${getAuthToken()}`) {
+      clearAuthToken()
+      window.dispatchEvent(new Event(SESSION_INVALIDATED))
+    }
     let message = `Request failed with status ${response.status}`
     try {
       const errorBody = (await response.json()) as Partial<ApiEnvelope<null>>
@@ -82,6 +88,7 @@ export async function apiRequest<TResponse>(
   }
 
   const envelope = (await response.json()) as ApiEnvelope<TResponse>
+  if (!envelope.success) throw new ApiError(envelope.message || 'Permintaan gagal.', response.status)
   return envelope.data
 }
 

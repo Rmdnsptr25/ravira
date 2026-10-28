@@ -123,7 +123,7 @@ export default function RecruitmentAnalyticsPage() {
               Conversion Funnel
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {funnel.map((f, i) => (
+              {funnel.map((f) => (
                 <div key={f.label} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                   <div style={{ width: "90px", fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#374151", flexShrink: 0 }}>{f.label}</div>
                   <div style={{ flex: 1, height: "28px", backgroundColor: "#f0f4fa", borderRadius: "6px", overflow: "hidden" }}>

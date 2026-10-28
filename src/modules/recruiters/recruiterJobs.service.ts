@@ -1,8 +1,9 @@
-import { CompanyVerificationStatus, JobStatus, Prisma, Role } from "@prisma/client";
+import { JobStatus, Prisma, Role } from "@prisma/client";
 import prisma from "../../config/prisma";
 import { AppError } from "../../utils/appError";
 import { createAuditLog } from "../audit-logs/auditLog.service";
 import { z } from "zod";
+import { getRecruiterContext, requireApprovedRecruiter } from "./recruiterAccess.service";
 import {
   createRecruiterJobSchema,
   updateRecruiterJobSchema
@@ -37,37 +38,6 @@ const jobSelect = {
   updatedAt: true
 } satisfies Prisma.JobSelect;
 
-const getRecruiterContext = async (userId: string) => {
-  const recruiter = await prisma.recruiter.findUnique({
-    where: { userId },
-    select: {
-      id: true,
-      companyId: true,
-      company: {
-        select: {
-          id: true,
-          verificationStatus: true
-        }
-      }
-    }
-  });
-
-  if (!recruiter) {
-    throw new AppError("Recruiter profile not found.", 404);
-  }
-
-  return recruiter;
-};
-
-const assertCompanyApproved = (verificationStatus: CompanyVerificationStatus) => {
-  if (verificationStatus !== CompanyVerificationStatus.APPROVED) {
-    throw new AppError(
-      `Company verificationStatus is ${verificationStatus}. Recruiters can create jobs only after company approval.`,
-      403
-    );
-  }
-};
-
 const buildJobUpdateData = (input: UpdateRecruiterJobInput): Prisma.JobUpdateInput => {
   const data: Prisma.JobUpdateInput = {};
 
@@ -89,8 +59,7 @@ export const createRecruiterJob = async (
   actorRole: Role,
   input: CreateRecruiterJobInput
 ) => {
-  const recruiter = await getRecruiterContext(userId);
-  assertCompanyApproved(recruiter.company.verificationStatus);
+  const recruiter = await requireApprovedRecruiter(userId);
 
   return prisma.$transaction(async (tx) => {
     const job = await tx.job.create({
@@ -255,7 +224,7 @@ export const deleteRecruiterJob = async (
 };
 
 export const listApplicationsForRecruiterJob = async (userId: string, jobId: string) => {
-  const recruiter = await getRecruiterContext(userId);
+  const recruiter = await requireApprovedRecruiter(userId);
   const job = await prisma.job.findFirst({
     where: { id: jobId, companyId: recruiter.companyId },
     select: { id: true }
@@ -266,7 +235,7 @@ export const listApplicationsForRecruiterJob = async (userId: string, jobId: str
   }
 
   return prisma.application.findMany({
-    where: { jobId },
+    where: { jobId, job: { companyId: recruiter.companyId } },
     select: {
       id: true,
       status: true,

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import { LayoutDashboard, Users, TrendingUp, MapPin, BarChart2, BookOpen, FileText, Settings, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
@@ -77,7 +76,6 @@ const regions = ["Semua Wilayah", "DKI Jakarta", "Jawa Barat", "Jawa Timur", "Ja
 const sectors = ["Semua Sektor", "Teknologi", "Manufaktur", "Pemasaran", "Desain", "Keamanan TI"];
 
 export default function TrainingProgramRecommendationPage() {
-  const navigate = useNavigate();
   const [region, setRegion] = useState("Semua Wilayah");
   const [sector, setSector] = useState("Semua Sektor");
 

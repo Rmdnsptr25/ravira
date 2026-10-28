@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router";
 import {
   Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings,
   MapPin, Mail, Phone, Calendar, Download, Edit2, CheckCircle,
@@ -153,7 +152,6 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 }
 
 export default function CandidateSelfProfilePage() {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profil");
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [showCvUpload, setShowCvUpload] = useState(false);

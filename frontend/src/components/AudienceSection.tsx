@@ -66,7 +66,7 @@ export function AudienceSection() {
 }
 
 function AudienceBlock({
-  id, tag, tagColor, title, titleHighlight, desc, benefits, ctaLabel, ctaColor, ctaPath, reverse, mockupData, bgColor,
+  id, tag, tagColor, title, titleHighlight, desc, benefits, ctaLabel, ctaPath, reverse, mockupData, bgColor,
 }: {
   id: string; tag: string; tagColor: string; title: string; titleHighlight: string;
   desc: string; benefits: string[]; ctaLabel: string; ctaColor: string; ctaPath: string; reverse: boolean;

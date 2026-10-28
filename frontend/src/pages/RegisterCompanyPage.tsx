@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, ArrowRight, Building2, Shield, Upload } from "lucide-react";
 import { RaviraOwlIcon } from "../components/RaviraLogo";
+import { toast } from "sonner";
+import { useAppContext } from "../contexts/AppContext";
 
 const industriOptions = ["Teknologi & Software", "E-Commerce & Retail", "Perbankan & Keuangan", "Manufaktur", "Kesehatan", "Pendidikan", "Telekomunikasi", "Media & Hiburan", "Logistik & Transportasi", "FMCG", "Konsultan", "Lainnya"];
 const ukuranOptions = ["1–10 karyawan", "11–50 karyawan", "51–200 karyawan", "201–500 karyawan", "501–1000 karyawan", "> 1000 karyawan"];
@@ -20,13 +22,36 @@ const labelStyle: React.CSSProperties = {
 
 export default function RegisterCompanyPage() {
   const navigate = useNavigate();
-  const [logoFile, setLogoFile] = useState<string | null>(null);
+  const { registerRecruiter } = useAppContext();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [consent1, setConsent1] = useState(false);
   const [consent2, setConsent2] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    navigate("/daftar/perusahaan/onboarding");
+    if (isSubmitting || !consent1 || !consent2) return;
+    const data = new FormData(e.currentTarget);
+    const text = (name: string) => {
+      const value = data.get(name);
+      return typeof value === "string" ? value : "";
+    };
+    setIsSubmitting(true);
+    try {
+      await registerRecruiter({
+        name: text("name").trim(),
+        email: text("email").trim(),
+        password: text("password"),
+        companyName: text("companyName").trim(),
+        industry: text("industry"),
+        position: text("position").trim(),
+        ...(text("companyWebsite").trim() ? { companyWebsite: text("companyWebsite").trim() } : {}),
+      });
+      navigate("/daftar/perusahaan/onboarding", { replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Registrasi perusahaan gagal.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,13 +88,13 @@ export default function RegisterCompanyPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
               <div>
                 <label style={labelStyle}>Nama Perusahaan *</label>
-                <input style={inputStyle} placeholder="PT. Maju Bersama Tbk." required
+                <input name="companyName" style={inputStyle} placeholder="PT. Maju Bersama Tbk." required
                   onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
                   onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
               </div>
               <div>
                 <label style={labelStyle}>Website Perusahaan</label>
-                <input style={inputStyle} placeholder="https://perusahaan.com"
+                <input name="companyWebsite" type="url" style={inputStyle} placeholder="https://perusahaan.com"
                   onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
                   onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
               </div>
@@ -78,14 +103,14 @@ export default function RegisterCompanyPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
               <div>
                 <label style={labelStyle}>Industri *</label>
-                <select style={{ ...inputStyle, cursor: "pointer" }} required>
+                <select name="industry" style={{ ...inputStyle, cursor: "pointer" }} required>
                   <option value="">Pilih industri</option>
                   {industriOptions.map((i) => <option key={i} value={i}>{i}</option>)}
                 </select>
               </div>
               <div>
                 <label style={labelStyle}>Ukuran Perusahaan *</label>
-                <select style={{ ...inputStyle, cursor: "pointer" }} required>
+                <select name="companySize" style={{ ...inputStyle, cursor: "pointer" }} aria-describedby="company-registration-notice">
                   <option value="">Pilih ukuran</option>
                   {ukuranOptions.map((u) => <option key={u} value={u}>{u}</option>)}
                 </select>
@@ -95,6 +120,7 @@ export default function RegisterCompanyPage() {
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Deskripsi Singkat Perusahaan</label>
               <textarea
+                name="description" aria-describedby="company-registration-notice"
                 style={{ ...inputStyle, resize: "vertical", minHeight: 90 }}
                 placeholder="Ceritakan visi, misi, dan budaya kerja perusahaan Anda..."
                 onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
@@ -104,39 +130,39 @@ export default function RegisterCompanyPage() {
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>Logo Perusahaan</label>
               <div
-                onClick={() => setLogoFile("logo_perusahaan.png")}
+                aria-disabled="true" aria-describedby="company-registration-notice"
                 style={{
                   border: "2px dashed rgba(22,119,255,0.25)", borderRadius: 12,
-                  padding: "24px 20px", textAlign: "center", cursor: "pointer",
-                  background: logoFile ? "rgba(22,119,255,0.04)" : "#f8fbff",
+                  padding: "24px 20px", textAlign: "center", cursor: "not-allowed",
+                  background: "#f8fbff",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#1677FF"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(22,119,255,0.25)"; }}
               >
-                {logoFile ? (
-                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: "#1677FF" }}>✓ {logoFile}</div>
-                ) : (
                   <div>
                     <Upload size={24} color="#1677FF" style={{ margin: "0 auto 8px" }} />
-                    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>Upload Logo</div>
+                    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>Upload Logo Belum Tersedia</div>
                     <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>PNG, SVG, atau JPG • Maks. 2MB</div>
                   </div>
-                )}
               </div>
             </div>
+
+            <p id="company-registration-notice" role="status" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", lineHeight: 1.6, marginBottom: 24 }}>
+              Registrasi menyimpan nama perusahaan, website, industri, nama PIC, jabatan, email, dan password. Ukuran, deskripsi, logo, serta pencatatan persetujuan belum didukung layanan registrasi dan tidak disimpan. Unggah logo belum tersedia.
+            </p>
 
             <h3 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D", marginBottom: 16, paddingBottom: 10, borderBottom: "1px solid rgba(22,119,255,0.1)" }}>Informasi PIC (Person in Charge)</h3>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
               <div>
                 <label style={labelStyle}>Nama PIC *</label>
-                <input style={inputStyle} placeholder="Siti Rahayu" required
+                <input name="name" style={inputStyle} placeholder="Siti Rahayu" required
                   onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
                   onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
               </div>
               <div>
                 <label style={labelStyle}>Jabatan *</label>
-                <input style={inputStyle} placeholder="HR Manager" required
+                <input name="position" style={inputStyle} placeholder="HR Manager" required
                   onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
                   onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
               </div>
@@ -145,13 +171,13 @@ export default function RegisterCompanyPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
               <div>
                 <label style={labelStyle}>Email Bisnis *</label>
-                <input type="email" style={inputStyle} placeholder="hr@perusahaan.com" required
+                <input name="email" type="email" style={inputStyle} placeholder="hr@perusahaan.com" required
                   onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
                   onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
               </div>
               <div>
                 <label style={labelStyle}>Password *</label>
-                <input type="password" style={inputStyle} placeholder="Min. 8 karakter" required
+                <input name="password" type="password" minLength={8} autoComplete="new-password" style={inputStyle} placeholder="Min. 8 karakter" required
                   onFocus={(e) => (e.target.style.borderColor = "#1677FF")}
                   onBlur={(e) => (e.target.style.borderColor = "rgba(22,119,255,0.2)")} />
               </div>
@@ -174,7 +200,7 @@ export default function RegisterCompanyPage() {
               </div>
             </div>
 
-            <button type="submit" disabled={!consent1 || !consent2}
+            <button type="submit" disabled={isSubmitting || !consent1 || !consent2}
               style={{
                 width: "100%", padding: "13px", borderRadius: 12, border: "none",
                 background: consent1 && consent2 ? "linear-gradient(135deg, #0D47A1, #1677FF)" : "rgba(13,71,161,0.3)",
@@ -183,7 +209,7 @@ export default function RegisterCompanyPage() {
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 boxShadow: consent1 && consent2 ? "0 6px 20px rgba(13,71,161,0.4)" : "none",
               }}>
-              Daftarkan Perusahaan <ArrowRight size={16} />
+              {isSubmitting ? "Memproses..." : "Daftarkan Perusahaan"} <ArrowRight size={16} />
             </button>
           </div>
         </form>
@@ -191,7 +217,7 @@ export default function RegisterCompanyPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginTop: 20 }}>
           <Shield size={14} color="#10d98e" />
           <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>
-            Akun perusahaan Anda akan diverifikasi dalam 1×24 jam kerja.
+            Akses rekrutmen tersedia setelah perusahaan disetujui admin.
           </span>
         </div>
       </div>

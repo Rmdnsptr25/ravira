@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Users, Building2, Landmark, AlertTriangle, CheckCircle2, Clock, TrendingUp, Shield, Search, MoreHorizontal, Eye, LayoutDashboard, ClipboardList, Cpu, Settings, Activity } from "lucide-react";
+import { Users, Building2, Landmark, AlertTriangle, CheckCircle2, Clock, Shield, Search, Eye, LayoutDashboard, ClipboardList, Cpu, Settings, Activity } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
@@ -56,14 +56,26 @@ const recentActivity = [
   { action: "Sinkronisasi Data", detail: "Data BPS direferensikan ke sistem analytics", time: "6 jam lalu", type: "system" },
 ];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface AdminTooltipPayloadItem {
+  name?: string;
+  value?: number;
+  color?: string;
+}
+
+interface AdminCustomTooltipProps {
+  active?: boolean;
+  payload?: AdminTooltipPayloadItem[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: AdminCustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div style={{ background: "#071228", border: "1px solid rgba(22,119,255,0.2)", borderRadius: 10, padding: "10px 14px" }}>
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#4DB8FF", marginBottom: 6 }}>{label}</div>
-        {payload.map((p: any) => (
+        {payload.map((p: AdminTooltipPayloadItem) => (
           <div key={p.name} style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: p.color, marginBottom: 2 }}>
-            {p.name}: <strong>{p.value.toLocaleString()}</strong>
+            {p.name}: <strong>{p.value?.toLocaleString()}</strong>
           </div>
         ))}
       </div>

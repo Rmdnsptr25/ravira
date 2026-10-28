@@ -65,8 +65,7 @@ export default function UntukPemerintahAnalyticsPage() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {supplyDemand.map((row, i) => {
-              const isShortage = row.gap < 0;
-              const gapColor = row.gap > 5 ? "#10d98e" : row.gap < -10 ? "#ff6b6b" : "#f59e0b";
+                            const gapColor = row.gap > 5 ? "#10d98e" : row.gap < -10 ? "#ff6b6b" : "#f59e0b";
               return (
                 <div key={row.sektor} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: 16, padding: "16px 0", borderBottom: i < supplyDemand.length - 1 ? "1px solid rgba(22,119,255,0.07)" : "none", alignItems: "center" }}>
                   <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: "#0A1B3D" }}>{row.sektor}</div>

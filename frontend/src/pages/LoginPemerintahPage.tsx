@@ -12,8 +12,6 @@ export default function LoginPemerintahPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate: active account → dashboard analytics
-    navigate("/dashboard/analytics");
   };
 
   return (
@@ -68,6 +66,8 @@ export default function LoginPemerintahPage() {
           </p>
 
           <form onSubmit={handleLogin}>
+            <p role="status" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", lineHeight: 1.6, marginBottom: 20 }}>Login pemerintah / institusi belum tersedia. Form ini dinonaktifkan dan tidak membuka sesi atau akses dashboard.</p>
+            <fieldset disabled style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D", marginBottom: 6 }}>Email Resmi</label>
               <input
@@ -110,8 +110,9 @@ export default function LoginPemerintahPage() {
               onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
               onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
             >
-              Masuk Pemerintah <ArrowRight size={16} />
+              Login Belum Tersedia <ArrowRight size={16} />
             </button>
+            </fieldset>
           </form>
 
           <p style={{ textAlign: "center", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8" }}>
