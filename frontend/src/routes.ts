@@ -21,7 +21,6 @@ import LoginKandidatPage from "./pages/LoginKandidatPage";
 import LoginPerusahaanPage from "./pages/LoginPerusahaanPage";
 import LoginPemerintahPage from "./pages/LoginPemerintahPage";
 
-
 // Kandidat
 import RegisterCandidatePage from "./pages/RegisterCandidatePage";
 import OnboardingCandidatePage from "./pages/OnboardingCandidatePage";
@@ -72,6 +71,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminVerifikasiPage from "./pages/AdminVerifikasiPage";
 import AdminModerasiPage from "./pages/AdminModerasiPage";
 import AdminAbuseReportPage from "./pages/AdminAbuseReportPage";
+import AdminAppealsPage from "./pages/AdminAppealsPage";
 import AdminMonitoringPage from "./pages/AdminMonitoringPage";
 import AdminAuditLogPage from "./pages/AdminAuditLogPage";
 import AdminModelAIPage from "./pages/AdminModelAIPage";
@@ -161,6 +161,8 @@ const routes = [
   { path: "/dashboard/admin/verifikasi-perusahaan", Component: AdminVerifikasiPage },
   { path: "/dashboard/admin/moderasi-lowongan", Component: AdminModerasiPage },
   { path: "/dashboard/admin/laporan-abuse", Component: AdminAbuseReportPage },
+  { path: "/dashboard/admin/sanggahan", Component: AdminAppealsPage },
+  { path: "/dashboard/admin/appeals", Component: AdminAppealsPage },
   { path: "/dashboard/admin/monitoring-integrasi", Component: AdminMonitoringPage },
   { path: "/dashboard/admin/audit-log", Component: AdminAuditLogPage },
   { path: "/dashboard/admin/model-ai", Component: AdminModelAIPage },

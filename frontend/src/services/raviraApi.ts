@@ -696,6 +696,180 @@ export async function updateApplicationStage(applicationId: string, body: Update
   return api.post<ApplicationDetail>(`/applications/${applicationId}/stage`, body, signal)
 }
 
+export type AdminCompanyVerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export type AdminPendingCompany = {
+  id: string
+  name: string
+  industry: string | null
+  location: string | null
+  website: string | null
+  verificationStatus: AdminCompanyVerificationStatus
+  verifiedAt: string | null
+  createdAt: string
+  updatedAt: string
+  recruiters: Array<{
+    id: string
+    user: {
+      id: string
+      email: string
+      fullName: string
+    }
+  }>
+}
+
+export type RejectCompanyInput = {
+  reason: string
+}
+
+export type FraudRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH'
+
+export type FraudReviewStatus =
+  | 'OPEN'
+  | 'IN_REVIEW'
+  | 'NEED_VERIFICATION'
+  | 'VALID'
+  | 'FALSE_POSITIVE'
+  | 'MERGED'
+  | 'BLOCKED'
+  | 'RESOLVED'
+
+export type FraudSignal = {
+  id: string
+  candidateId: string
+  caseId: string | null
+  signalType: string
+  riskLevel: FraudRiskLevel
+  evidenceMasked: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type FraudCase = {
+  id: string
+  candidateId: string
+  riskScore: number
+  riskLevel: FraudRiskLevel
+  reviewStatus: FraudReviewStatus
+  reviewerId: string | null
+  decision: string | null
+  reason: string | null
+  decidedAt: string | null
+  candidate: {
+    id: string
+    userId: string
+    fullName: string
+    emailMasked: string
+    phoneMasked: string | null
+    location: string | null
+    isActive: boolean
+  }
+  reviewer: {
+    id: string
+    fullName: string
+    emailMasked: string
+    role: string
+  } | null
+  signals: FraudSignal[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type FraudCaseQuery = {
+  riskLevel?: FraudRiskLevel
+  reviewStatus?: FraudReviewStatus
+  candidateId?: string
+}
+
+export type FraudCaseDecisionInput = {
+  decision: 'VALID' | 'FALSE_POSITIVE' | 'NEED_VERIFICATION' | 'MERGED' | 'BLOCKED' | 'RESOLVED'
+  reason: string
+}
+
+export type AppealStatus =
+  | 'OPEN'
+  | 'IN_REVIEW'
+  | 'NEED_INFO'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'RESOLVED'
+
+export type AdminAppeal = {
+  id: string
+  candidateId: string
+  relatedEntity: string
+  relatedEntityId: string | null
+  reason: string
+  evidenceUrl: string | null
+  status: AppealStatus
+  reviewerId: string | null
+  resolvedAt: string | null
+  createdAt: string
+  updatedAt: string
+  candidate: {
+    id: string
+    user: {
+      id: string
+      email: string
+      fullName: string
+    }
+  }
+  reviewer: {
+    id: string
+    email: string
+    fullName: string
+    role: string
+  } | null
+}
+
+export type AppealDecisionInput = {
+  status: 'IN_REVIEW' | 'NEED_INFO' | 'APPROVED' | 'REJECTED' | 'RESOLVED'
+  reason: string
+}
+
+export async function listPendingCompanies(signal?: AbortSignal) {
+  return api.get<AdminPendingCompany[]>('/admin/companies/pending', signal)
+}
+
+export async function approveCompany(companyId: string, signal?: AbortSignal) {
+  return api.post<AdminPendingCompany>(`/admin/companies/${companyId}/approve`, undefined, signal)
+}
+
+export async function rejectCompany(companyId: string, body: RejectCompanyInput, signal?: AbortSignal) {
+  return api.post<AdminPendingCompany>(`/admin/companies/${companyId}/reject`, body, signal)
+}
+
+export async function listFraudCases(query?: FraudCaseQuery, signal?: AbortSignal) {
+  const searchParams = new URLSearchParams()
+  if (query?.riskLevel) searchParams.set('riskLevel', query.riskLevel)
+  if (query?.reviewStatus) searchParams.set('reviewStatus', query.reviewStatus)
+  if (query?.candidateId) searchParams.set('candidateId', query.candidateId)
+  const queryString = searchParams.toString()
+  const path = queryString ? `/admin/fraud-cases?${queryString}` : '/admin/fraud-cases'
+  return api.get<FraudCase[]>(path, signal)
+}
+
+export async function getFraudCaseById(caseId: string, signal?: AbortSignal) {
+  return api.get<FraudCase>(`/admin/fraud-cases/${caseId}`, signal)
+}
+
+export async function updateFraudCaseDecision(caseId: string, body: FraudCaseDecisionInput, signal?: AbortSignal) {
+  return api.post<FraudCase>(`/admin/fraud-cases/${caseId}/decision`, body, signal)
+}
+
+export async function listAppealsForAdmin(signal?: AbortSignal) {
+  return api.get<AdminAppeal[]>('/admin/appeals', signal)
+}
+
+export async function getAppealByIdForAdmin(appealId: string, signal?: AbortSignal) {
+  return api.get<AdminAppeal>(`/admin/appeals/${appealId}`, signal)
+}
+
+export async function updateAppealDecision(appealId: string, body: AppealDecisionInput, signal?: AbortSignal) {
+  return api.post<AdminAppeal>(`/admin/appeals/${appealId}/decision`, body, signal)
+}
+
 export function logout() {
   clearAuthToken()
 }
