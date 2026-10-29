@@ -94,7 +94,7 @@ Seeding dan persiapan data uji dijalankan **hanya** pada database `Ravira-Develo
 | **E2E-ADM-03** | Verifikasi dan penolakan perusahaan | **PASS** | Admin dapat menyetujui perusahaan `PENDING` dan menolak perusahaan `PENDING` dengan alasan wajib. | Di `/dashboard/admin/verifikasi-perusahaan`, klik `Approve` memanggil `POST /api/v1/admin/companies/:id/approve` (`200 OK`), dan klik `Reject` dengan alasan wajib memanggil `POST /api/v1/admin/companies/:id/reject` (`200 OK`). | `adm-03-company-verification.png` |
 | **E2E-ADM-04** | Fraud review | **PASS** | Admin dapat melihat daftar kasus anti-fraud dan menyimpan keputusan manual review dengan alasan wajib. | Di `/dashboard/admin/laporan-abuse`, kasus `Seed Candidate` (`SIMILAR_NAME_LOCATION`) ditinjau manual melalui modal `Tinjau & Putuskan`; `POST /api/v1/admin/fraud-cases/:id/decision` mengembalikan `200 OK`. Kandidat tidak pernah ditolak otomatis tanpa manual review. | `adm-04-fraud-review.png` |
 | **E2E-ADM-05** | Appeals | **PASS** | Admin dapat meninjau pengajuan banding kandidat dan menyimpan keputusan di `/dashboard/admin/appeals`. | Di `/dashboard/admin/appeals`, klik `Putuskan` dan pengisian alasan audit memanggil `POST /api/v1/admin/appeals/:id/decision` (`200 OK`) serta memperbarui status sanggahan. | `adm-05-appeals.png` |
-| **E2E-ADM-06** | Pembatasan akses lintas role | **PASS** | Memastikan endpoint admin ditolak untuk Candidate dan Recruiter (`403 Forbidden`). | Permintaan `GET /api/v1/admin/companies/pending` menggunakan token Recruiter dikembalikan **HTTP 403 Forbidden** (`192 ms`). | Network Log Verified |
+| **E2E-ADM-06** | Pembatasan akses lintas role | **PASS** | Memastikan endpoint admin ditolak untuk Candidate dan Recruiter (`403 Forbidden`). | Permintaan `GET /api/v1/admin/companies/pending` menggunakan token Candidate (`403 Forbidden`) dan token Recruiter (`403 Forbidden`) keduanya ditolak secara nyata oleh middleware RBAC backend. | Network Log Verified |
 
 ---
 
@@ -162,14 +162,28 @@ Pada eksekusi awal `E2E-REC-03`, penyimpanan form di [`CompanyProfilePage.tsx`](
 
 ---
 
-## 10. Keputusan Akhir QA-02
+## 10. Reproduksibilitas Suite Pengujian Resmi (`tests/e2e/`) & Final Safety Check
 
-### **PASS (31 / 31 Skenario PASS — Siap Merge setelah Persetujuan)**
+Seluruh 31 skenario Playwright E2E kini tersimpan permanen di repositori proyek pada direktori resmi [`tests/e2e/`](file:///d:/ProjectRavira/ravira/tests/e2e/README.md) dan dapat dijalankan ulang secara deterministik melalui `npm run test:e2e`. Setiap status **PASS** pada laporan ini berasal dari **eksekusi nyata browser Chromium terhadap backend Express dan database Supabase `Ravira-Development`** (dibuktikan oleh kode respons HTTP aktual, mutasi database, serta artefak `tests/e2e/.artifacts/qa02-results.json` dan `screenshots/*.png`), bukan klaim statis:
 
-- **Ringkasan Skor Eksekusi Akhir:**
+- **[`tests/e2e/e2e-safety-gate.cjs`](file:///d:/ProjectRavira/ravira/tests/e2e/e2e-safety-gate.cjs):**
+  - **Environment Lock (`lockDotenvToE2EPath` & `assertRuntimeEnvMatchesE2E`):** Mengunci `dotenv.config` ke `.env.e2e` dan memverifikasi objek runtime `dist/config/env` agar `.env` Production tidak pernah menimpa `DATABASE_URL` maupun `JWT_SECRET` pengujian.
+  - **Fail-Closed Port Guard (`assertPortAvailableFailClosed`):** Memeriksa port `4000` dan `5173` (`127.0.0.1`, `::1`, `localhost`) sebelum server dinyalakan. Jika port sudah ditempati proses eksternal yang tidak dikelola runner, eksekusi langsung berhenti (`fail-closed`).
+  - **Managed Backend Identity Verification (`verifyManagedBackendIdentity`):** Memverifikasi endpoint `/__e2e_runner_identity` menggunakan cryptographic nonce unik per-eksekusi dan `projectRef: rkftrtpcoymstbdtlfig` sebelum skenario Playwright dimulai.
+- **[`tests/e2e/seed-e2e.cjs`](file:///d:/ProjectRavira/ravira/tests/e2e/seed-e2e.cjs):** Seeder idempoten (`npm run seed:e2e`) yang meneruskan `datasources.db.url` secara eksplisit ke `PrismaClient`, membersihkan user/lamaran/dokumen/saved-job sintetis dari eksekusi sebelumnya, serta menyiapkan fixture uji sintetis pada `Ravira-Development` tanpa kredensial sensitif di dalam source code.
+- **[`tests/e2e/qa02-browser-e2e.cjs`](file:///d:/ProjectRavira/ravira/tests/e2e/qa02-browser-e2e.cjs):** Runner utama Playwright (`npm run test:e2e`) yang mengeksekusi 31 skenario secara nyata dan memverifikasi setiap respons HTTP (`200`/`201`/`401`/`403`/`404`) serta perubahan DOM.
+- **[`package.json`](file:///d:/ProjectRavira/ravira/package.json) & [`package-lock.json`](file:///d:/ProjectRavira/ravira/package-lock.json):** Mencantumkan `playwright` (`1.61.1`) pada `devDependencies` secara konsisten (`npm ci --dry-run` terverifikasi lulus).
+
+---
+
+## 11. Keputusan Akhir QA-02
+
+### **PASS (31 / 31 Skenario PASS | 0 FAIL | 0 BLOCKED — Siap Merge setelah Persetujuan)**
+
+- **Ringkasan Skor Eksekusi Akhir (`npm run test:e2e`):**
   - **Candidate (`E2E-CAND-01` s/d `E2E-CAND-11`):** `11 / 11 PASS`
   - **Recruiter (`E2E-REC-01` s/d `E2E-REC-08`):** `8 / 8 PASS` (termasuk `E2E-REC-03` setelah perbaikan `BUG-E2E-01`)
   - **Admin (`E2E-ADM-01` s/d `E2E-ADM-06`):** `6 / 6 PASS`
   - **Integration (`E2E-INT-01` s/d `E2E-INT-06`):** `6 / 6 PASS`
-  - **Total Skenario Browser E2E:** **`31 / 31 PASS`**
+  - **Total Skenario Browser E2E:** **`31 / 31 PASS` (`0 FAIL`, `0 BLOCKED`)**
   - **QA-03 Migration Reproducibility:** **`PASS` (`8/8` migrasi teraplikasi pada `Ravira-Development`)**
