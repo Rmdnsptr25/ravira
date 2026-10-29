@@ -29,9 +29,9 @@ BCRYPT_SALT_ROUNDS=8
 CORS_ORIGIN="*"
 ```
 
-> **Mekanisme Keamanan Berlapis (Safety Gate & Fail-Closed):**  
-> 1. **Isolasi Database & JWT:** Jika `DATABASE_URL` (atau `DIRECT_URL`) tidak mengandung `rkftrtpcoymstbdtlfig`, mengandung referensi Production, atau `JWT_SECRET` sama dengan `.env` Production / tidak diawali `ravira-dev-e2e-`, maka `e2e-safety-gate.cjs` otomatis menghentikan eksekusi (`THROW / ABORT`) sebelum koneksi Prisma dibuat.  
-> 2. **Proteksi Override `.env` Production:** `e2e-safety-gate.cjs` mengunci `dotenv.config` ke `.env.e2e` dan memvalidasi objek runtime `dist/config/env` (`assertRuntimeEnvMatchesE2E`) agar `.env` Production tidak pernah menimpa environment pengujian.  
+> **Mekanisme Keamanan Berlapis (Safety Gate & Fail-Closed):**
+> 1. **Isolasi Database & JWT:** Jika `DATABASE_URL` (atau `DIRECT_URL`) tidak mengandung `rkftrtpcoymstbdtlfig`, mengandung referensi Production, atau `JWT_SECRET` sama dengan `.env` Production / tidak diawali `ravira-dev-e2e-`, maka `e2e-safety-gate.cjs` otomatis menghentikan eksekusi (`THROW / ABORT`) sebelum koneksi Prisma dibuat.
+> 2. **Proteksi Override `.env` Production:** `e2e-safety-gate.cjs` mengunci `dotenv.config` ke `.env.e2e` dan memvalidasi objek runtime `dist/config/env` (`assertRuntimeEnvMatchesE2E`) agar `.env` Production tidak pernah menimpa environment pengujian.
 > 3. **Fail-Closed Port Check (`:4000` & `:5173`):** Jika port `4000` atau `5173` sedang ditempati oleh proses eksternal yang tidak dikelola oleh runner, pengujian langsung berhenti (`fail-closed`). Setelah server dinyalakan oleh runner, endpoint `/__e2e_runner_identity` diverifikasi menggunakan cryptographic nonce unik per-eksekusi.
 
 ---
@@ -113,4 +113,3 @@ cd frontend && npx vitest run
 Setiap kali `npm run test:e2e` dijalankan, artefak bukti pengujian otomatis diperbarui pada:
 - `tests/e2e/.artifacts/qa02-results.json` (Ringkasan terstruktur status 31 skenario, waktu eksekusi, dan log console/page error)
 - `tests/e2e/.artifacts/screenshots/*.png` (Tangkapan layar setiap skenario)
-
