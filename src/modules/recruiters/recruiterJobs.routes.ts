@@ -19,11 +19,23 @@ import {
   jobIdParamSchema,
   updateRecruiterJobSchema
 } from "./recruiterJobs.validation";
+import {
+  getRecruiterCompanyProfile,
+  updateRecruiterCompanyProfile
+} from "./recruiterCompany.controller";
+import { updateRecruiterCompanySchema } from "./recruiterCompany.validation";
 import { getRecruiterJobCandidateScores } from "../scoring/scoring.controller";
 
 const router = Router();
 
 router.use(authMiddleware, roleMiddleware(Role.RECRUITER));
+
+router.get("/company", getRecruiterCompanyProfile);
+router.patch(
+  "/company",
+  validateBody(updateRecruiterCompanySchema),
+  updateRecruiterCompanyProfile
+);
 
 router.post("/jobs", validateBody(createRecruiterJobSchema), createRecruiterJob);
 router.get("/jobs", listRecruiterJobs);

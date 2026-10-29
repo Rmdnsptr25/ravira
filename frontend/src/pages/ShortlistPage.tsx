@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { LayoutDashboard, GitBranch, Briefcase, Plus, BookmarkCheck, BarChart2, Plug, Building2, Settings, X, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
+import { useAppContext } from "../contexts/AppContext";
 import type { SidebarItem } from "../components/DashboardLayout";
 
 const sidebarItems: SidebarItem[] = [
@@ -35,6 +36,11 @@ function matchColor(score: number): string {
 type InterviewTarget = { name: string; role: string } | null;
 
 export default function ShortlistPage() {
+  const { user } = useAppContext();
+  const displayName = user?.fullName || "Recruiter";
+  const displayCompany = user?.recruiter?.company?.name || "Perusahaan";
+  const displayRole = `${user?.recruiter?.position || "HR Manager"} · ${displayCompany}`;
+  const displayInitial = (displayName[0] || "R").toUpperCase();
   const navigate = useNavigate();
   const [interviewTarget, setInterviewTarget] = useState<InterviewTarget>(null);
   const [interviewDate, setInterviewDate] = useState("");
@@ -54,9 +60,9 @@ export default function ShortlistPage() {
     <DashboardLayout
       sidebarItems={sidebarItems}
       activeKey="shortlist"
-      userName="Siti Rahayu"
-      userRole="HR Manager · Tokopedia"
-      userInitial="S"
+      userName={displayName}
+      userRole={displayRole}
+      userInitial={displayInitial}
     >
       {interviewTarget && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(10,27,61,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>

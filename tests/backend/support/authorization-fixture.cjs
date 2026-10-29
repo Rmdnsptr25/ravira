@@ -44,7 +44,7 @@ function fixture(options = {}) {
   const application = { id: ids.application, candidateId: candidate.id, jobId: job.id, candidate, job, status: "APPLIED" };
   const otherApplication = { ...application, id: ids.otherApplication, jobId: otherJob.id, job: otherJob };
   const tables = {
-    user: options.missingUser ? [] : [user], recruiter: options.missingRecruiter ? [] : [recruiter],
+    user: options.missingUser ? [] : [user], recruiter: options.missingRecruiter ? [] : [recruiter], company: [company],
     candidate: [candidate], job: [job, otherJob], application: [application, otherApplication],
     applicationStatusHistory: [{ id: "history-a", applicationId: application.id, application, fromStatus: null, toStatus: "APPLIED", reason: "Applied", changedBy: candidate.user }],
     matchScore: [], candidateScore: [], auditLog: [], notification: []

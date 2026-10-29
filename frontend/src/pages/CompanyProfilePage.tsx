@@ -1,7 +1,29 @@
-import { useState } from "react";
-import { LayoutDashboard, GitBranch, Briefcase, Plus, BookmarkCheck, BarChart2, Plug, Building2, Settings, CheckCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  LayoutDashboard,
+  GitBranch,
+  Briefcase,
+  Plus,
+  BookmarkCheck,
+  BarChart2,
+  Plug,
+  Building2,
+  Settings,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Loader2
+} from "lucide-react";
+import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
+import { useAppContext } from "../contexts/AppContext";
+import {
+  getRecruiterCompanyProfile,
+  updateRecruiterCompanyProfile,
+  type RecruiterCompanyProfile,
+  type UpdateRecruiterCompanyInput
+} from "../services/raviraApi";
 
 const sidebarItems: SidebarItem[] = [
   { key: "beranda", label: "Dashboard", icon: <LayoutDashboard size={16} />, path: "/dashboard/perusahaan" },
@@ -38,25 +60,118 @@ const labelStyle: React.CSSProperties = {
 };
 
 export default function CompanyProfilePage() {
+  const { user } = useAppContext();
+  const [company, setCompany] = useState<RecruiterCompanyProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [form, setForm] = useState({
-    nama: "Tokopedia",
-    industri: "E-Commerce",
-    ukuran: "1000-5000 karyawan",
-    hq: "Jakarta Selatan, DKI Jakarta",
-    website: "https://www.tokopedia.com",
-    deskripsi: "Tokopedia adalah platform e-commerce terkemuka di Indonesia yang menghubungkan jutaan penjual dan pembeli di seluruh Nusantara.",
+    nama: "",
+    industri: "",
+    ukuran: "51-200 karyawan",
+    hq: "",
+    website: "",
+    deskripsi: "",
   });
+
+  const displayName = user?.fullName || "Recruiter";
+  const displayCompany = company?.name || user?.recruiter?.company?.name || "Perusahaan";
+  const displayRole = `${user?.recruiter?.position || "HR Manager"} · ${displayCompany}`;
+  const displayInitial = (displayName[0] || "R").toUpperCase();
+  const companyLogoInitial = (form.nama[0] || displayCompany[0] || "P").toUpperCase();
+
+  useEffect(() => {
+    let active = true;
+    getRecruiterCompanyProfile()
+      .then((data) => {
+        if (!active) return;
+        setCompany(data);
+        setForm({
+          nama: data.name || "",
+          industri: data.industry || "",
+          ukuran: data.size || "51-200 karyawan",
+          hq: data.location || "",
+          website: data.website || "",
+          deskripsi: data.description || "",
+        });
+        setError(null);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err instanceof Error ? err.message : "Gagal memuat profil perusahaan.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleChange = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (saving) return;
+
+    const normalizeOptional = (
+      currentValue: string,
+      existingValue?: string | null
+    ): string | null | undefined => {
+      const trimmed = currentValue.trim();
+      if (trimmed) return trimmed;
+      return existingValue ? null : undefined;
+    };
+
+    const payload: UpdateRecruiterCompanyInput = {
+      name: form.nama.trim(),
+    };
+
+    const industryVal = normalizeOptional(form.industri, company?.industry);
+    if (industryVal !== undefined) payload.industry = industryVal;
+
+    const sizeVal = normalizeOptional(form.ukuran, company?.size);
+    if (sizeVal !== undefined) payload.size = sizeVal;
+
+    const locationVal = normalizeOptional(form.hq, company?.location);
+    if (locationVal !== undefined) payload.location = locationVal;
+
+    const websiteVal = normalizeOptional(form.website, company?.website);
+    if (websiteVal !== undefined) payload.website = websiteVal;
+
+    const descriptionVal = normalizeOptional(form.deskripsi, company?.description);
+    if (descriptionVal !== undefined) payload.description = descriptionVal;
+
+    setSaving(true);
+    try {
+      const updated = await updateRecruiterCompanyProfile(payload);
+      setCompany(updated);
+      setForm({
+        nama: updated.name || "",
+        industri: updated.industry || "",
+        ukuran: updated.size || "51-200 karyawan",
+        hq: updated.location || "",
+        website: updated.website || "",
+        deskripsi: updated.description || "",
+      });
+      toast.success("Profil perusahaan berhasil diperbarui!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal memperbarui profil perusahaan.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
       activeKey="profil"
-      userName="Siti Rahayu"
-      userRole="HR Manager · Tokopedia"
-      userInitial="S"
+      userName={displayName}
+      userRole={displayRole}
+      userInitial={displayInitial}
     >
       <div style={{ padding: "32px", minHeight: "100vh", backgroundColor: "#f0f7ff" }}>
         <div style={{ marginBottom: "28px" }}>
@@ -64,147 +179,256 @@ export default function CompanyProfilePage() {
             Profil Perusahaan
           </h1>
           <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6b7280", marginTop: "6px" }}>
-            Kelola informasi publik perusahaan Anda
+            Kelola informasi publik dan data profil perusahaan Anda
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "20px", alignItems: "start" }}>
-          {/* Main form */}
-          <div style={{ backgroundColor: "#fff", borderRadius: "14px", padding: "32px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
-            {/* Logo */}
-            <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "28px" }}>
-              <div
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  borderRadius: "16px",
-                  backgroundColor: "#10d98e",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontFamily: "Poppins, sans-serif",
-                  fontSize: "28px",
-                  fontWeight: 800,
-                }}
-              >
-                T
-              </div>
-              <div>
-                <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "18px", fontWeight: 700, color: "#0A1B3D" }}>Logo Perusahaan</div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#9ca3af", marginTop: "4px" }}>JPG, PNG, SVG. Maks 2MB</div>
-                <button
-                  onClick={() => alert("Upload logo")}
-                  style={{
-                    marginTop: "10px",
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "#1677FF",
-                    backgroundColor: "#e8f0fe",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "6px 16px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Upload Logo
-                </button>
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-              <div>
-                <label style={labelStyle}>Nama Perusahaan</label>
-                <input style={inputStyle} value={form.nama} onChange={(e) => handleChange("nama", e.target.value)} />
-              </div>
-              <div>
-                <label style={labelStyle}>Industri</label>
-                <input style={inputStyle} value={form.industri} onChange={(e) => handleChange("industri", e.target.value)} />
-              </div>
-              <div>
-                <label style={labelStyle}>Ukuran Perusahaan</label>
-                <select style={{ ...inputStyle, cursor: "pointer" }} value={form.ukuran} onChange={(e) => handleChange("ukuran", e.target.value)}>
-                  <option>1-50 karyawan</option>
-                  <option>51-200 karyawan</option>
-                  <option>201-500 karyawan</option>
-                  <option>500-1000 karyawan</option>
-                  <option>1000-5000 karyawan</option>
-                  <option>5000+ karyawan</option>
-                </select>
-              </div>
-              <div>
-                <label style={labelStyle}>Lokasi HQ</label>
-                <input style={inputStyle} value={form.hq} onChange={(e) => handleChange("hq", e.target.value)} />
-              </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>Website</label>
-                <input style={inputStyle} value={form.website} onChange={(e) => handleChange("website", e.target.value)} />
-              </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>Deskripsi Perusahaan</label>
-                <textarea
-                  style={{ ...inputStyle, height: "120px", resize: "vertical" }}
-                  value={form.deskripsi}
-                  onChange={(e) => handleChange("deskripsi", e.target.value)}
-                />
-              </div>
-            </div>
-
+        {loading ? (
+          <div style={{ backgroundColor: "#fff", borderRadius: "14px", padding: "48px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+            <Loader2 size={32} color="#1677FF" style={{ animation: "spin 1s linear infinite" }} />
+            <p style={{ marginTop: 12, fontFamily: "Inter, sans-serif", color: "#6a88b8" }}>Memuat profil perusahaan...</p>
+          </div>
+        ) : error ? (
+          <div style={{ backgroundColor: "#fff", borderRadius: "14px", padding: "32px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+            <XCircle size={32} color="#ef4444" style={{ margin: "0 auto 12px" }} />
+            <p style={{ fontFamily: "Inter, sans-serif", color: "#dc2626", fontWeight: 600 }}>{error}</p>
             <button
-              onClick={() => alert("Profil disimpan!")}
+              onClick={() => window.location.reload()}
               style={{
-                marginTop: "24px",
-                fontFamily: "Inter, sans-serif",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#fff",
+                marginTop: 16,
+                padding: "8px 20px",
+                borderRadius: 8,
                 backgroundColor: "#1677FF",
+                color: "#fff",
                 border: "none",
-                borderRadius: "10px",
-                padding: "12px 28px",
                 cursor: "pointer",
+                fontFamily: "Inter, sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
               }}
             >
-              Simpan Perubahan
+              Muat Ulang
             </button>
           </div>
-
-          {/* Verification card */}
-          <div
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: "14px",
-              padding: "24px",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3 style={{ fontFamily: "Poppins, sans-serif", fontSize: "15px", fontWeight: 700, color: "#0A1B3D", margin: "0 0 16px" }}>
-              Status Verifikasi
-            </h3>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                backgroundColor: "#10d98e1a",
-                borderRadius: "12px",
-                padding: "16px",
-              }}
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "20px", alignItems: "start" }}>
+            {/* Main form */}
+            <form
+              onSubmit={handleSubmit}
+              style={{ backgroundColor: "#fff", borderRadius: "14px", padding: "32px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
             >
-              <CheckCircle size={28} color="#10d98e" />
-              <div>
-                <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "14px", fontWeight: 700, color: "#10d98e" }}>Terverifikasi</div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>
-                  Perusahaan Anda telah diverifikasi oleh tim Ravira
+              {/* Logo */}
+              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "28px" }}>
+                <div
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "16px",
+                    backgroundColor: "#1677FF",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    fontFamily: "Poppins, sans-serif",
+                    fontSize: "28px",
+                    fontWeight: 800,
+                  }}
+                >
+                  {companyLogoInitial}
+                </div>
+                <div>
+                  <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "18px", fontWeight: 700, color: "#0A1B3D" }}>
+                    Logo Perusahaan
+                  </div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#9ca3af", marginTop: "4px" }}>
+                    Format JPG, PNG, SVG. Logo otomatis digenerate dari inisial perusahaan.
+                  </div>
                 </div>
               </div>
-            </div>
-            <div style={{ marginTop: "16px", fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#9ca3af", lineHeight: "1.6" }}>
-              Verifikasi diberikan pada 12 Maret 2025. Berlaku selama 12 bulan.
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                <div>
+                  <label style={labelStyle}>Nama Perusahaan</label>
+                  <input
+                    style={inputStyle}
+                    value={form.nama}
+                    onChange={(e) => handleChange("nama", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Industri</label>
+                  <input
+                    style={inputStyle}
+                    value={form.industri}
+                    onChange={(e) => handleChange("industri", e.target.value)}
+                    placeholder="Contoh: Teknologi Informasi, Finansial"
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Ukuran Perusahaan</label>
+                  <select
+                    style={{ ...inputStyle, cursor: "pointer" }}
+                    value={form.ukuran}
+                    onChange={(e) => handleChange("ukuran", e.target.value)}
+                  >
+                    <option value="1-50 karyawan">1-50 karyawan</option>
+                    <option value="51-200 karyawan">51-200 karyawan</option>
+                    <option value="201-500 karyawan">201-500 karyawan</option>
+                    <option value="500-1000 karyawan">500-1000 karyawan</option>
+                    <option value="1000-5000 karyawan">1000-5000 karyawan</option>
+                    <option value="5000+ karyawan">5000+ karyawan</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Lokasi HQ</label>
+                  <input
+                    style={inputStyle}
+                    value={form.hq}
+                    onChange={(e) => handleChange("hq", e.target.value)}
+                    placeholder="Contoh: Jakarta Selatan, DKI Jakarta"
+                  />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={labelStyle}>Website</label>
+                  <input
+                    style={inputStyle}
+                    value={form.website}
+                    onChange={(e) => handleChange("website", e.target.value)}
+                    placeholder="Contoh: https://example.com"
+                  />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={labelStyle}>Deskripsi Perusahaan</label>
+                  <textarea
+                    style={{ ...inputStyle, height: "120px", resize: "vertical" }}
+                    value={form.deskripsi}
+                    onChange={(e) => handleChange("deskripsi", e.target.value)}
+                    placeholder="Ceritakan tentang visi, misi, dan kultur perusahaan..."
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={saving}
+                style={{
+                  marginTop: "24px",
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#fff",
+                  backgroundColor: saving ? "#93c5fd" : "#1677FF",
+                  border: "none",
+                  borderRadius: "10px",
+                  padding: "12px 28px",
+                  cursor: saving ? "not-allowed" : "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                {saving && <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />}
+                {saving ? "Menyimpan..." : "Simpan Perubahan"}
+              </button>
+            </form>
+
+            {/* Verification card */}
+            <div
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: "14px",
+                padding: "24px",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+              }}
+            >
+              <h3 style={{ fontFamily: "Poppins, sans-serif", fontSize: "15px", fontWeight: 700, color: "#0A1B3D", margin: "0 0 16px" }}>
+                Status Verifikasi
+              </h3>
+              {company?.verificationStatus === "APPROVED" ? (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      backgroundColor: "rgba(16,217,142,0.1)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                    }}
+                  >
+                    <CheckCircle size={28} color="#10d98e" />
+                    <div>
+                      <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "14px", fontWeight: 700, color: "#059669" }}>
+                        Terverifikasi
+                      </div>
+                      <div style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>
+                        Perusahaan Anda telah diverifikasi oleh tim Ravira.
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: "16px", fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#9ca3af", lineHeight: "1.6" }}>
+                    {company.verifiedAt
+                      ? `Verifikasi disetujui pada ${new Intl.DateTimeFormat("id-ID", { dateStyle: "long" }).format(new Date(company.verifiedAt))}.`
+                      : "Akun perusahaan aktif dan terverifikasi."}
+                  </div>
+                </>
+              ) : company?.verificationStatus === "REJECTED" ? (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      backgroundColor: "rgba(239,68,68,0.1)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                    }}
+                  >
+                    <XCircle size={28} color="#ef4444" />
+                    <div>
+                      <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "14px", fontWeight: 700, color: "#dc2626" }}>
+                        Verifikasi Ditolak
+                      </div>
+                      <div style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>
+                        Pendaftaran perusahaan belum disetujui.
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: "16px", fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#dc2626", lineHeight: "1.6" }}>
+                    Silakan perbarui profil legalitas atau hubungi administrator untuk mengajukan peninjauan ulang.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      backgroundColor: "rgba(245,158,11,0.1)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                    }}
+                  >
+                    <Clock size={28} color="#f59e0b" />
+                    <div>
+                      <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "14px", fontWeight: 700, color: "#d97706" }}>
+                        Menunggu Verifikasi
+                      </div>
+                      <div style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>
+                        Pendaftaran sedang ditinjau oleh tim Admin Ravira.
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: "16px", fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#9ca3af", lineHeight: "1.6" }}>
+                    Perusahaan dalam status PENDING dibatasi dari memublikasikan lowongan ke kandidat sampai diverifikasi.
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -1,9 +1,14 @@
 node_modules/
 dist/
 .env
+.env.*
+!.env.example
 .npm-cache/
 .prisma-cache/
 .tmp/
 uploads/
-# Playwright CLI output (may contain credentials)
+# Playwright CLI & E2E artifacts (may contain credentials/screenshots)
 .playwright-cli/
+.qa/
+tests/e2e/.artifacts/
+*.log

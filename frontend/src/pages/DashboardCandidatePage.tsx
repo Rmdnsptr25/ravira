@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Home, Briefcase, BarChart2, BookOpen, FileText, Globe, User, Settings, MapPin, Clock, TrendingUp, ChevronRight, Bookmark } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
-import { ApplicationConfirmModal, ApplicationSuccessModal } from "../components/Modals";
 import { useAppContext } from "../contexts/AppContext";
 
 const sidebarItems: SidebarItem[] = [
@@ -43,16 +41,15 @@ const crossRegion = [
 
 export default function DashboardCandidatePage() {
   const navigate = useNavigate();
-  const { addApplication } = useAppContext();
-  const [showApplyModal, setShowApplyModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<{ title: string; company: string; location: string; match: number } | null>(null);
+  const { user } = useAppContext();
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Budi Santoso" userRole="Kandidat" userInitial="B">
+    <DashboardLayout sidebarItems={sidebarItems} userName={displayName} userRole="Kandidat" userInitial={displayInitial}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 800, color: "#0A1B3D", letterSpacing: "-0.5px", marginBottom: 4 }}>
-          Halo, Budi Santoso 👋
+          Halo, {displayName} 👋
         </h1>
         <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8" }}>
           Ini rekomendasi terbaik untuk Anda hari ini. AI kami terus bekerja di balik layar!
@@ -116,13 +113,13 @@ export default function DashboardCandidatePage() {
                     💡 {job.reason}
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => navigate(`/dashboard/kandidat/detail-pekerjaan`)}
+                    <button onClick={() => navigate("/dashboard/kandidat/rekomendasi")}
                       style={{ flex: 1, padding: "8px", borderRadius: 9, border: "1px solid rgba(22,119,255,0.25)", background: "#f0f7ff", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#1677FF", cursor: "pointer" }}>
-                      Lihat Detail
+                      Lihat Rekomendasi
                     </button>
-                    <button onClick={() => { setSelectedJob({ title: job.title, company: job.company, location: job.location, match: job.match }); setShowApplyModal(true); }}
+                    <button onClick={() => navigate("/dashboard/kandidat/rekomendasi")}
                       style={{ flex: 1, padding: "8px", borderRadius: 9, border: "none", background: "linear-gradient(135deg, #1677FF, #0D47A1)", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer" }}>
-                      Lamar
+                      Buka Lowongan
                     </button>
                   </div>
                 </div>
@@ -223,20 +220,6 @@ export default function DashboardCandidatePage() {
           </div>
         </div>
       </div>
-      {showApplyModal && selectedJob && (
-        <ApplicationConfirmModal
-          jobTitle={selectedJob.title}
-          company={selectedJob.company}
-          onConfirm={() => { addApplication({ posisi: selectedJob.title, perusahaan: selectedJob.company, lokasi: selectedJob.location, match: selectedJob.match }); setShowApplyModal(false); setShowSuccessModal(true); }}
-          onClose={() => setShowApplyModal(false)}
-        />
-      )}
-      {showSuccessModal && selectedJob && (
-        <ApplicationSuccessModal
-          jobTitle={selectedJob.title}
-          onClose={() => setShowSuccessModal(false)}
-        />
-      )}
     </DashboardLayout>
   );
 }

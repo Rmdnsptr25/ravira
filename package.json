@@ -9,6 +9,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "node scripts/seed.js",
+    "seed:e2e": "node tests/e2e/seed-e2e.cjs",
+    "test:backend": "node --test tests/backend/*.test.cjs",
+    "test:e2e": "node tests/e2e/qa02-browser-e2e.cjs",
     "cleanup:smoke": "node scripts/cleanup-smoke.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
@@ -33,6 +36,7 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.1.0",
     "@types/node": "^24.9.2",
+    "playwright": "^1.61.1",
     "prisma": "^6.18.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"

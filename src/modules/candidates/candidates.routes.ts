@@ -45,6 +45,15 @@ import {
   updateCandidateSkillSchema,
   uuidParamSchema
 } from "./candidates.validation";
+import {
+  deleteMySavedJob,
+  listMySavedJobs,
+  saveMyJob
+} from "./candidateSavedJobs.controller";
+import {
+  savedJobParamSchema,
+  saveJobSchema
+} from "./candidateSavedJobs.validation";
 import { listMyApplications } from "../applications/applications.controller";
 import {
   getMyAppealById,
@@ -95,6 +104,14 @@ router.patch(
   updateMySkill
 );
 router.delete("/me/skills/:skillId", validateParams(uuidParamSchema), deleteMySkill);
+
+router.get("/me/saved-jobs", listMySavedJobs);
+router.post("/me/saved-jobs", validateBody(saveJobSchema), saveMyJob);
+router.delete(
+  "/me/saved-jobs/:jobId",
+  validateParams(savedJobParamSchema),
+  deleteMySavedJob
+);
 
 router.get("/me/applications", listMyApplications);
 router.get("/me/appeals", listMyAppeals);

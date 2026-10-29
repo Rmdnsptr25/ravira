@@ -1,10 +1,16 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings, Search, MapPin, ChevronDown } from "lucide-react";
+import { Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings, Search, MapPin, ChevronDown, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout, type SidebarItem } from "../components/DashboardLayout";
 import { ApplicationConfirmModal, ApplicationSuccessModal } from "../components/Modals";
 import { useAppContext } from "../contexts/AppContext";
+import {
+  getJobRecommendations,
+  listPublishedJobs,
+  type JobRecommendation,
+  type PublicJob,
+} from "../services/raviraApi";
 
 const sidebarItems: SidebarItem[] = [
   { key: "beranda", label: "Beranda", icon: <Home size={16} />, path: "/dashboard/kandidat" },
@@ -40,93 +46,6 @@ function formatSalary(min: number | null, max: number | null): string {
   if (min && max) return `Rp ${formatter.format(min)}-${formatter.format(max)}`;
   return `Mulai Rp ${formatter.format(min ?? max ?? 0)}`;
 }
-
-const allJobs: Job[] = [
-  {
-    id: "1",
-    title: "Senior UX Designer",
-    company: "Tokopedia",
-    location: "Jakarta Selatan",
-    type: "Full-time",
-    salary: "Rp 15–22 jt",
-    match: 94,
-    aiReason: "Pengalaman Anda di UX research dan design system sangat sesuai dengan kebutuhan tim produk Tokopedia.",
-    matchedSkills: ["Figma", "User Research", "Design System", "Prototyping"],
-    missingSkills: ["Motion Design"],
-    industry: "E-commerce",
-    salaryMin: 15,
-  },
-  {
-    id: "2",
-    title: "Product Designer",
-    company: "Gojek",
-    location: "Jakarta",
-    type: "Hybrid",
-    salary: "Rp 12–18 jt",
-    match: 88,
-    aiReason: "Portfolio Anda menunjukkan kemampuan desain produk end-to-end yang cocok untuk ritme kerja cepat di Gojek.",
-    matchedSkills: ["Figma", "UX Writing", "Usability Testing"],
-    missingSkills: ["Sketch", "Data Visualization"],
-    industry: "Teknologi",
-    salaryMin: 12,
-  },
-  {
-    id: "3",
-    title: "UI/UX Lead",
-    company: "Traveloka",
-    location: "Jakarta",
-    type: "Full-time",
-    salary: "Rp 18–25 jt",
-    match: 82,
-    aiReason: "Latar belakang kepemimpinan tim desain Anda dan pengalaman di industri travel menjadi nilai lebih.",
-    matchedSkills: ["Team Leadership", "Design System", "Wireframing"],
-    missingSkills: ["A/B Testing", "SQL"],
-    industry: "Travel",
-    salaryMin: 18,
-  },
-  {
-    id: "4",
-    title: "UX Researcher",
-    company: "Shopee",
-    location: "Jakarta",
-    type: "Full-time",
-    salary: "Rp 13–20 jt",
-    match: 79,
-    aiReason: "Kemampuan user research kualitatif dan pengalaman dengan metodologi riset cocok untuk peran ini.",
-    matchedSkills: ["User Interviews", "Usability Testing", "Affinity Mapping"],
-    missingSkills: ["Quantitative Research", "R / SPSS"],
-    industry: "E-commerce",
-    salaryMin: 13,
-  },
-  {
-    id: "5",
-    title: "Product Designer",
-    company: "Ruangguru",
-    location: "Jakarta",
-    type: "Remote",
-    salary: "Rp 10–16 jt",
-    match: 75,
-    aiReason: "Minat Anda di EdTech dan kemampuan desain visual yang solid selaras dengan misi Ruangguru.",
-    matchedSkills: ["Figma", "Prototyping", "Ilustrasi Digital"],
-    missingSkills: ["Accessibility", "Gamification Design"],
-    industry: "EdTech",
-    salaryMin: 10,
-  },
-  {
-    id: "6",
-    title: "Visual Designer",
-    company: "Blibli",
-    location: "Surabaya",
-    type: "Full-time",
-    salary: "Rp 9–14 jt",
-    match: 71,
-    aiReason: "Portofolio desain visual Anda dan pengalaman branding relevan dengan kebutuhan tim kreatif Blibli.",
-    matchedSkills: ["Adobe Illustrator", "Branding", "Typography"],
-    missingSkills: ["After Effects", "3D Design"],
-    industry: "E-commerce",
-    salaryMin: 9,
-  },
-];
 
 const locationOptions = ["Semua Lokasi", "Jakarta", "Jakarta Pusat", "Jakarta Selatan", "Jakarta Barat", "Jakarta Timur", "Jakarta Utara", "Bogor", "Depok", "Tangerang", "Bekasi", "Bandung", "Cimahi", "Semarang", "Solo", "Yogyakarta", "Surabaya", "Malang", "Sidoarjo"];
 const typeOptions = ["Semua Tipe", "Full-time", "Hybrid", "Remote"];
@@ -194,7 +113,10 @@ function SkillTag({ label, color }: { label: string; color: "green" | "red" }) {
 
 export default function JobRecommendationsPage() {
   const navigate = useNavigate();
-  const { applyToJob, jobs, saveJob, unsaveJob, isJobSaved } = useAppContext();
+  const { applyToJob, saveJob, unsaveJob, isJobSaved, user } = useAppContext();
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
+
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("Semua Lokasi");
   const [typeFilter, setTypeFilter] = useState("Semua Tipe");
@@ -204,26 +126,102 @@ export default function JobRecommendationsPage() {
   const [showModal, setShowModal] = useState<Job | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [appliedJob, setAppliedJob] = useState<Job | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [rawRecommendations, setRawRecommendations] = useState<JobRecommendation[]>([]);
+  const [publicJobs, setPublicJobs] = useState<PublicJob[]>([]);
+
+  const loadJobsData = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [recsResult, jobsResult] = await Promise.allSettled([
+        getJobRecommendations(signal),
+        listPublishedJobs(signal),
+      ]);
+
+      if (signal?.aborted) return;
+
+      const recs = recsResult.status === "fulfilled" ? recsResult.value : [];
+      const pub = jobsResult.status === "fulfilled" ? jobsResult.value : [];
+
+      setRawRecommendations(recs);
+      setPublicJobs(pub);
+
+      if (recsResult.status === "rejected" && jobsResult.status === "rejected") {
+        setError("Gagal memuat rekomendasi pekerjaan dari server.");
+      }
+    } catch (err) {
+      if (!signal?.aborted) {
+        setError(err instanceof Error ? err.message : "Terjadi kesalahan saat memuat pekerjaan.");
+      }
+    } finally {
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    queueMicrotask(() => {
+      if (!controller.signal.aborted) {
+        void loadJobsData(controller.signal);
+      }
+    });
+    return () => controller.abort();
+  }, [loadJobsData]);
 
   const sourceJobs = useMemo<Job[]>(() => {
-    if (!jobs.length) return allJobs;
+    if (rawRecommendations.length > 0) {
+      return rawRecommendations.map((rec) => {
+        const matchingPub = publicJobs.find((p) => p.id === rec.job.id);
+        const salaryMin = matchingPub?.salaryMin ?? null;
+        const salaryMax = matchingPub?.salaryMax ?? null;
+        const matchedSkills = rec.breakdown?.skillMatch?.matchedSkills ?? [];
+        const missingSkills = rec.breakdown?.skillMatch?.missingRequiredSkills ?? [];
+        const aiReason = rec.matchExplanation?.[0] || "Dihitung berdasarkan relevansi profil dan kebutuhan lowongan.";
 
-    return jobs.map((job) => ({
-      id: job.id,
-      jobId: job.id,
-      title: job.title,
-      company: job.company.name,
-      location: job.location ?? job.company.location ?? "-",
-      type: job.workType ?? job.jobType ?? "Full-time",
-      salary: formatSalary(job.salaryMin, job.salaryMax),
-      match: 80,
-      aiReason: job.description || "Lowongan aktif dari backend Ravira.",
-      matchedSkills: job.skills.slice(0, 4).map((skill) => skill.skillName),
-      missingSkills: [],
-      industry: job.company.industry ?? "Lainnya",
-      salaryMin: job.salaryMin ? Math.round(job.salaryMin / 1_000_000) : 0,
-    }));
-  }, [jobs]);
+        return {
+          id: rec.job.id,
+          jobId: rec.job.id,
+          title: rec.job.title,
+          company: rec.company.name,
+          location: rec.job.location ?? rec.company.location ?? "-",
+          type: rec.job.workType ?? rec.job.jobType ?? "Full-time",
+          salary: formatSalary(salaryMin, salaryMax),
+          match: rec.matchScore,
+          aiReason,
+          matchedSkills,
+          missingSkills,
+          industry: rec.company.industry ?? "Lainnya",
+          salaryMin: salaryMin ? Math.round(salaryMin / 1_000_000) : 0,
+        };
+      });
+    }
+
+    if (publicJobs.length > 0) {
+      return publicJobs.map((job) => ({
+        id: job.id,
+        jobId: job.id,
+        title: job.title,
+        company: job.company.name,
+        location: job.location ?? job.company.location ?? "-",
+        type: job.workType ?? job.jobType ?? "Full-time",
+        salary: formatSalary(job.salaryMin, job.salaryMax),
+        match: 0,
+        aiReason: "Lengkapi profil dan keahlian Anda untuk melihat AI Match Score personal.",
+        matchedSkills: job.skills.map((s) => s.skillName),
+        missingSkills: [],
+        industry: job.company.industry ?? "Lainnya",
+        salaryMin: job.salaryMin ? Math.round(job.salaryMin / 1_000_000) : 0,
+      }));
+    }
+
+    return [];
+  }, [rawRecommendations, publicJobs]);
 
   const filtered = sourceJobs
     .filter((job) => {
@@ -257,9 +255,9 @@ export default function JobRecommendationsPage() {
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
-      userName="Budi Santoso"
+      userName={displayName}
       userRole="Kandidat"
-      userInitial="B"
+      userInitial={displayInitial}
     >
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
         {/* Header */}
@@ -537,7 +535,7 @@ export default function JobRecommendationsPage() {
                 {/* Actions */}
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                   <button
-                    onClick={() => navigate(`/dashboard/kandidat/detail-pekerjaan`)}
+                    onClick={() => navigate(`/dashboard/kandidat/pekerjaan/${job.id}`)}
                     style={{
                       padding: "9px 18px",
                       borderRadius: 10,
@@ -596,7 +594,64 @@ export default function JobRecommendationsPage() {
           })}
         </div>
 
-        {filtered.length === 0 && (
+        {loading && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "48px 24px",
+              background: "#fff",
+              borderRadius: 16,
+              border: "1.5px solid rgba(22,119,255,0.1)",
+              gap: 12,
+            }}
+          >
+            <Loader2 size={32} className="animate-spin" color="#1677FF" />
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", margin: 0 }}>
+              Memuat rekomendasi lowongan pekerjaan dari server...
+            </p>
+          </div>
+        )}
+
+        {!loading && error && sourceJobs.length === 0 && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "48px 24px",
+              background: "#fff",
+              borderRadius: 16,
+              border: "1.5px solid rgba(239,68,68,0.2)",
+            }}
+          >
+            <AlertCircle size={36} color="#dc2626" style={{ margin: "0 auto 12px" }} />
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#dc2626", marginBottom: 16 }}>
+              {error}
+            </p>
+            <button
+              onClick={() => void loadJobsData()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 18px",
+                borderRadius: 8,
+                background: "#1677FF",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              <RefreshCw size={14} /> Coba Lagi
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && filtered.length === 0 && (
           <div
             style={{
               textAlign: "center",
@@ -616,13 +671,27 @@ export default function JobRecommendationsPage() {
           jobTitle={showModal.title}
           company={showModal.company}
           onConfirm={() => {
-            applyToJob({ jobId: showModal.jobId, posisi: showModal.title, perusahaan: showModal.company, lokasi: showModal.location, match: showModal.match })
+            if (isSubmitting) return;
+            setIsSubmitting(true);
+            applyToJob({
+              jobId: showModal.jobId,
+              posisi: showModal.title,
+              perusahaan: showModal.company,
+              lokasi: showModal.location,
+              match: showModal.match,
+            })
               .then(() => {
                 setAppliedJob(showModal);
                 setShowModal(null);
                 setShowSuccessModal(true);
               })
-              .catch((error) => toast.error(error instanceof Error ? error.message : "Lamaran gagal dikirim."));
+              .catch((err) => {
+                const message = err instanceof Error ? err.message : "Lamaran gagal dikirim.";
+                toast.error(message);
+              })
+              .finally(() => {
+                setIsSubmitting(false);
+              });
           }}
           onClose={() => setShowModal(null)}
         />

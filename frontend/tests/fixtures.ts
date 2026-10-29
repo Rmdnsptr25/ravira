@@ -35,4 +35,6 @@ export function mockSession(user = userFixture()) {
   onHttp('GET', '/jobs', () => jsonResponse([]))
   onHttp('GET', '/auth/me', () => jsonResponse(user))
   onHttp('GET', '/candidates/me/applications', () => jsonResponse([applicationFixture]))
+  onHttp('GET', '/candidates/me/saved-jobs', () => jsonResponse([]))
+  onHttp('POST', '/candidates/me/saved-jobs', () => jsonResponse({ id: 'saved-1', jobId: 'job-test', savedAt: new Date().toISOString() }))
 }

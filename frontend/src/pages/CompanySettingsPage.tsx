@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { LayoutDashboard, GitBranch, Briefcase, Plus, BookmarkCheck, BarChart2, Plug, Building2, Settings, Bell, Shield, CreditCard, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
+import { useAppContext } from "../contexts/AppContext";
 import type { SidebarItem } from "../components/DashboardLayout";
 
 const sidebarItems: SidebarItem[] = [
@@ -72,6 +74,11 @@ function ToggleRow({ label, desc, checked, onChange }: { label: string; desc: st
 }
 
 export default function CompanySettingsPage() {
+  const { user } = useAppContext();
+  const displayName = user?.fullName || "Recruiter";
+  const displayCompany = user?.recruiter?.company?.name || "Perusahaan";
+  const displayRole = `${user?.recruiter?.position || "HR Manager"} · ${displayCompany}`;
+  const displayInitial = (displayName[0] || "R").toUpperCase();
   const [notif, setNotif] = useState({ email: true, whatsapp: false, newApps: true, matchThreshold: true });
   const [twoFA, setTwoFA] = useState(true);
 
@@ -79,9 +86,9 @@ export default function CompanySettingsPage() {
     <DashboardLayout
       sidebarItems={sidebarItems}
       activeKey="pengaturan"
-      userName="Siti Rahayu"
-      userRole="HR Manager · Tokopedia"
-      userInitial="S"
+      userName={displayName}
+      userRole={displayRole}
+      userInitial={displayInitial}
     >
       <div style={{ padding: "32px", minHeight: "100vh", backgroundColor: "#f0f7ff" }}>
         <div style={{ marginBottom: "28px" }}>
@@ -112,7 +119,7 @@ export default function CompanySettingsPage() {
           </div>
           <div style={{ paddingTop: "16px" }}>
             <button
-              onClick={() => alert("Halaman ubah password")}
+              onClick={() => toast.info("Fitur ubah kata sandi akan segera tersedia di menu Profil Pengguna.")}
               style={{
                 fontFamily: "Inter, sans-serif",
                 fontSize: "13px",
@@ -169,7 +176,7 @@ export default function CompanySettingsPage() {
                 </span>
               </div>
               <button
-                onClick={() => alert("Halaman upgrade plan")}
+                onClick={() => toast.info("Paket enterprise dan upgrade kuota sedang dalam persiapan.")}
                 style={{
                   fontFamily: "Inter, sans-serif",
                   fontSize: "13px",
@@ -211,7 +218,7 @@ export default function CompanySettingsPage() {
           <button
             onClick={() => {
               if (window.confirm("Apakah Anda yakin ingin menghapus akun perusahaan? Tindakan ini tidak dapat dibatalkan.")) {
-                alert("Akun sedang diproses untuk dihapus.");
+                toast.info("Permintaan penghapusan akun telah dicatat. Administrator akan memverifikasi data.");
               }
             }}
             style={{
