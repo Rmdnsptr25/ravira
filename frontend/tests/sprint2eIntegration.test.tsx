@@ -234,6 +234,69 @@ describe('Sprint 2E — Saved Jobs, Company Profile & Mock Cleanup', () => {
         expect(updateCalled).toBe(true)
       })
     })
+
+    it('omits empty website when initially null and sends null when clearing previously saved website', async () => {
+      const recruiterUser = userFixture('RECRUITER')
+      const initialWithoutWebsite: RecruiterCompanyProfile = {
+        ...companyProfileFixture,
+        website: null,
+      }
+
+      onHttp('GET', '/jobs', () => jsonResponse([]))
+      onHttp('GET', '/auth/me', () => jsonResponse(recruiterUser))
+      onHttp('GET', '/recruiter/company', () => jsonResponse(initialWithoutWebsite))
+
+      const capturedPayloads: Array<Record<string, unknown>> = []
+      onHttp('PATCH', '/recruiter/company', async (req) => {
+        const body = (await req.json()) as Record<string, unknown>
+        capturedPayloads.push(body)
+        return jsonResponse({
+          ...initialWithoutWebsite,
+          description: (body.description as string) ?? initialWithoutWebsite.description,
+          website: body.website === undefined ? initialWithoutWebsite.website : (body.website as string | null),
+        })
+      })
+
+      render(
+        <MemoryRouter>
+          <AppProvider>
+            <CompanyProfilePage />
+          </AppProvider>
+        </MemoryRouter>
+      )
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('PT Sinergi Data Nusantara')).toBeInTheDocument()
+      })
+
+      // 1. Submit while website is still empty (initially null) -> website should NOT be sent in payload
+      const submitButton = screen.getByRole('button', { name: /Simpan Perubahan/i })
+      fireEvent.click(submitButton)
+
+      await waitFor(() => {
+        expect(capturedPayloads).toHaveLength(1)
+      })
+      expect('website' in capturedPayloads[0]).toBe(false)
+
+      // 2. Fill valid website -> website should be sent
+      const websiteInput = screen.getByPlaceholderText(/https:\/\/example\.com/i)
+      fireEvent.change(websiteInput, { target: { value: 'https://ravira.co.id' } })
+      fireEvent.click(submitButton)
+
+      await waitFor(() => {
+        expect(capturedPayloads).toHaveLength(2)
+      })
+      expect(capturedPayloads[1].website).toBe('https://ravira.co.id')
+
+      // 3. Clear previously saved website -> website: null should be sent to clear it in DB
+      fireEvent.change(websiteInput, { target: { value: '' } })
+      fireEvent.click(submitButton)
+
+      await waitFor(() => {
+        expect(capturedPayloads).toHaveLength(3)
+      })
+      expect(capturedPayloads[2].website).toBeNull()
+    })
   })
 
   describe('4. Mock Cleanup & Dynamic Recruiter User Context', () => {

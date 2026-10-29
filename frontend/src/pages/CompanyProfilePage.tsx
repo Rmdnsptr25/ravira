@@ -21,7 +21,8 @@ import { useAppContext } from "../contexts/AppContext";
 import {
   getRecruiterCompanyProfile,
   updateRecruiterCompanyProfile,
-  type RecruiterCompanyProfile
+  type RecruiterCompanyProfile,
+  type UpdateRecruiterCompanyInput
 } from "../services/raviraApi";
 
 const sidebarItems: SidebarItem[] = [
@@ -116,17 +117,46 @@ export default function CompanyProfilePage() {
     e.preventDefault();
     if (saving) return;
 
+    const normalizeOptional = (
+      currentValue: string,
+      existingValue?: string | null
+    ): string | null | undefined => {
+      const trimmed = currentValue.trim();
+      if (trimmed) return trimmed;
+      return existingValue ? null : undefined;
+    };
+
+    const payload: UpdateRecruiterCompanyInput = {
+      name: form.nama.trim(),
+    };
+
+    const industryVal = normalizeOptional(form.industri, company?.industry);
+    if (industryVal !== undefined) payload.industry = industryVal;
+
+    const sizeVal = normalizeOptional(form.ukuran, company?.size);
+    if (sizeVal !== undefined) payload.size = sizeVal;
+
+    const locationVal = normalizeOptional(form.hq, company?.location);
+    if (locationVal !== undefined) payload.location = locationVal;
+
+    const websiteVal = normalizeOptional(form.website, company?.website);
+    if (websiteVal !== undefined) payload.website = websiteVal;
+
+    const descriptionVal = normalizeOptional(form.deskripsi, company?.description);
+    if (descriptionVal !== undefined) payload.description = descriptionVal;
+
     setSaving(true);
     try {
-      const updated = await updateRecruiterCompanyProfile({
-        name: form.nama,
-        industry: form.industri,
-        size: form.ukuran,
-        location: form.hq,
-        website: form.website,
-        description: form.deskripsi,
-      });
+      const updated = await updateRecruiterCompanyProfile(payload);
       setCompany(updated);
+      setForm({
+        nama: updated.name || "",
+        industri: updated.industry || "",
+        ukuran: updated.size || "51-200 karyawan",
+        hq: updated.location || "",
+        website: updated.website || "",
+        deskripsi: updated.description || "",
+      });
       toast.success("Profil perusahaan berhasil diperbarui!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Gagal memperbarui profil perusahaan.");

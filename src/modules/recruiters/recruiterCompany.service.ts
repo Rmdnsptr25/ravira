@@ -4,11 +4,11 @@ import { getRecruiterContext } from "./recruiterAccess.service";
 
 interface UpdateCompanyData {
   name?: string;
-  industry?: string;
-  size?: string;
-  location?: string;
-  website?: string;
-  description?: string;
+  industry?: string | null;
+  size?: string | null;
+  location?: string | null;
+  website?: string | null;
+  description?: string | null;
 }
 
 export const getRecruiterCompany = async (userId: string) => {
@@ -52,14 +52,14 @@ export const updateRecruiterCompany = async (
     throw new AppError("Company profile not found.", 404);
   }
 
-  // Explicitly prevent mutating verificationStatus or verifiedA
+  // Explicitly prevent mutating verificationStatus or verifiedAt
   const updatePayload: {
     name?: string;
-    industry?: string;
-    size?: string;
-    location?: string;
-    website?: string;
-    description?: string;
+    industry?: string | null;
+    size?: string | null;
+    location?: string | null;
+    website?: string | null;
+    description?: string | null;
   } = {};
 
   if (data.name !== undefined) updatePayload.name = data.name;

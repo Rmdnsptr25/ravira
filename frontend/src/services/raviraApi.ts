@@ -944,11 +944,11 @@ export type RecruiterCompanyProfile = {
 
 export type UpdateRecruiterCompanyInput = {
   name?: string
-  industry?: string
-  size?: string
-  location?: string
-  website?: string
-  description?: string
+  industry?: string | null
+  size?: string | null
+  location?: string | null
+  website?: string | null
+  description?: string | null
 }
 
 export async function getRecruiterCompanyProfile(signal?: AbortSignal) {
