@@ -42,7 +42,9 @@ const relocationBenefits = [
 
 export default function CrossRegionDetailPage() {
   const navigate = useNavigate();
-  const { addApplication } = useAppContext();
+  const { user, addApplication } = useAppContext();
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
   const [interested, setInterested] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -63,9 +65,9 @@ export default function CrossRegionDetailPage() {
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
-      userName="Budi Santoso"
-      userRole="Kandidat · UI Designer"
-      userInitial="B"
+      userName={displayName}
+      userRole="Kandidat"
+      userInitial={displayInitial}
     >
       <div style={{ padding: "28px 32px", maxWidth: 1100, margin: "0 auto" }}>
         {/* Back button */}

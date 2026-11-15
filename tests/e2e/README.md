@@ -8,9 +8,10 @@ Direktori `tests/e2e/` berisi suite pengujian **End-to-End (E2E) Browser Playwri
 
 | File | Deskripsi |
 | :--- | :--- |
-| `tests/e2e/e2e-safety-gate.cjs` | **Environment Safety Gate** yang memvalidasi `.env.e2e`, mengunci `dotenv.config` ke `.env.e2e`, memastikan koneksi database mengarah eksklusif ke project reference Development (`rkftrtpcoymstbdtlfig`), memblokir pola host/ref Production, memverifikasi isolasi `JWT_SECRET` (`ravira-dev-e2e-...`), serta menerapkan **fail-closed port check** pada port `4000` dan `5173`. |
-| `tests/e2e/seed-e2e.cjs` | Script penyiapan & reset idempoten data sintetis E2E pada database `Ravira-Development` (akun Candidate, Recruiter `APPROVED`/`PENDING`/`REJECTED`, Admin, lowongan Pulau Jawa, kursus pelatihan, kasus `FraudCase`, dan `Appeal`). |
-| `tests/e2e/qa02-browser-e2e.cjs` | Runner Playwright Chromium Headless yang memverifikasi port `4000` & `5173` bebas dari proses eksternal (fail-closed), menyalakan backend & frontend terkelola dengan verifikasi identitas nonce (`/__e2e_runner_identity`), menjalankan seluruh **31 skenario E2E**, dan menyimpan laporan JSON serta bukti tangkapan layar ke `tests/e2e/.artifacts/`. |
+| `tests/e2e/e2e-safety-gate.cjs` | **Environment Safety Gate** yang memvalidasi `.env.e2e` dan script seeding Development, mengunci `dotenv.config` ke `.env.e2e`, memastikan koneksi database mengarah eksklusif ke project reference Development (`rkftrtpcoymstbdtlfig`), memblokir pola host/ref Production serta kredensial default publik lama, memverifikasi isolasi `JWT_SECRET` (`ravira-dev-e2e-...`), serta menerapkan **fail-closed port check** pada port `4000` dan `5173`. |
+| `tests/e2e/seed-e2e.cjs` | Script penyiapan & reset idempoten data sintetis E2E pada database `Ravira-Development` (akun Candidate, Recruiter `APPROVED`/`PENDING`/`REJECTED`, Admin, Super Admin `seed-superadmin@ravira.local`, lowongan Pulau Jawa, 10 kursus pelatihan, kasus `FraudCase`, dan `Appeal`) yang tersinkronisasi penuh dengan `scripts/seed.js`. |
+| `scripts/dev-e2e-server.cjs` | Runner backend Development terisolasi (`npm run dev:e2e`) yang memuat `.env.e2e`, memverifikasi safety gate fail-closed dan ketersediaan port `4000`, lalu menjalankan backend pada `Ravira-Development` untuk pengujian manual yang aman. |
+| `tests/e2e/qa02-browser-e2e.cjs` | Runner Playwright Chromium Headless yang terlebih dahulu memverifikasi build frontend (`frontend/dist/index.html`), ketersediaan port `4000` & `5173` (fail-closed), dan identitas backend terkelola (`/__e2e_runner_identity`) **sebelum** menjalankan `seedE2EFixtures()`, kemudian mengeksekusi **31 skenario E2E** dengan blok cleanup `try / finally` penuh. |
 
 ---
 

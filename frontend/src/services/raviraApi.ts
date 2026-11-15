@@ -613,6 +613,10 @@ export type RecruiterCandidateScore = {
   matchExplanation: string
   candidateScore: number
   candidateScoreBreakdown: {
+    matchScore?: { weight: number; score: number }
+    profileCompleteness?: { weight: number; score: number; completeness: number }
+    requiredSkillCoverage?: { weight: number; score: number; coverage: number }
+    verificationRiskBasic?: { weight: number; score: number; userActive: boolean }
     skillScore?: number
     experienceScore?: number
     educationScore?: number
@@ -644,6 +648,10 @@ export type ApplicationCandidateScore = {
   matchExplanation: string
   candidateScore: number
   candidateScoreBreakdown: {
+    matchScore?: { weight: number; score: number }
+    profileCompleteness?: { weight: number; score: number; completeness: number }
+    requiredSkillCoverage?: { weight: number; score: number; coverage: number }
+    verificationRiskBasic?: { weight: number; score: number; userActive: boolean }
     skillScore?: number
     experienceScore?: number
     educationScore?: number

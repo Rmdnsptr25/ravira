@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
+import { useAppContext } from "../contexts/AppContext";
 
 const sidebarItems: SidebarItem[] = [
   { key: "beranda", label: "Beranda", icon: <Home size={16} />, path: "/dashboard/kandidat" },
@@ -38,6 +39,9 @@ const skills = [
 
 export default function CourseDetailPage() {
   const navigate = useNavigate();
+  const { user } = useAppContext();
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
   const [sessionActive, setSessionActive] = useState(false);
 
   const handleLanjutkan = () => {
@@ -53,9 +57,9 @@ export default function CourseDetailPage() {
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
-      userName="Budi Santoso"
-      userRole="Kandidat · UI Designer"
-      userInitial="B"
+      userName={displayName}
+      userRole="Kandidat"
+      userInitial={displayInitial}
     >
       <div style={{ padding: "28px 32px", maxWidth: 1100, margin: "0 auto" }}>
         {/* Back button */}

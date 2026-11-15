@@ -54,7 +54,15 @@ function record(id, category, name, status, expected, actual, evidence = {}) {
 }
 
 async function startServers() {
+  const distPath = path.join(rootDir, "frontend/dist");
+  if (!fs.existsSync(path.join(distPath, "index.html"))) {
+    throw new Error(
+      `Frontend build not found at ${distPath}. Run 'cd frontend && npm run build' first.`
+    );
+  }
+
   // Fail-closed if port 4000 or 5173 is already occupied by an external/unmanaged process
+  // This MUST complete BEFORE any E2E database seeding occurs.
   await assertPortAvailableFailClosed(4000, "Backend API");
   await assertPortAvailableFailClosed(5173, "Frontend Web");
 
@@ -74,60 +82,68 @@ async function startServers() {
     srv.once("error", reject);
   });
 
-  // Verify the backend answering on port 4000 is strictly this runner's instance
-  await verifyManagedBackendIdentity(BACKEND_BASE_URL, runnerNonce, envInfo.projectRef);
-  results.environment.managedBackendVerified = true;
+  try {
+    // Verify the backend answering on port 4000 is strictly this runner's instance
+    await verifyManagedBackendIdentity(BACKEND_BASE_URL, runnerNonce, envInfo.projectRef);
+    results.environment.managedBackendVerified = true;
 
-  const feApp = express();
-  const distPath = path.join(rootDir, "frontend/dist");
-  if (!fs.existsSync(path.join(distPath, "index.html"))) {
+    const feApp = express();
+    feApp.use(express.static(distPath));
+    feApp.use((_req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
+    const frontendServer = await new Promise((resolve, reject) => {
+      const srv = feApp.listen(5173, () => resolve(srv));
+      srv.once("error", reject);
+    });
+
+    return { backendServer, frontendServer };
+  } catch (err) {
     backendServer.close();
-    throw new Error(
-      `Frontend build not found at ${distPath}. Run 'cd frontend && npm run build' first.`
-    );
+    throw err;
   }
-  feApp.use(express.static(distPath));
-  feApp.use((_req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
-  });
-  const frontendServer = await new Promise((resolve, reject) => {
-    const srv = feApp.listen(5173, () => resolve(srv));
-    srv.once("error", reject);
-  });
-
-  return { backendServer, frontendServer };
 }
 
 async function main() {
   console.log(
     `[SAFETY GATE PASS] Target DB Project Ref: ${envInfo.projectRef} (${envInfo.dbHost}) | Isolated JWT: ${envInfo.jwtSecretIsolated}`
   );
-  const seeded = await seedE2EFixtures();
-  const seedBackendJobId = seeded.backendJobId;
 
-  const { backendServer, frontendServer } = await startServers();
-  const browser = await chromium.launch({ channel: "chrome", headless: true });
-  results.environment.browserVersion = browser.version();
-
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-  const page = await context.newPage();
-
-  page.on("pageerror", (err) => {
-    results.pageErrors.push({ url: page.url(), message: err.message });
-  });
-  page.on("console", (msg) => {
-    if (msg.type() === "error") {
-      results.consoleErrors.push({ url: page.url(), text: msg.text() });
-    }
-  });
-
-  const shot = async (name) => {
-    const file = `${name}.png`;
-    await page.screenshot({ path: path.join(shotsDir, file), fullPage: false });
-    return file;
-  };
+  let backendServer = null;
+  let frontendServer = null;
+  let browser = null;
 
   try {
+    // 1. Verify ports, frontend build, and managed backend identity BEFORE seeding E2E database
+    const servers = await startServers();
+    backendServer = servers.backendServer;
+    frontendServer = servers.frontendServer;
+
+    // 2. Seed E2E fixtures only after safety gates and managed servers are verified
+    const seeded = await seedE2EFixtures();
+    const seedBackendJobId = seeded.backendJobId;
+
+    // 3. Launch headless browser inside try/finally
+    browser = await chromium.launch({ channel: "chrome", headless: true });
+    results.environment.browserVersion = browser.version();
+
+    const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await context.newPage();
+
+    page.on("pageerror", (err) => {
+      results.pageErrors.push({ url: page.url(), message: err.message });
+    });
+    page.on("console", (msg) => {
+      if (msg.type() === "error") {
+        results.consoleErrors.push({ url: page.url(), text: msg.text() });
+      }
+    });
+
+    const shot = async (name) => {
+      const file = `${name}.png`;
+      await page.screenshot({ path: path.join(shotsDir, file), fullPage: false });
+      return file;
+    };
     // =========================================================================
     // 1. CANDIDATE E2E SCENARIOS (11 Scenarios: E2E-CAND-01 .. E2E-CAND-11)
     // =========================================================================
@@ -156,15 +172,23 @@ async function main() {
     await page.fill('input[type="password"]', E2E_SYNTHETIC_PASSWORD);
     await page.click('button[type="submit"]');
     await page.waitForURL("**/dashboard/kandidat", { timeout: 20000 });
+    await page.waitForSelector("text=Seed Backend Engineer", { timeout: 20000 });
+    const candDashBody = await page.locator("body").innerText();
+    const noFakeCandidateDashMock =
+      !candDashBody.includes("Tokopedia") &&
+      !candDashBody.includes("Figma Advanced") &&
+      !candDashBody.includes("UX Research Fundamentals");
     const candToken = await page.evaluate(() => localStorage.getItem("ravira.auth.token"));
     const candShot1 = await shot("cand-01-login-dashboard");
     record(
       "E2E-CAND-01",
       "Candidate",
       "Registrasi dan login kandidat",
-      Boolean(regToken && candToken && page.url().endsWith("/dashboard/kandidat")) ? "PASS" : "FAIL",
-      "Registrasi kandidat baru dan login kandidat menyimpan JWT serta mengarahkan ke /dashboard/kandidat.",
-      `Registrasi (${uniqueEmail}) & login (seed-candidate@ravira.local) berhasil diarahkan ke ${new URL(page.url()).pathname}.`,
+      Boolean(regToken && candToken && page.url().endsWith("/dashboard/kandidat") && noFakeCandidateDashMock)
+        ? "PASS"
+        : "FAIL",
+      "Registrasi kandidat baru dan login kandidat menyimpan JWT, mengarahkan ke /dashboard/kandidat, serta menampilkan data asli kandidat dari API.",
+      `Registrasi (${uniqueEmail}) & login (seed-candidate@ravira.local) berhasil diarahkan ke ${new URL(page.url()).pathname} dengan data real API (bebas data mock: ${noFakeCandidateDashMock}).`,
       { screenshot: candShot1 }
     );
 
@@ -704,7 +728,7 @@ async function main() {
     // 3. ADMIN E2E SCENARIOS (6 Scenarios: E2E-ADM-01 .. E2E-ADM-06)
     // =========================================================================
 
-    // E2E-ADM-01 & E2E-ADM-02: Login Admin & Dashboard Admin
+    // E2E-ADM-01 & E2E-ADM-02: Login Admin (and Super Admin API verification) & Dashboard Admin
     await page.goto(`${FE_URL}/masuk/admin`, { waitUntil: "networkidle" });
     await page.fill('input[type="email"]', "seed-admin@ravira.local");
     await page.fill('input[type="password"]', E2E_SYNTHETIC_PASSWORD);
@@ -712,15 +736,41 @@ async function main() {
     await page.waitForURL("**/admin", { timeout: 20000 });
     await page.waitForTimeout(2000);
     const admDashText = await page.locator("body").innerText();
+    const superAdminCheck = await page.evaluate(
+      async ({ apiUrl, password }) => {
+        const loginRes = await fetch(`${apiUrl}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "seed-superadmin@ravira.local", password }),
+        });
+        if (loginRes.status !== 200) return { loginStatus: loginRes.status, adminApiStatus: 0 };
+        const loginJson = await loginRes.json();
+        const saToken = loginJson.data?.token;
+        const pendingRes = await fetch(`${apiUrl}/admin/companies/pending`, {
+          headers: { Authorization: `Bearer ${saToken}` },
+        });
+        return {
+          loginStatus: loginRes.status,
+          role: loginJson.data?.user?.role,
+          adminApiStatus: pendingRes.status,
+        };
+      },
+      { apiUrl: API_URL, password: E2E_SYNTHETIC_PASSWORD }
+    );
     const admShot1 = await shot("adm-01-02-dashboard");
 
     record(
       "E2E-ADM-01",
       "Admin",
       "Login admin",
-      new URL(page.url()).pathname === "/admin" ? "PASS" : "FAIL",
-      "Admin berhasil login di /masuk/admin dan diarahkan ke /admin.",
-      "Login seed-admin@ravira.local berhasil masuk ke /admin.",
+      new URL(page.url()).pathname === "/admin" &&
+        superAdminCheck.loginStatus === 200 &&
+        superAdminCheck.role === "SUPER_ADMIN" &&
+        superAdminCheck.adminApiStatus === 200
+        ? "PASS"
+        : "FAIL",
+      "Admin dan Super Admin berhasil autentikasi serta mengakses portal dan endpoint /admin.",
+      `Login seed-admin@ravira.local berhasil masuk ke /admin; fixture seed-superadmin@ravira.local (${superAdminCheck.role}) terverifikasi HTTP ${superAdminCheck.adminApiStatus}.`,
       { screenshot: admShot1 }
     );
 
@@ -958,14 +1008,26 @@ async function main() {
     }
   } finally {
     results.finishedAt = new Date().toISOString();
-    fs.writeFileSync(
-      path.join(artifactsDir, "qa02-results.json"),
-      JSON.stringify(results, null, 2)
-    );
-    await browser.close();
-    frontendServer.close();
-    backendServer.close();
-    await prisma.$disconnect();
+    try {
+      fs.writeFileSync(
+        path.join(artifactsDir, "qa02-results.json"),
+        JSON.stringify(results, null, 2)
+      );
+    } catch {
+      // ignore artifact write errors during cleanup
+    }
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
+    if (frontendServer) {
+      frontendServer.close();
+    }
+    if (backendServer) {
+      backendServer.close();
+    }
+    if (prisma && typeof prisma.$disconnect === "function") {
+      await prisma.$disconnect().catch(() => {});
+    }
   }
 }
 

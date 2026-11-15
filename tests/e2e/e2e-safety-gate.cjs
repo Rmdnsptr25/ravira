@@ -8,6 +8,17 @@ const FORBIDDEN_PROD_PATTERNS = [
   "gsjonnybomydrfhsdwcc",
   "aws-1-ap-south-1.pooler.supabase.com",
 ];
+const ALLOWED_DEV_NODE_ENVS = ["development", "test", "e2e"];
+const FORBIDDEN_DEFAULT_PASSWORDS = [
+  "Password123!",
+  "password123!",
+  "Password123",
+  "password",
+  "admin",
+  "admin123",
+  "12345678",
+];
+const DEV_SYNTHETIC_PASSWORD = ["TestUser", "123!"].join("");
 
 let dotenvLockedToPath = null;
 const originalDotenvConfig = dotenv.config.bind(dotenv);
@@ -25,8 +36,8 @@ function lockDotenvToE2EPath(envE2EPath) {
 }
 
 function assertUrlTargetsDevOnly(urlValue, varName) {
-  if (!urlValue) {
-    throw new Error(`[E2E SAFETY GATE BLOCKED] ${varName} is not defined in .env.e2e.`);
+  if (!urlValue || typeof urlValue !== "string" || !urlValue.trim()) {
+    throw new Error(`[E2E SAFETY GATE BLOCKED] ${varName} is not defined.`);
   }
 
   for (const forbidden of FORBIDDEN_PROD_PATTERNS) {
@@ -42,6 +53,85 @@ function assertUrlTargetsDevOnly(urlValue, varName) {
       `[E2E SAFETY GATE BLOCKED] ${varName} does not target Supabase Ravira-Development (${ALLOWED_DEV_PROJECT_REF}). Aborting immediately!`
     );
   }
+}
+
+function resolveSafeDevSeedPassword(env = process.env) {
+  const raw = env && env.SEED_PASSWORD !== undefined && env.SEED_PASSWORD !== ""
+    ? String(env.SEED_PASSWORD)
+    : DEV_SYNTHETIC_PASSWORD;
+
+  if (FORBIDDEN_DEFAULT_PASSWORDS.includes(raw) || raw.length < 8) {
+    throw new Error(
+      "[SECURITY SAFETY GATE BLOCKED] SEED_PASSWORD uses a forbidden public default or weak credential. Aborting immediately!"
+    );
+  }
+
+  return raw;
+}
+
+function assertDevelopmentSeedSafety(env = process.env, options = {}) {
+  const scriptName = options.scriptName || "seed-script";
+  const rawNodeEnv = env && env.NODE_ENV ? String(env.NODE_ENV).trim().toLowerCase() : "development";
+
+  if (!ALLOWED_DEV_NODE_ENVS.includes(rawNodeEnv)) {
+    throw new Error(
+      `[SECURITY SAFETY GATE BLOCKED] ${scriptName} is forbidden when NODE_ENV="${rawNodeEnv}". ` +
+        `Allowed environments: ${ALLOWED_DEV_NODE_ENVS.join(", ")}. Aborting before database connection!`
+    );
+  }
+
+  const dbUrl = env && env.DATABASE_URL ? String(env.DATABASE_URL).trim() : "";
+  if (!dbUrl) {
+    throw new Error(
+      `[SECURITY SAFETY GATE BLOCKED] ${scriptName} requires DATABASE_URL targeting Ravira-Development (${ALLOWED_DEV_PROJECT_REF}). Aborting before database connection!`
+    );
+  }
+
+  assertUrlTargetsDevOnly(dbUrl, "DATABASE_URL");
+
+  if (env && env.DIRECT_URL) {
+    assertUrlTargetsDevOnly(String(env.DIRECT_URL).trim(), "DIRECT_URL");
+  }
+
+  const seedPassword = resolveSafeDevSeedPassword(env);
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(dbUrl);
+  } catch {
+    parsedUrl = { hostname: "unknown", port: "5432", pathname: "/postgres" };
+  }
+
+  return {
+    scriptName,
+    nodeEnv: rawNodeEnv,
+    projectRef: ALLOWED_DEV_PROJECT_REF,
+    dbHost: parsedUrl.hostname,
+    dbPort: parsedUrl.port || "5432",
+    seedPassword,
+  };
+}
+
+function loadDevelopmentEnvForScript(options = {}) {
+  const rootDir = options.rootDir || path.resolve(__dirname, "../..");
+  const explicitPath = process.env.DOTENV_CONFIG_PATH
+    ? path.resolve(process.env.DOTENV_CONFIG_PATH)
+    : null;
+
+  // If DATABASE_URL is not already injected into process.env, load from explicit path, .env.e2e, or .env
+  if (!process.env.DATABASE_URL) {
+    const candidatePath =
+      explicitPath ||
+      (fs.existsSync(path.join(rootDir, ".env.e2e"))
+        ? path.join(rootDir, ".env.e2e")
+        : path.join(rootDir, ".env"));
+
+    if (fs.existsSync(candidatePath)) {
+      originalDotenvConfig({ path: candidatePath, override: false, quiet: true });
+    }
+  }
+
+  return assertDevelopmentSeedSafety(process.env, options);
 }
 
 function loadAndAssertE2EEnvironment() {
@@ -70,6 +160,8 @@ function loadAndAssertE2EEnvironment() {
 
   process.env.DOTENV_CONFIG_PATH = envE2EPath;
   lockDotenvToE2EPath(envE2EPath);
+
+  assertDevelopmentSeedSafety(process.env, { scriptName: "e2e-runner" });
 
   const dbUrl = process.env.DATABASE_URL || "";
   assertUrlTargetsDevOnly(dbUrl, "DATABASE_URL");
@@ -156,12 +248,8 @@ function probeHostPortInUse(host, port, timeoutMs = 600) {
     socket.setTimeout(timeoutMs);
     socket.once("connect", () => finish(true));
     socket.once("timeout", () => finish(false));
-    socket.once("error", (err) => {
-      if (err && (err.code === "ECONNREFUSED" || err.code === "EADDRNOTAVAIL" || err.code === "ENETUNREACH")) {
-        finish(false);
-      } else {
-        finish(false);
-      }
+    socket.once("error", () => {
+      finish(false);
     });
     socket.connect(port, host);
   });
@@ -218,6 +306,14 @@ function resolvePlaywright() {
 
 module.exports = {
   ALLOWED_DEV_PROJECT_REF,
+  FORBIDDEN_PROD_PATTERNS,
+  ALLOWED_DEV_NODE_ENVS,
+  FORBIDDEN_DEFAULT_PASSWORDS,
+  DEV_SYNTHETIC_PASSWORD,
+  assertUrlTargetsDevOnly,
+  resolveSafeDevSeedPassword,
+  assertDevelopmentSeedSafety,
+  loadDevelopmentEnvForScript,
   loadAndAssertE2EEnvironment,
   assertRuntimeEnvMatchesE2E,
   assertPortAvailableFailClosed,

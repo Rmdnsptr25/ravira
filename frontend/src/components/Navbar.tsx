@@ -20,10 +20,20 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 24);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && menuOpen) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -31,65 +41,118 @@ export function Navbar() {
   };
 
   return (
-    <nav
+    <div
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
+        top: scrolled ? 12 : 14,
+        left: scrolled ? 16 : 14,
+        right: scrolled ? 16 : 14,
         zIndex: 50,
-        transition: "all 0.3s ease",
-        backgroundColor: scrolled ? "rgba(7, 18, 40, 0.97)" : "rgba(7,18,40,0.85)",
-        backdropFilter: "blur(24px)",
-        borderBottom: scrolled ? "1px solid rgba(22, 119, 255, 0.12)" : "1px solid rgba(22,119,255,0.06)",
+        pointerEvents: "none",
+        transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
       }}
     >
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 72 }}>
-
+      <nav
+        aria-label="Navigasi Utama"
+        style={{
+          pointerEvents: "auto",
+          maxWidth: scrolled ? 1160 : 1332,
+          margin: "0 auto",
+          transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+          borderRadius: scrolled ? 999 : "24px 24px 0 0",
+          backgroundColor: scrolled
+            ? "rgba(13, 17, 23, 0.92)"
+            : "transparent",
+          backdropFilter: scrolled ? "blur(18px)" : "none",
+          border: scrolled ? "1px solid rgba(255, 255, 255, 0.14)" : "1px solid transparent",
+          boxShadow: scrolled ? "0 14px 40px rgba(8, 24, 56, 0.28)" : "none",
+          padding: scrolled ? "0 18px" : "0 24px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            height: scrolled ? 60 : 72,
+            transition: "height 0.25s ease",
+          }}
+        >
           {/* Logo */}
           <button
+            type="button"
             onClick={() => navigate("/")}
-            style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "6px 4px",
+              minHeight: 44,
+            }}
           >
-            <RaviraOwlIcon size={38} />
-            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-              <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 22, fontWeight: 700, background: "linear-gradient(90deg, #ffffff 0%, #4DB8FF 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.3px" }}>
+            <RaviraOwlIcon size={scrolled ? 30 : 34} />
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1, textAlign: "left" }}>
+              <span
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: scrolled ? 19 : 21,
+                  fontWeight: 700,
+                  color: "#ffffff",
+                  letterSpacing: "-0.4px",
+                }}
+              >
                 Ravira
               </span>
-              <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 7.5, fontWeight: 600, color: "#4DB8FF", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+              <span
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: 7.5,
+                  fontWeight: 600,
+                  color: "#D4FF59",
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  marginTop: 2,
+                }}
+              >
                 AI Recruitment Ecosystem
               </span>
             </div>
           </button>
 
           {/* Desktop Nav */}
-          <div style={{ display: "flex", alignItems: "center", gap: 2 }} className="hidden md:flex">
+          <div style={{ alignItems: "center", gap: 2 }} className="ravira-desktop-nav">
             {navLinks.map((link) => (
               <button
+                type="button"
                 key={link.label}
                 onClick={() => navigate(link.path)}
                 style={{
                   fontFamily: "'Inter', sans-serif",
-                  fontSize: 13,
-                  fontWeight: isActive(link.path) ? 600 : 500,
-                  color: isActive(link.path) ? "#fff" : "#BDE1FF",
-                  padding: "6px 11px",
-                  borderRadius: 8,
-                  background: isActive(link.path) ? "rgba(22, 119, 255, 0.18)" : "transparent",
+                  fontSize: 11,
+                  fontWeight: isActive(link.path) ? 700 : 500,
+                  letterSpacing: "0.07em",
+                  textTransform: "uppercase",
+                  color: isActive(link.path) && scrolled ? "#D4FF59" : "#ffffff",
+                  padding: "8px 11px",
+                  minHeight: 40,
+                  borderRadius: 999,
+                  background: isActive(link.path)
+                    ? "rgba(255, 255, 255, 0.16)"
+                    : "transparent",
                   border: "none",
                   cursor: "pointer",
-                  transition: "color 0.2s, background 0.2s",
+                  transition: "background 0.2s, color 0.2s",
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive(link.path)) {
-                    e.currentTarget.style.color = "#fff";
-                    e.currentTarget.style.background = "rgba(22, 119, 255, 0.12)";
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.12)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive(link.path)) {
-                    e.currentTarget.style.color = "#BDE1FF";
                     e.currentTarget.style.background = "transparent";
                   }
                 }}
@@ -100,61 +163,137 @@ export function Navbar() {
           </div>
 
           {/* CTA Buttons */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }} className="hidden md:flex">
+          <div style={{ alignItems: "center", gap: 8 }} className="ravira-desktop-nav">
             <button
-              style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: "#BDE1FF", padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(77, 184, 255, 0.25)", background: "transparent", cursor: "pointer", transition: "all 0.2s" }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#4DB8FF"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.background = "rgba(77, 184, 255, 0.08)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(77, 184, 255, 0.25)"; e.currentTarget.style.color = "#BDE1FF"; e.currentTarget.style.background = "transparent"; }}
+              type="button"
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 11.5,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: "#ffffff",
+                padding: "8px 16px",
+                minHeight: 40,
+                borderRadius: 999,
+                border: "1px solid rgba(255, 255, 255, 0.32)",
+                background: "rgba(255, 255, 255, 0.08)",
+                cursor: "pointer",
+                transition: "background 0.2s, border-color 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "#ffffff";
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.16)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.32)";
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+              }}
               onClick={() => navigate("/masuk/kandidat")}
             >
               Masuk
             </button>
             <button
-              style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: "#fff", padding: "8px 20px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #1677FF, #0D47A1)", cursor: "pointer", boxShadow: "0 4px 18px rgba(22, 119, 255, 0.4)", transition: "transform 0.2s, box-shadow 0.2s" }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(22, 119, 255, 0.55)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 18px rgba(22, 119, 255, 0.4)"; }}
+              type="button"
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 11.5,
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: "#0D1117",
+                padding: "8px 20px",
+                minHeight: 40,
+                borderRadius: 999,
+                border: "none",
+                background: "#D4FF59",
+                cursor: "pointer",
+                transition: "transform 0.2s, background 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.background = "#e0ff80";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.background = "#D4FF59";
+              }}
               onClick={() => navigate("/daftar/kandidat")}
             >
               Daftar
             </button>
           </div>
 
-          {/* Mobile hamburger */}
+          {/* Mobile menu button */}
           <button
+            type="button"
+            aria-label={menuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+            aria-expanded={menuOpen}
             onClick={() => setMenuOpen(!menuOpen)}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "#e8eef8" }}
-            className="flex md:hidden"
+            style={{
+              background: "rgba(255, 255, 255, 0.12)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              borderRadius: 999,
+              width: 44,
+              height: 44,
+              cursor: "pointer",
+              color: "#ffffff",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            className="ravira-mobile-toggle"
           >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>
         </div>
-      </div>
+      </nav>
+      <style>{`
+        .ravira-desktop-nav { display: flex; }
+        .ravira-mobile-toggle { display: none; }
+        @media (max-width: 1024px) {
+          .ravira-desktop-nav { display: none !important; }
+          .ravira-mobile-toggle { display: inline-flex !important; }
+        }
+      `}</style>
 
       {/* Mobile Menu */}
       {menuOpen && (
         <div
-          style={{ backgroundColor: "rgba(7, 18, 40, 0.98)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(22, 119, 255, 0.15)", padding: "16px 24px 24px" }}
+          style={{
+            pointerEvents: "auto",
+            maxWidth: 1160,
+            margin: "8px auto 0",
+            backgroundColor: "rgba(13, 17, 23, 0.96)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.14)",
+            padding: "16px 24px 24px",
+            borderRadius: 24,
+            boxShadow: "0 18px 40px rgba(0,0,0,0.35)",
+          }}
           className="md:hidden"
         >
           {navLinks.map((link) => (
             <button
+              type="button"
               key={link.label}
-              onClick={() => { navigate(link.path); setMenuOpen(false); }}
+              onClick={() => {
+                navigate(link.path);
+                setMenuOpen(false);
+              }}
               style={{
                 display: "block",
                 width: "100%",
                 textAlign: "left",
                 fontFamily: "'Inter', sans-serif",
-                fontSize: 15,
-                fontWeight: isActive(link.path) ? 600 : 500,
-                color: isActive(link.path) ? "#fff" : "#BDE1FF",
-                padding: "12px 8px",
-                borderBottom: "1px solid rgba(22, 119, 255, 0.08)",
-                background: "none",
+                fontSize: 14,
+                fontWeight: isActive(link.path) ? 700 : 500,
+                color: isActive(link.path) ? "#D4FF59" : "#ffffff",
+                padding: "12px 10px",
+                minHeight: 44,
+                background: isActive(link.path) ? "rgba(255, 255, 255, 0.1)" : "transparent",
                 border: "none",
-                borderBottomWidth: 1,
-                borderBottomStyle: "solid",
-                borderBottomColor: "rgba(22, 119, 255, 0.08)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: 8,
                 cursor: "pointer",
               }}
             >
@@ -163,20 +302,52 @@ export function Navbar() {
           ))}
           <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
             <button
-              style={{ flex: 1, fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: "#BDE1FF", padding: "10px", borderRadius: 10, border: "1px solid rgba(77, 184, 255, 0.25)", background: "transparent", cursor: "pointer" }}
-              onClick={() => { navigate("/masuk/kandidat"); setMenuOpen(false); }}
+              type="button"
+              style={{
+                flex: 1,
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#ffffff",
+                padding: "11px",
+                minHeight: 44,
+                borderRadius: 999,
+                border: "1px solid rgba(255, 255, 255, 0.35)",
+                background: "rgba(255, 255, 255, 0.08)",
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                navigate("/masuk/kandidat");
+                setMenuOpen(false);
+              }}
             >
               Masuk
             </button>
             <button
-              style={{ flex: 1, fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: "#fff", padding: "10px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #1677FF, #0D47A1)", cursor: "pointer" }}
-              onClick={() => { navigate("/daftar/kandidat"); setMenuOpen(false); }}
+              type="button"
+              style={{
+                flex: 1,
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#0D1117",
+                padding: "11px",
+                minHeight: 44,
+                borderRadius: 999,
+                border: "none",
+                background: "#D4FF59",
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                navigate("/daftar/kandidat");
+                setMenuOpen(false);
+              }}
             >
               Daftar
             </button>
           </div>
         </div>
       )}
-    </nav>
+    </div>
   );
 }

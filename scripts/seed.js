@@ -5,93 +5,34 @@ const {
   CompanyVerificationStatus,
   JobStatus,
   FraudRiskLevel,
-  FraudReviewStatus
+  FraudReviewStatus,
 } = require("@prisma/client");
-require("dotenv").config({ quiet: true });
-
-const prisma = new PrismaClient();
-
-const seedPassword = process.env.SEED_PASSWORD ?? "Password123!";
+const {
+  assertDevelopmentSeedSafety,
+  loadDevelopmentEnvForScript,
+} = require("../tests/e2e/e2e-safety-gate.cjs");
 
 const users = {
+  superAdmin: {
+    email: "seed-superadmin@ravira.local",
+    fullName: "Seed Super Admin",
+    role: Role.SUPER_ADMIN,
+  },
   admin: {
     email: "seed-admin@ravira.local",
     fullName: "Seed Admin",
-    role: Role.ADMIN
+    role: Role.ADMIN,
   },
   candidate: {
     email: "seed-candidate@ravira.local",
     fullName: "Seed Candidate",
-    role: Role.CANDIDATE
+    role: Role.CANDIDATE,
   },
   recruiter: {
     email: "seed-recruiter@ravira.local",
     fullName: "Seed Recruiter",
-    role: Role.RECRUITER
-  }
-};
-
-const upsertUser = async ({ email, fullName, role }) => {
-  const passwordHash = await bcrypt.hash(seedPassword, 10);
-
-  return prisma.user.upsert({
-    where: { email },
-    update: {
-      fullName,
-      role,
-      isActive: true,
-      passwordHash
-    },
-    create: {
-      email,
-      fullName,
-      role,
-      isActive: true,
-      passwordHash
-    }
-  });
-};
-
-const upsertPublishedJob = async ({ companyId, recruiterId, title, description, location, skills }) => {
-  const existingJob = await prisma.job.findFirst({
-    where: {
-      companyId,
-      title
-    }
-  });
-
-  const jobData = {
-    companyId,
-    createdByRecruiterId: recruiterId,
-    title,
-    description,
-    location,
-    jobType: "FULL_TIME",
-    workType: "REMOTE",
-    employmentType: "FULL_TIME",
-    salaryMin: 8000000,
-    salaryMax: 16000000,
-    status: JobStatus.PUBLISHED
-  };
-
-  const job = existingJob
-    ? await prisma.job.update({
-        where: { id: existingJob.id },
-        data: jobData
-      })
-    : await prisma.job.create({ data: jobData });
-
-  await prisma.jobSkill.deleteMany({ where: { jobId: job.id } });
-  await prisma.jobSkill.createMany({
-    data: skills.map((skillName, index) => ({
-      jobId: job.id,
-      skillName,
-      required: true,
-      weight: index + 1
-    }))
-  });
-
-  return job;
+    role: Role.RECRUITER,
+  },
 };
 
 const courses = [
@@ -104,7 +45,7 @@ const courses = [
     price: 0,
     difficulty: "BEGINNER",
     language: "id",
-    url: "https://learning.ravira.local/courses/javascript-basic"
+    url: "https://learning.ravira.local/courses/javascript-basic",
   },
   {
     id: "10000000-0000-4000-8000-000000000002",
@@ -115,7 +56,7 @@ const courses = [
     price: 0,
     difficulty: "INTERMEDIATE",
     language: "id",
-    url: "https://learning.ravira.local/courses/typescript-backend"
+    url: "https://learning.ravira.local/courses/typescript-backend",
   },
   {
     id: "10000000-0000-4000-8000-000000000003",
@@ -126,7 +67,7 @@ const courses = [
     price: 150000,
     difficulty: "BEGINNER",
     language: "id",
-    url: "https://learning.ravira.local/courses/react-fundamentals"
+    url: "https://learning.ravira.local/courses/react-fundamentals",
   },
   {
     id: "10000000-0000-4000-8000-000000000004",
@@ -137,7 +78,7 @@ const courses = [
     price: 200000,
     difficulty: "INTERMEDIATE",
     language: "id",
-    url: "https://learning.ravira.local/courses/node-api"
+    url: "https://learning.ravira.local/courses/node-api",
   },
   {
     id: "10000000-0000-4000-8000-000000000005",
@@ -148,7 +89,7 @@ const courses = [
     price: 100000,
     difficulty: "BEGINNER",
     language: "id",
-    url: "https://learning.ravira.local/courses/express-rest"
+    url: "https://learning.ravira.local/courses/express-rest",
   },
   {
     id: "10000000-0000-4000-8000-000000000006",
@@ -159,7 +100,7 @@ const courses = [
     price: 0,
     difficulty: "BEGINNER",
     language: "id",
-    url: "https://learning.ravira.local/courses/sql-essentials"
+    url: "https://learning.ravira.local/courses/sql-essentials",
   },
   {
     id: "10000000-0000-4000-8000-000000000007",
@@ -170,7 +111,7 @@ const courses = [
     price: 180000,
     difficulty: "INTERMEDIATE",
     language: "id",
-    url: "https://learning.ravira.local/courses/postgresql-product"
+    url: "https://learning.ravira.local/courses/postgresql-product",
   },
   {
     id: "10000000-0000-4000-8000-000000000008",
@@ -181,7 +122,7 @@ const courses = [
     price: 120000,
     difficulty: "BEGINNER",
     language: "id",
-    url: "https://learning.ravira.local/courses/uiux-figma"
+    url: "https://learning.ravira.local/courses/uiux-figma",
   },
   {
     id: "10000000-0000-4000-8000-000000000009",
@@ -192,7 +133,7 @@ const courses = [
     price: 220000,
     difficulty: "INTERMEDIATE",
     language: "id",
-    url: "https://learning.ravira.local/courses/data-analysis-sql"
+    url: "https://learning.ravira.local/courses/data-analysis-sql",
   },
   {
     id: "10000000-0000-4000-8000-000000000010",
@@ -203,217 +144,315 @@ const courses = [
     price: 250000,
     difficulty: "BEGINNER",
     language: "id",
-    url: "https://learning.ravira.local/courses/ml-intro"
-  }
+    url: "https://learning.ravira.local/courses/ml-intro",
+  },
 ];
 
-const upsertCourse = async (course) => {
-  return prisma.course.upsert({
-    where: { id: course.id },
-    update: {
-      title: course.title,
-      provider: course.provider,
-      skillTargets: course.skillTargets,
-      duration: course.duration,
-      price: course.price,
-      difficulty: course.difficulty,
-      language: course.language,
-      url: course.url
-    },
-    create: course
-  });
-};
+async function runSeed(options = {}) {
+  const safetyInfo = options.env
+    ? assertDevelopmentSeedSafety(options.env, { scriptName: "scripts/seed.js" })
+    : loadDevelopmentEnvForScript({ scriptName: "scripts/seed.js" });
 
-const main = async () => {
-  const admin = await upsertUser(users.admin);
-  const candidateUser = await upsertUser(users.candidate);
-  const recruiterUser = await upsertUser(users.recruiter);
+  const ownPrisma = !options.prismaClient;
+  const prisma = options.prismaClient || new PrismaClient();
 
-  const candidate = await prisma.candidate.upsert({
-    where: { userId: candidateUser.id },
-    update: {
-      location: "Jakarta",
-      education: "S1",
-      experienceSummary: "Seed candidate profile",
-      salaryExpectation: 10000000,
-      mobilityPreference: "REMOTE",
-      profileVisibility: "PUBLIC"
-    },
-    create: {
-      userId: candidateUser.id,
-      location: "Jakarta",
-      education: "S1",
-      experienceSummary: "Seed candidate profile",
-      salaryExpectation: 10000000,
-      mobilityPreference: "REMOTE",
-      profileVisibility: "PUBLIC"
-    }
-  });
+  try {
+    const passwordHash = await bcrypt.hash(safetyInfo.seedPassword, 10);
 
-  await prisma.candidateSkill.upsert({
-    where: {
-      candidateId_skillName: {
-        candidateId: candidate.id,
-        skillName: "TypeScript"
-      }
-    },
-    update: {
-      level: "INTERMEDIATE",
-      source: "seed",
-      confidenceScore: 90
-    },
-    create: {
-      candidateId: candidate.id,
-      skillName: "TypeScript",
-      level: "INTERMEDIATE",
-      source: "seed",
-      confidenceScore: 90
-    }
-  });
+    const upsertUser = async ({ email, fullName, role }) => {
+      return prisma.user.upsert({
+        where: { email },
+        update: {
+          fullName,
+          role,
+          isActive: true,
+          passwordHash,
+        },
+        create: {
+          email,
+          fullName,
+          role,
+          isActive: true,
+          passwordHash,
+        },
+      });
+    };
 
-  const existingFraudCase = await prisma.fraudCase.findFirst({
-    where: {
-      candidateId: candidate.id,
-      riskLevel: FraudRiskLevel.LOW
-    },
-    select: { id: true }
-  });
-
-  const seedFraudCase = existingFraudCase
-    ? await prisma.fraudCase.update({
-        where: { id: existingFraudCase.id },
-        data: {
-          riskScore: 30,
-          riskLevel: FraudRiskLevel.LOW,
-          reviewStatus: FraudReviewStatus.OPEN,
-          decision: null,
-          reason: null,
-          reviewerId: null,
-          decidedAt: null
-        }
-      })
-    : await prisma.fraudCase.create({
-        data: {
-          candidateId: candidate.id,
-          riskScore: 30,
-          riskLevel: FraudRiskLevel.LOW,
-          reviewStatus: FraudReviewStatus.OPEN
-        }
+    const upsertPublishedJob = async ({
+      companyId,
+      recruiterId,
+      title,
+      description,
+      location,
+      skills,
+    }) => {
+      const existingJob = await prisma.job.findFirst({
+        where: {
+          companyId,
+          title,
+        },
       });
 
-  const existingFraudSignal = await prisma.fraudSignal.findFirst({
-    where: {
-      candidateId: candidate.id,
-      caseId: seedFraudCase.id,
-      signalType: "SIMILAR_NAME_LOCATION"
-    },
-    select: { id: true }
-  });
+      const jobData = {
+        companyId,
+        createdByRecruiterId: recruiterId,
+        title,
+        description,
+        location,
+        jobType: "FULL_TIME",
+        workType: "REMOTE",
+        employmentType: "FULL_TIME",
+        salaryMin: 8000000,
+        salaryMax: 16000000,
+        status: JobStatus.PUBLISHED,
+      };
 
-  if (existingFraudSignal) {
-    await prisma.fraudSignal.update({
-      where: { id: existingFraudSignal.id },
-      data: {
-        riskLevel: FraudRiskLevel.LOW,
-        evidenceHash: "seed-low-risk-profile-similarity",
-        evidenceMasked: "profile_similarity=seed_low_risk_example",
-        status: FraudReviewStatus.OPEN
-      }
+      const job = existingJob
+        ? await prisma.job.update({
+            where: { id: existingJob.id },
+            data: jobData,
+          })
+        : await prisma.job.create({ data: jobData });
+
+      await prisma.jobSkill.deleteMany({ where: { jobId: job.id } });
+      await prisma.jobSkill.createMany({
+        data: skills.map((skillName, index) => ({
+          jobId: job.id,
+          skillName,
+          required: true,
+          weight: index + 1,
+        })),
+      });
+
+      return job;
+    };
+
+    const upsertCourse = async (course) => {
+      return prisma.course.upsert({
+        where: { id: course.id },
+        update: {
+          title: course.title,
+          provider: course.provider,
+          skillTargets: course.skillTargets,
+          duration: course.duration,
+          price: course.price,
+          difficulty: course.difficulty,
+          language: course.language,
+          url: course.url,
+        },
+        create: course,
+      });
+    };
+
+    const superAdmin = await upsertUser(users.superAdmin);
+    const admin = await upsertUser(users.admin);
+    const candidateUser = await upsertUser(users.candidate);
+    const recruiterUser = await upsertUser(users.recruiter);
+
+    const candidate = await prisma.candidate.upsert({
+      where: { userId: candidateUser.id },
+      update: {
+        headline: "Backend Engineer Candidate",
+        location: "Bandung",
+        education: "S1 Teknik Informatika",
+        experienceSummary:
+          "Memiliki pengalaman membangun REST API dengan Node.js dan PostgreSQL.",
+        salaryExpectation: 9000000,
+        mobilityPreference: "HYBRID",
+        profileVisibility: "PUBLIC",
+      },
+      create: {
+        userId: candidateUser.id,
+        headline: "Backend Engineer Candidate",
+        location: "Bandung",
+        education: "S1 Teknik Informatika",
+        experienceSummary:
+          "Memiliki pengalaman membangun REST API dengan Node.js dan PostgreSQL.",
+        salaryExpectation: 9000000,
+        mobilityPreference: "HYBRID",
+        profileVisibility: "PUBLIC",
+      },
     });
-  } else {
-    await prisma.fraudSignal.create({
-      data: {
+
+    await prisma.candidateSkill.upsert({
+      where: {
+        candidateId_skillName: {
+          candidateId: candidate.id,
+          skillName: "TypeScript",
+        },
+      },
+      update: {
+        level: "INTERMEDIATE",
+        source: "seed",
+        confidenceScore: 90,
+      },
+      create: {
+        candidateId: candidate.id,
+        skillName: "TypeScript",
+        level: "INTERMEDIATE",
+        source: "seed",
+        confidenceScore: 90,
+      },
+    });
+
+    const existingFraudCase = await prisma.fraudCase.findFirst({
+      where: {
+        candidateId: candidate.id,
+        riskLevel: FraudRiskLevel.LOW,
+      },
+      select: { id: true },
+    });
+
+    const seedFraudCase = existingFraudCase
+      ? await prisma.fraudCase.update({
+          where: { id: existingFraudCase.id },
+          data: {
+            riskScore: 30,
+            riskLevel: FraudRiskLevel.LOW,
+            reviewStatus: FraudReviewStatus.OPEN,
+            decision: null,
+            reason: null,
+            reviewerId: null,
+            decidedAt: null,
+          },
+        })
+      : await prisma.fraudCase.create({
+          data: {
+            candidateId: candidate.id,
+            riskScore: 30,
+            riskLevel: FraudRiskLevel.LOW,
+            reviewStatus: FraudReviewStatus.OPEN,
+          },
+        });
+
+    const existingFraudSignal = await prisma.fraudSignal.findFirst({
+      where: {
         candidateId: candidate.id,
         caseId: seedFraudCase.id,
         signalType: "SIMILAR_NAME_LOCATION",
-        riskLevel: FraudRiskLevel.LOW,
-        evidenceHash: "seed-low-risk-profile-similarity",
-        evidenceMasked: "profile_similarity=seed_low_risk_example",
-        status: FraudReviewStatus.OPEN
-      }
-    });
-  }
-
-  const company = await prisma.company.upsert({
-    where: { id: "00000000-0000-4000-8000-000000000001" },
-    update: {
-      name: "Seed Ravira Company",
-      industry: "Technology",
-      location: "Jakarta",
-      verificationStatus: CompanyVerificationStatus.APPROVED,
-      verifiedAt: new Date()
-    },
-    create: {
-      id: "00000000-0000-4000-8000-000000000001",
-      name: "Seed Ravira Company",
-      industry: "Technology",
-      location: "Jakarta",
-      verificationStatus: CompanyVerificationStatus.APPROVED,
-      verifiedAt: new Date()
-    }
-  });
-
-  const recruiter = await prisma.recruiter.upsert({
-    where: { userId: recruiterUser.id },
-    update: {
-      companyId: company.id,
-      position: "Talent Partner"
-    },
-    create: {
-      userId: recruiterUser.id,
-      companyId: company.id,
-      position: "Talent Partner"
-    }
-  });
-
-  const jobs = await Promise.all([
-    upsertPublishedJob({
-      companyId: company.id,
-      recruiterId: recruiter.id,
-      title: "Seed Backend Engineer",
-      description: "Build backend APIs for Ravira.",
-      location: "Jakarta",
-      skills: ["TypeScript", "Node.js", "Prisma"]
-    }),
-    upsertPublishedJob({
-      companyId: company.id,
-      recruiterId: recruiter.id,
-      title: "Seed Full Stack Engineer",
-      description: "Build product features across backend and frontend integration.",
-      location: "Bandung",
-      skills: ["TypeScript", "Express.js", "PostgreSQL"]
-    })
-  ]);
-
-  const seededCourses = await Promise.all(courses.map(upsertCourse));
-
-  console.log(
-    JSON.stringify(
-      {
-        success: true,
-        message: "Seed completed.",
-        data: {
-          adminEmail: admin.email,
-          candidateEmail: candidateUser.email,
-          recruiterEmail: recruiterUser.email,
-          seedPassword,
-          companyId: company.id,
-          fraudCaseId: seedFraudCase.id,
-          jobIds: jobs.map((job) => job.id),
-          courseIds: seededCourses.map((course) => course.id)
-        }
       },
-      null,
-      2
-    )
-  );
-};
+      select: { id: true },
+    });
 
-main()
-  .catch((error) => {
-    console.error(error);
+    if (existingFraudSignal) {
+      await prisma.fraudSignal.update({
+        where: { id: existingFraudSignal.id },
+        data: {
+          riskLevel: FraudRiskLevel.LOW,
+          evidenceHash: "seed-low-risk-profile-similarity",
+          evidenceMasked: "profile_similarity=seed_low_risk_example",
+          status: FraudReviewStatus.OPEN,
+        },
+      });
+    } else {
+      await prisma.fraudSignal.create({
+        data: {
+          candidateId: candidate.id,
+          caseId: seedFraudCase.id,
+          signalType: "SIMILAR_NAME_LOCATION",
+          riskLevel: FraudRiskLevel.LOW,
+          evidenceHash: "seed-low-risk-profile-similarity",
+          evidenceMasked: "profile_similarity=seed_low_risk_example",
+          status: FraudReviewStatus.OPEN,
+        },
+      });
+    }
+
+    const company = await prisma.company.upsert({
+      where: { id: "00000000-0000-4000-8000-000000000001" },
+      update: {
+        name: "Seed Ravira Company",
+        industry: "Technology",
+        location: "Jakarta",
+        verificationStatus: CompanyVerificationStatus.APPROVED,
+        verifiedAt: new Date(),
+      },
+      create: {
+        id: "00000000-0000-4000-8000-000000000001",
+        name: "Seed Ravira Company",
+        industry: "Technology",
+        location: "Jakarta",
+        verificationStatus: CompanyVerificationStatus.APPROVED,
+        verifiedAt: new Date(),
+      },
+    });
+
+    const recruiter = await prisma.recruiter.upsert({
+      where: { userId: recruiterUser.id },
+      update: {
+        companyId: company.id,
+        position: "Talent Partner",
+      },
+      create: {
+        userId: recruiterUser.id,
+        companyId: company.id,
+        position: "Talent Partner",
+      },
+    });
+
+    const jobs = await Promise.all([
+      upsertPublishedJob({
+        companyId: company.id,
+        recruiterId: recruiter.id,
+        title: "Seed Backend Engineer",
+        description: "Build backend APIs for Ravira.",
+        location: "Jakarta",
+        skills: ["TypeScript", "Node.js", "Prisma"],
+      }),
+      upsertPublishedJob({
+        companyId: company.id,
+        recruiterId: recruiter.id,
+        title: "Seed Full Stack Engineer",
+        description:
+          "Build product features across backend and frontend integration.",
+        location: "Bandung",
+        skills: ["TypeScript", "Express.js", "PostgreSQL"],
+      }),
+    ]);
+
+    const seededCourses = [];
+    for (const course of courses) {
+      seededCourses.push(await upsertCourse(course));
+    }
+
+    const summary = {
+      success: true,
+      message: "Development seed completed safely.",
+      data: {
+        projectRef: safetyInfo.projectRef,
+        environment: safetyInfo.nodeEnv,
+        superAdminEmail: superAdmin.email,
+        adminEmail: admin.email,
+        candidateEmail: candidateUser.email,
+        recruiterEmail: recruiterUser.email,
+        companyId: company.id,
+        fraudCaseId: seedFraudCase.id,
+        jobIds: jobs.map((job) => job.id),
+        courseIds: seededCourses.map((course) => course.id),
+      },
+    };
+
+    if (!options.silent) {
+      console.log(JSON.stringify(summary, null, 2));
+    }
+
+    return summary;
+  } finally {
+    if (ownPrisma) {
+      await prisma.$disconnect();
+    }
+  }
+}
+
+if (require.main === module) {
+  runSeed().catch((error) => {
+    console.error("[Seed Error]:", error.message);
     process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });
+}
+
+module.exports = {
+  runSeed,
+  users,
+  courses,
+};

@@ -16,19 +16,60 @@ import { Footer } from "../components/Footer";
 
 export default function LandingPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "'Inter', sans-serif", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "#FFFFFF", fontFamily: "'Inter', sans-serif", overflowX: "hidden" }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
 
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #f4f8ff; }
-        ::-webkit-scrollbar-thumb { background: rgba(22,119,255,0.3); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(22,119,255,0.55); }
+        a, button, [role="button"], [role="tab"] {
+          cursor: pointer;
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible,
+        [role="button"]:focus-visible,
+        [role="tab"]:focus-visible {
+          outline: 2px solid #0E67CC;
+          outline-offset: 2px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #F4F5F7; }
+        ::-webkit-scrollbar-thumb { background: rgba(13, 17, 23, 0.25); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(13, 17, 23, 0.45); }
 
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+          }
+        }
+
+        @media (max-width: 960px) {
+          .about-bento-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .hero-card-fan {
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+            perspective: none !important;
+          }
+          .hero-card-fan > div {
+            margin: 0 !important;
+            transform: none !important;
+            flex: 1 1 150px !important;
+            max-width: 220px !important;
+          }
         }
 
         @media (max-width: 768px) {
@@ -51,8 +92,8 @@ export default function LandingPage() {
       <Navbar />
       <Hero />
       <MetricsStrip />
-      <FeaturesSection />
       <AboutSection />
+      <FeaturesSection />
       <ProblemSection />
       <SolutionSection />
       <HowItWorksSection />
