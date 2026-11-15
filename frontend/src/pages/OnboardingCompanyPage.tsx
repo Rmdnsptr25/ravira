@@ -1,24 +1,34 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { RaviraOwlIcon } from "../components/RaviraLogo";
 
 const steps = ["Profil Perusahaan", "Kebutuhan Rekrutmen", "Integrasi & Preferensi"];
 
-const lokasiOptions = ["Jakarta", "Surabaya", "Bandung", "Medan", "Makassar", "Semarang", "Yogyakarta", "Bali", "Balikpapan", "Lainnya"];
-const posisiOptions = ["Software Engineer", "Product Manager", "UI/UX Designer", "Data Analyst", "Marketing Specialist", "Business Development", "Finance & Accounting", "Human Resources", "Sales Executive", "Operations"];
-
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "11px 14px", borderRadius: 10,
-  border: "1px solid rgba(22,119,255,0.2)", outline: "none",
-  fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#0A1B3D",
-  background: "#f8fbff", boxSizing: "border-box",
-};
-
-const labelStyle: React.CSSProperties = {
-  display: "block", fontFamily: "'Inter', sans-serif", fontSize: 13,
-  fontWeight: 500, color: "#0A1B3D", marginBottom: 6,
-};
+const lokasiOptions = [
+  "Jakarta",
+  "Surabaya",
+  "Bandung",
+  "Medan",
+  "Makassar",
+  "Semarang",
+  "Yogyakarta",
+  "Bali",
+  "Balikpapan",
+  "Lainnya",
+];
+const posisiOptions = [
+  "Software Engineer",
+  "Product Manager",
+  "UI/UX Designer",
+  "Data Analyst",
+  "Marketing Specialist",
+  "Business Development",
+  "Finance & Accounting",
+  "Human Resources",
+  "Sales Executive",
+  "Operations",
+];
 
 export default function OnboardingCompanyPage() {
   const navigate = useNavigate();
@@ -28,8 +38,10 @@ export default function OnboardingCompanyPage() {
   const [workType, setWorkType] = useState<string>("hybrid");
   const [urgency, setUrgency] = useState<string>("normal");
 
-  const togglePosition = (pos: string) => setSelectedPositions((p) => p.includes(pos) ? p.filter((x) => x !== pos) : [...p, pos]);
-  const toggleLocation = (loc: string) => setSelectedLocations((l) => l.includes(loc) ? l.filter((x) => x !== loc) : [...l, loc]);
+  const togglePosition = (pos: string) =>
+    setSelectedPositions((p) => (p.includes(pos) ? p.filter((x) => x !== pos) : [...p, pos]));
+  const toggleLocation = (loc: string) =>
+    setSelectedLocations((l) => (l.includes(loc) ? l.filter((x) => x !== loc) : [...l, loc]));
 
   const handleNext = () => {
     if (step < steps.length - 1) setStep(step + 1);
@@ -39,238 +51,668 @@ export default function OnboardingCompanyPage() {
   const progress = ((step + 1) / steps.length) * 100;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f0f7ff", fontFamily: "'Inter', sans-serif" }}>
-      <div style={{ background: "#071228", padding: "0 24px", height: 64, display: "flex", alignItems: "center", gap: 16 }}>
-        {step > 0 && (
-          <button onClick={() => setStep(step - 1)} style={{ background: "none", border: "none", cursor: "pointer", color: "#5a7aaa", display: "flex", alignItems: "center", gap: 6, fontFamily: "'Inter', sans-serif", fontSize: 13 }}>
-            <ArrowLeft size={15} /> Kembali
-          </button>
-        )}
-        <RaviraOwlIcon size={28} />
-        <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 16, fontWeight: 700, color: "#fff" }}>Ravira</span>
-        <div style={{ flex: 1 }} />
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "#4DB8FF" }}>
-          {step + 1}/{steps.length}
-        </span>
-      </div>
-
-      {/* Progress bar */}
-      <div style={{ height: 3, background: "rgba(22,119,255,0.1)" }}>
-        <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg, #1677FF, #4DB8FF)", transition: "width 0.4s ease" }} />
-      </div>
-
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "36px 24px" }}>
-        {/* Step indicators */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 36 }}>
-          {steps.map((s, i) => (
-            <div key={s} style={{ display: "flex", alignItems: "center" }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                  background: i < step ? "#10d98e" : i === step ? "#1677FF" : "rgba(22,119,255,0.1)",
-                  border: `2px solid ${i < step ? "#10d98e" : i === step ? "#1677FF" : "rgba(22,119,255,0.2)"}`,
-                  transition: "all 0.3s",
-                }}>
-                  {i < step ? <CheckCircle2 size={16} color="#fff" /> : <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 700, color: i === step ? "#fff" : "#6a88b8" }}>{i + 1}</span>}
-                </div>
-                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: i === step ? "#1677FF" : "#6a88b8", fontWeight: i === step ? 600 : 400, whiteSpace: "nowrap" }}>{s}</span>
-              </div>
-              {i < steps.length - 1 && (
-                <div style={{ width: 80, height: 2, background: i < step ? "#10d98e" : "rgba(22,119,255,0.15)", margin: "0 8px", marginBottom: 22, transition: "background 0.3s" }} />
+    <main className="ravira-onb-shell">
+      <div className="ravira-onb-split">
+        <aside className="ravira-onb-aside" aria-label="Tahapan onboarding perusahaan">
+          <div>
+            <div className="ravira-onb-top">
+              {step > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setStep(step - 1)}
+                  className="ravira-onb-back-btn"
+                >
+                  <ArrowLeft size={16} aria-hidden="true" />
+                  <span>Kembali</span>
+                </button>
               )}
+              <div className="ravira-onb-brand">
+                <RaviraOwlIcon size={22} />
+                <span>Ravira</span>
+              </div>
+              <span className="ravira-onb-counter">
+                {step + 1}/{steps.length}
+              </span>
             </div>
-          ))}
-        </div>
 
-        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(22,119,255,0.1)", boxShadow: "0 2px 16px rgba(10,27,61,0.06)", padding: "32px" }}>
-
-          {/* Step 1: Profil Perusahaan */}
-          {step === 0 && (
-            <div>
-              <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 20, fontWeight: 800, color: "#0A1B3D", marginBottom: 6 }}>Lengkapi Profil Perusahaan</h2>
-              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", marginBottom: 24 }}>Informasi ini akan ditampilkan kepada kandidat yang melamar.</p>
-
-              <div style={{ marginBottom: 16 }}>
-                <label style={labelStyle}>Lokasi Kantor Utama *</label>
-                <input style={inputStyle} placeholder="Jl. Sudirman No. 100, Jakarta Selatan" />
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-                <div>
-                  <label style={labelStyle}>Tahun Berdiri</label>
-                  <input style={inputStyle} placeholder="2015" type="number" />
-                </div>
-                <div>
-                  <label style={labelStyle}>Total Karyawan Saat Ini</label>
-                  <input style={inputStyle} placeholder="250" type="number" />
-                </div>
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={labelStyle}>Nilai & Budaya Kerja</label>
-                <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} placeholder="Kolaboratif, inovatif, growth mindset..." />
-              </div>
-              <div style={{ marginBottom: 0 }}>
-                <label style={labelStyle}>Link LinkedIn Perusahaan</label>
-                <input style={inputStyle} placeholder="https://linkedin.com/company/..." />
-              </div>
+            <div className="ravira-onb-progress-track" aria-hidden="true">
+              <div className="ravira-onb-progress-fill" style={{ width: `${progress}%` }} />
             </div>
-          )}
 
-          {/* Step 2: Kebutuhan Rekrutmen */}
-          {step === 1 && (
-            <div>
-              <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 20, fontWeight: 800, color: "#0A1B3D", marginBottom: 6 }}>Kebutuhan Rekrutmen</h2>
-              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", marginBottom: 24 }}>Bantu AI Ravira memahami kebutuhan talent perusahaan Anda.</p>
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={labelStyle}>Posisi yang Sering Dibutuhkan</label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {posisiOptions.map((pos) => (
-                    <button
-                      key={pos} type="button"
-                      onClick={() => togglePosition(pos)}
-                      style={{
-                        padding: "6px 14px", borderRadius: 8, cursor: "pointer",
-                        fontFamily: "'Inter', sans-serif", fontSize: 13,
-                        background: selectedPositions.includes(pos) ? "rgba(22,119,255,0.1)" : "#f8fbff",
-                        border: `1px solid ${selectedPositions.includes(pos) ? "#1677FF" : "rgba(22,119,255,0.2)"}`,
-                        color: selectedPositions.includes(pos) ? "#1677FF" : "#4a6a9a",
-                        fontWeight: selectedPositions.includes(pos) ? 600 : 400,
-                        transition: "all 0.15s",
-                      }}
-                    >{pos}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={labelStyle}>Preferensi Lokasi Kandidat</label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {lokasiOptions.map((loc) => (
-                    <button
-                      key={loc} type="button"
-                      onClick={() => toggleLocation(loc)}
-                      style={{
-                        padding: "6px 14px", borderRadius: 8, cursor: "pointer",
-                        fontFamily: "'Inter', sans-serif", fontSize: 13,
-                        background: selectedLocations.includes(loc) ? "rgba(22,119,255,0.1)" : "#f8fbff",
-                        border: `1px solid ${selectedLocations.includes(loc) ? "#1677FF" : "rgba(22,119,255,0.2)"}`,
-                        color: selectedLocations.includes(loc) ? "#1677FF" : "#4a6a9a",
-                        fontWeight: selectedLocations.includes(loc) ? 600 : 400,
-                        transition: "all 0.15s",
-                      }}
-                    >{loc}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={labelStyle}>Tipe Kerja yang Ditawarkan</label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {[{ val: "onsite", label: "On-site" }, { val: "hybrid", label: "Hybrid" }, { val: "remote", label: "Remote" }].map((w) => (
-                    <button key={w.val} type="button" onClick={() => setWorkType(w.val)}
-                      style={{
-                        flex: 1, padding: "10px", borderRadius: 10, cursor: "pointer",
-                        fontFamily: "'Inter', sans-serif", fontSize: 13,
-                        background: workType === w.val ? "rgba(22,119,255,0.1)" : "#f8fbff",
-                        border: `1px solid ${workType === w.val ? "#1677FF" : "rgba(22,119,255,0.2)"}`,
-                        color: workType === w.val ? "#1677FF" : "#4a6a9a",
-                        fontWeight: workType === w.val ? 600 : 400,
-                      }}
-                    >{w.label}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label style={labelStyle}>Urgensi Rekrutmen</label>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[
-                    { val: "urgent", label: "Segera (< 2 minggu)", desc: "Rekrut kandidat paling cocok secepatnya" },
-                    { val: "normal", label: "Normal (1–2 bulan)", desc: "Proses seleksi standar dengan waktu yang cukup" },
-                    { val: "planned", label: "Terencana (> 2 bulan)", desc: "Perencanaan jangka panjang untuk pipeline talent" },
-                  ].map((u) => (
-                    <div key={u.val} onClick={() => setUrgency(u.val)}
-                      style={{
-                        padding: "12px 16px", borderRadius: 10, cursor: "pointer",
-                        border: `1px solid ${urgency === u.val ? "#1677FF" : "rgba(22,119,255,0.15)"}`,
-                        background: urgency === u.val ? "rgba(22,119,255,0.06)" : "#f8fbff",
-                        display: "flex", alignItems: "center", gap: 12,
-                      }}
-                    >
-                      <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${urgency === u.val ? "#1677FF" : "#c0d0e8"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        {urgency === u.val && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1677FF" }} />}
-                      </div>
-                      <div>
-                        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D" }}>{u.label}</div>
-                        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>{u.desc}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Integrasi & Preferensi */}
-          {step === 2 && (
-            <div>
-              <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 20, fontWeight: 800, color: "#0A1B3D", marginBottom: 6 }}>Integrasi & Preferensi Notifikasi</h2>
-              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", marginBottom: 24 }}>Sesuaikan cara Ravira bekerja untuk tim rekrutmen Anda.</p>
-
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ ...labelStyle, marginBottom: 12 }}>Integrasi ATS/HRIS (Opsional)</label>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {["SAP SuccessFactors", "Workday", "BambooHR", "Talenta.co", "Catapa", "Tidak menggunakan ATS"].map((ats) => (
-                    <label key={ats} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(22,119,255,0.15)", background: "#f8fbff", cursor: "pointer" }}>
-                      <input type="radio" name="ats" value={ats} style={{ accentColor: "#1677FF" }} />
-                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D" }}>{ats}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ ...labelStyle, marginBottom: 12 }}>Notifikasi Kandidat Baru</label>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[
-                    { id: "email_notif", label: "Email notifikasi setiap kandidat baru masuk" },
-                    { id: "daily_digest", label: "Ringkasan harian shortlist kandidat" },
-                    { id: "whatsapp_notif", label: "Notifikasi WhatsApp untuk kandidat dengan match > 85%" },
-                  ].map((n) => (
-                    <label key={n.id} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-                      <input type="checkbox" id={n.id} defaultChecked style={{ accentColor: "#1677FF", width: 16, height: 16 }} />
-                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#4a6a9a" }}>{n.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ background: "linear-gradient(135deg, rgba(22,119,255,0.06), rgba(77,184,255,0.06))", border: "1px solid rgba(22,119,255,0.15)", borderRadius: 12, padding: "16px 20px" }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#1677FF", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Akun Anda Siap!</div>
-                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#4a6a9a", lineHeight: 1.6 }}>
-                  Setelah setup selesai, Ravira AI akan mulai mencocokkan profil kandidat yang relevan dengan kebutuhan rekrutmen Anda secara otomatis.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Navigation */}
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(22,119,255,0.1)" }}>
-            <button
-              onClick={() => step > 0 ? setStep(step - 1) : navigate("/daftar/perusahaan")}
-              style={{ padding: "10px 20px", borderRadius: 10, border: "1px solid rgba(22,119,255,0.2)", background: "#f0f7ff", fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", cursor: "pointer" }}
-            >
-              {step > 0 ? "Kembali" : "Batal"}
-            </button>
-            <button
-              onClick={handleNext}
-              style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #1677FF, #0D47A1)", fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(22,119,255,0.4)" }}
-            >
-              {step === steps.length - 1 ? "Masuk ke Dashboard" : "Lanjutkan"} <ArrowRight size={15} />
-            </button>
+            <ol className="ravira-onb-steplist">
+              {steps.map((s, i) => {
+                const isDone = i < step;
+                const isCurrent = i === step;
+                return (
+                  <li
+                    key={s}
+                    className={`ravira-onb-step-item ${
+                      isCurrent ? "ravira-onb-step-current" : isDone ? "ravira-onb-step-done" : ""
+                    }`}
+                  >
+                    <span className="ravira-onb-step-badge" aria-hidden="true">
+                      {isDone ? <CheckCircle2 size={16} /> : i + 1}
+                    </span>
+                    <span>{s}</span>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
-        </div>
+        </aside>
+
+        <section className="ravira-onb-pane" aria-label="Formulir onboarding perusahaan">
+          <div className="ravira-onb-card">
+            {step === 0 && (
+              <div>
+                <h1 className="ravira-onb-heading">Lengkapi Profil Perusahaan</h1>
+                <p className="ravira-onb-sub">
+                  Informasi ini akan ditampilkan kepada kandidat yang melamar.
+                </p>
+
+                <div className="ravira-onb-field">
+                  <label htmlFor="onb-address" className="ravira-onb-label">
+                    Lokasi Kantor Utama *
+                  </label>
+                  <input
+                    id="onb-address"
+                    className="ravira-onb-input"
+                    placeholder="Masukkan alamat lengkap kantor utama"
+                  />
+                </div>
+                <div className="ravira-onb-grid-2">
+                  <div className="ravira-onb-field">
+                    <label htmlFor="onb-year" className="ravira-onb-label">
+                      Tahun Berdiri
+                    </label>
+                    <input
+                      id="onb-year"
+                      type="number"
+                      className="ravira-onb-input"
+                      placeholder="Contoh: 2015"
+                    />
+                  </div>
+                  <div className="ravira-onb-field">
+                    <label htmlFor="onb-emp" className="ravira-onb-label">
+                      Total Karyawan Saat Ini
+                    </label>
+                    <input
+                      id="onb-emp"
+                      type="number"
+                      className="ravira-onb-input"
+                      placeholder="Masukkan jumlah karyawan"
+                    />
+                  </div>
+                </div>
+                <div className="ravira-onb-field">
+                  <label htmlFor="onb-culture" className="ravira-onb-label">
+                    Nilai &amp; Budaya Kerja
+                  </label>
+                  <textarea
+                    id="onb-culture"
+                    className="ravira-onb-input"
+                    style={{ minHeight: 84, resize: "vertical" }}
+                    placeholder="Deskripsikan nilai dan budaya kerja tim Anda..."
+                  />
+                </div>
+                <div className="ravira-onb-field" style={{ marginBottom: 0 }}>
+                  <label htmlFor="onb-linkedin" className="ravira-onb-label">
+                    Link LinkedIn Perusahaan
+                  </label>
+                  <input
+                    id="onb-linkedin"
+                    type="url"
+                    className="ravira-onb-input"
+                    placeholder="https://linkedin.com/company/..."
+                  />
+                </div>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div>
+                <h1 className="ravira-onb-heading">Kebutuhan Rekrutmen</h1>
+                <p className="ravira-onb-sub">
+                  Bantu AI Ravira memahami kebutuhan talent perusahaan Anda.
+                </p>
+
+                <div className="ravira-onb-field">
+                  <label className="ravira-onb-label">Posisi yang Sering Dibutuhkan</label>
+                  <div className="ravira-onb-chip-wrap">
+                    {posisiOptions.map((pos) => {
+                      const active = selectedPositions.includes(pos);
+                      return (
+                        <button
+                          key={pos}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => togglePosition(pos)}
+                          className={`ravira-onb-chip ${active ? "ravira-onb-chip-active" : ""}`}
+                        >
+                          {pos}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="ravira-onb-field">
+                  <label className="ravira-onb-label">Preferensi Lokasi Kandidat</label>
+                  <div className="ravira-onb-chip-wrap">
+                    {lokasiOptions.map((loc) => {
+                      const active = selectedLocations.includes(loc);
+                      return (
+                        <button
+                          key={loc}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => toggleLocation(loc)}
+                          className={`ravira-onb-chip ${active ? "ravira-onb-chip-active" : ""}`}
+                        >
+                          {loc}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="ravira-onb-field">
+                  <label className="ravira-onb-label">Tipe Kerja yang Ditawarkan</label>
+                  <div className="ravira-onb-worktype-row">
+                    {[
+                      { val: "onsite", label: "On-site" },
+                      { val: "hybrid", label: "Hybrid" },
+                      { val: "remote", label: "Remote" },
+                    ].map((w) => (
+                      <button
+                        key={w.val}
+                        type="button"
+                        aria-pressed={workType === w.val}
+                        onClick={() => setWorkType(w.val)}
+                        className={`ravira-onb-worktype-btn ${
+                          workType === w.val ? "ravira-onb-worktype-active" : ""
+                        }`}
+                      >
+                        {w.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="ravira-onb-field" style={{ marginBottom: 0 }}>
+                  <label className="ravira-onb-label">Urgensi Rekrutmen</label>
+                  <div className="ravira-onb-urgency-stack">
+                    {[
+                      {
+                        val: "urgent",
+                        label: "Segera (< 2 minggu)",
+                        desc: "Rekrut kandidat paling cocok secepatnya",
+                      },
+                      {
+                        val: "normal",
+                        label: "Normal (1–2 bulan)",
+                        desc: "Proses seleksi standar dengan waktu yang cukup",
+                      },
+                      {
+                        val: "planned",
+                        label: "Terencana (> 2 bulan)",
+                        desc: "Perencanaan jangka panjang untuk pipeline talent",
+                      },
+                    ].map((u) => (
+                      <button
+                        key={u.val}
+                        type="button"
+                        aria-pressed={urgency === u.val}
+                        onClick={() => setUrgency(u.val)}
+                        className={`ravira-onb-urgency-btn ${
+                          urgency === u.val ? "ravira-onb-urgency-active" : ""
+                        }`}
+                      >
+                        <span className="ravira-onb-radio-dot" aria-hidden="true" />
+                        <span>
+                          <strong>{u.label}</strong>
+                          <span>{u.desc}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div>
+                <h1 className="ravira-onb-heading">Integrasi &amp; Preferensi Notifikasi</h1>
+                <p className="ravira-onb-sub">
+                  Sesuaikan cara Ravira bekerja untuk tim rekrutmen Anda.
+                </p>
+
+                <div className="ravira-onb-field">
+                  <label className="ravira-onb-label">Integrasi ATS/HRIS (Opsional)</label>
+                  <div className="ravira-onb-urgency-stack">
+                    {[
+                      "SAP SuccessFactors",
+                      "Workday",
+                      "BambooHR",
+                      "Talenta.co",
+                      "Catapa",
+                      "Tidak menggunakan ATS",
+                    ].map((ats) => (
+                      <label key={ats} className="ravira-onb-ats-row">
+                        <input type="radio" name="ats" value={ats} />
+                        <span>{ats}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="ravira-onb-field">
+                  <label className="ravira-onb-label">Notifikasi Kandidat Baru</label>
+                  <div className="ravira-onb-urgency-stack">
+                    {[
+                      { id: "email_notif", label: "Email notifikasi setiap kandidat baru masuk" },
+                      { id: "daily_digest", label: "Ringkasan harian shortlist kandidat" },
+                      {
+                        id: "whatsapp_notif",
+                        label: "Notifikasi WhatsApp untuk kandidat dengan match > 85%",
+                      },
+                    ].map((n) => (
+                      <label key={n.id} htmlFor={n.id} className="ravira-onb-ats-row">
+                        <input type="checkbox" id={n.id} defaultChecked />
+                        <span>{n.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="ravira-onb-ready-box">
+                  <strong>Akun Anda Siap!</strong>
+                  <p>
+                    Setelah setup selesai, Ravira AI akan mulai mencocokkan profil kandidat yang
+                    relevan dengan kebutuhan rekrutmen Anda secara otomatis.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="ravira-onb-footer">
+              <button
+                type="button"
+                onClick={() => (step > 0 ? setStep(step - 1) : navigate("/daftar/perusahaan"))}
+                className="ravira-onb-secondary-btn"
+              >
+                {step > 0 ? "Kembali" : "Batal"}
+              </button>
+              <button type="button" onClick={handleNext} className="ravira-onb-primary-btn">
+                {step === steps.length - 1 ? "Masuk ke Dashboard" : "Lanjutkan"}
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
-    </div>
+
+      <style>{`
+        .ravira-onb-shell {
+          min-height: 100dvh;
+          background: #FFFFFF;
+          padding: 16px;
+          box-sizing: border-box;
+          font-family: 'Inter', sans-serif;
+          display: flex;
+          align-items: stretch;
+        }
+        .ravira-onb-split {
+          display: grid;
+          grid-template-columns: minmax(280px, 380px) 1fr;
+          gap: 16px;
+          width: 100%;
+          max-width: 1320px;
+          margin: 0 auto;
+        }
+        .ravira-onb-aside {
+          border-radius: 28px;
+          background: linear-gradient(180deg, #0849A8 0%, #0E67CC 54%, #2B8CFF 100%);
+          color: #FFFFFF;
+          padding: 32px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .ravira-onb-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 24px;
+        }
+        .ravira-onb-back-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          min-height: 44px;
+          padding: 0 14px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.35);
+          background: rgba(13, 17, 23, 0.28);
+          color: #FFFFFF;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .ravira-onb-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 44px;
+          padding: 0 16px;
+          border-radius: 999px;
+          background: #0D1117;
+          color: #FFFFFF;
+          font-family: 'Poppins', sans-serif;
+          font-size: 15px;
+          font-weight: 700;
+        }
+        .ravira-onb-counter {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px;
+          font-weight: 700;
+          padding: 6px 12px;
+          border-radius: 8px;
+          background: #D4FF59;
+          color: #0D1117;
+        }
+        .ravira-onb-progress-track {
+          height: 6px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.24);
+          overflow: hidden;
+          margin-bottom: 28px;
+        }
+        .ravira-onb-progress-fill {
+          height: 100%;
+          background: #D4FF59;
+          transition: width 0.3s ease;
+        }
+        .ravira-onb-steplist {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .ravira-onb-step-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 16px;
+          border-radius: 14px;
+          background: rgba(13, 17, 23, 0.25);
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 14px;
+          font-weight: 500;
+        }
+        .ravira-onb-step-current {
+          background: #0D1117;
+          color: #FFFFFF;
+          font-weight: 700;
+        }
+        .ravira-onb-step-done {
+          background: rgba(255, 255, 255, 0.92);
+          color: #0D1117;
+          font-weight: 600;
+        }
+        .ravira-onb-step-badge {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          background: #D4FF59;
+          color: #0D1117;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px;
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .ravira-onb-pane {
+          background: #F4F5F7;
+          border-radius: 28px;
+          padding: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .ravira-onb-card {
+          width: 100%;
+          max-width: 720px;
+          background: #FFFFFF;
+          border-radius: 20px;
+          border: 1px solid #E2E8F0;
+          padding: 36px;
+        }
+        .ravira-onb-heading {
+          font-family: 'Poppins', sans-serif;
+          font-size: 24px;
+          font-weight: 600;
+          color: #0D1117;
+          margin: 0 0 6px;
+        }
+        .ravira-onb-sub {
+          font-size: 14px;
+          color: #475569;
+          margin: 0 0 24px;
+        }
+        .ravira-onb-field {
+          display: flex;
+          flex-direction: column;
+          margin-bottom: 18px;
+        }
+        .ravira-onb-grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        .ravira-onb-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: #0D1117;
+          margin-bottom: 8px;
+        }
+        .ravira-onb-input {
+          width: 100%;
+          min-height: 46px;
+          padding: 11px 14px;
+          border-radius: 10px;
+          border: 1.5px solid #94A3B8;
+          background: #FFFFFF;
+          color: #0D1117;
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          box-sizing: border-box;
+        }
+        .ravira-onb-input::placeholder {
+          color: #64748B;
+        }
+        .ravira-onb-chip-wrap {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .ravira-onb-chip {
+          min-height: 44px;
+          padding: 8px 16px;
+          border-radius: 10px;
+          border: 1px solid #CBD5E1;
+          background: #F8FAFC;
+          color: #0D1117;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+        }
+        .ravira-onb-chip-active {
+          background: #0D1117;
+          border-color: #0D1117;
+          color: #D4FF59;
+          font-weight: 700;
+        }
+        .ravira-onb-worktype-row {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+        .ravira-onb-worktype-btn {
+          min-height: 44px;
+          border-radius: 10px;
+          border: 1px solid #CBD5E1;
+          background: #F8FAFC;
+          color: #0D1117;
+          font-size: 13.5px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .ravira-onb-worktype-active {
+          background: #0D1117;
+          border-color: #0D1117;
+          color: #D4FF59;
+        }
+        .ravira-onb-urgency-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .ravira-onb-urgency-btn {
+          width: 100%;
+          min-height: 56px;
+          padding: 14px 16px;
+          border-radius: 12px;
+          border: 1.5px solid #CBD5E1;
+          background: #F8FAFC;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          text-align: left;
+          cursor: pointer;
+        }
+        .ravira-onb-urgency-active {
+          border-color: #0849A8;
+          background: #F0F7FF;
+        }
+        .ravira-onb-radio-dot {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          border: 2px solid #475569;
+          flex-shrink: 0;
+        }
+        .ravira-onb-urgency-active .ravira-onb-radio-dot {
+          border-color: #0849A8;
+          background: #0849A8;
+        }
+        .ravira-onb-urgency-btn strong {
+          display: block;
+          font-size: 13.5px;
+          color: #0D1117;
+          margin-bottom: 2px;
+        }
+        .ravira-onb-urgency-btn span span {
+          font-size: 12.5px;
+          color: #475569;
+        }
+        .ravira-onb-ats-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-height: 44px;
+          padding: 8px 14px;
+          border-radius: 10px;
+          border: 1px solid #CBD5E1;
+          background: #F8FAFC;
+          font-size: 13.5px;
+          color: #0D1117;
+          cursor: pointer;
+        }
+        .ravira-onb-ready-box {
+          background: #0D1117;
+          color: #FFFFFF;
+          border-radius: 16px;
+          padding: 18px 20px;
+        }
+        .ravira-onb-ready-box strong {
+          display: inline-block;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #D4FF59;
+          margin-bottom: 6px;
+        }
+        .ravira-onb-ready-box p {
+          margin: 0;
+          font-size: 13.5px;
+          line-height: 1.55;
+          color: #D1D5DB;
+        }
+        .ravira-onb-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-top: 28px;
+          padding-top: 20px;
+          border-top: 1px solid #E2E8F0;
+        }
+        .ravira-onb-secondary-btn {
+          min-height: 46px;
+          padding: 0 22px;
+          border-radius: 10px;
+          border: 1px solid #CBD5E1;
+          background: #F8FAFC;
+          color: #0D1117;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .ravira-onb-primary-btn {
+          min-height: 48px;
+          padding: 0 28px;
+          border-radius: 999px;
+          border: 2px solid #0D1117;
+          background: #D4FF59;
+          color: #0D1117;
+          font-family: 'Poppins', sans-serif;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .ravira-onb-input:focus-visible,
+        .ravira-onb-back-btn:focus-visible,
+        .ravira-onb-chip:focus-visible,
+        .ravira-onb-worktype-btn:focus-visible,
+        .ravira-onb-urgency-btn:focus-visible,
+        .ravira-onb-secondary-btn:focus-visible,
+        .ravira-onb-primary-btn:focus-visible {
+          outline: 3px solid #0849A8;
+          outline-offset: 2px;
+        }
+        @media (max-width: 900px) {
+          .ravira-onb-split {
+            grid-template-columns: 1fr;
+          }
+          .ravira-onb-pane {
+            padding: 16px;
+          }
+          .ravira-onb-card {
+            padding: 24px 20px;
+          }
+        }
+        @media (max-width: 600px) {
+          .ravira-onb-grid-2,
+          .ravira-onb-worktype-row {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+    </main>
   );
 }

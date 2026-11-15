@@ -69,26 +69,31 @@ npx prisma migrate deploy
 
 Gunakan `migrate deploy` untuk environment shared/staging/production-like. Jangan memakai `migrate dev` ke database Supabase shared kecuali memang environment development pribadi.
 
-## Seed
+## Seed (Khusus Environment Development)
 
-Seed membuat user dasar, approved company, published jobs, dummy courses, dan contoh low-risk fraud case.
+Script `scripts/seed.js` dan `tests/e2e/seed-e2e.cjs` dilengkapi **Production Safety Guard (Fail-Closed)** yang wajib memverifikasi:
+1. `NODE_ENV` berada pada `development`, `test`, atau `e2e` (menolak `production` / `staging`).
+2. `DATABASE_URL` (dan `DIRECT_URL` bila ada) mengarah secara eksklusif ke project reference **Ravira-Development** (`rkftrtpcoymstbdtlfig`) serta menolak pola Production sebelum koneksi `PrismaClient` dibuat.
+3. Kredensial default publik lama yang berisiko telah diblokir dan tidak pernah dicetak ke stdout.
 
 ```bash
 npm run seed
 ```
 
-Default seed login:
+Akun pengujian Development yang disinkronkan antara `npm run seed` dan `npm run seed:e2e`:
 
 ```text
- 
-seed-candidate@ravira.local
-seed-recruiter@ravira.local
-Password123!
+seed-candidate@ravira.local   (Role: CANDIDATE)
+seed-recruiter@ravira.local   (Role: RECRUITER - Company APPROVED)
+seed-admin@ravira.local       (Role: ADMIN)
+seed-superadmin@ravira.local  (Role: SUPER_ADMIN - khusus fixture Development)
 ```
+
+Password akun Seed Development menggunakan nilai `SEED_PASSWORD` dari environment pengembangan Anda (atau password sintetis pengujian Development yang tersinkronisasi dengan `tests/e2e/seed-e2e.cjs`). Jangan pernah menggunakan password demo Production pada environment Development maupun Production.
 
 ## Cleanup Smoke
 
-Cleanup smoke membersihkan data test dengan prefix `smoke-*`, termasuk user, candidate, application, CV/document smoke, skill gap report, training progress, appeal, fraud case/signal, notification, dan audit terkait.
+Cleanup smoke membersihkan data test dengan prefix `smoke-*` pada database Development (`rkftrtpcoymstbdtlfig`), dilindungi oleh safety gate fail-closed yang sama.
 
 ```bash
 npm run cleanup:smoke
@@ -100,10 +105,19 @@ npm run cleanup:smoke
 npm run build
 ```
 
-## Run Dev
+## Run Dev & Isolated Development E2E Server
+
+Untuk menjalankan server pengembangan biasa:
 
 ```bash
 npm run dev
+```
+
+Untuk menjalankan backend yang terisolasi penuh pada `.env.e2e` (**Ravira-Development** `rkftrtpcoymstbdtlfig` + fail-closed port & runtime env check):
+
+```bash
+npm run build
+npm run dev:e2e
 ```
 
 Server default:

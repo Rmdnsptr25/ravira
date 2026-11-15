@@ -1,4 +1,4 @@
-import { ArrowRight, User, Building2, Landmark } from "lucide-react";
+import { ArrowUpRight, User, Building2, Landmark } from "lucide-react";
 import { useNavigate } from "react-router";
 import cityImage from "../../imports/WhatsApp_Image_2026-05-28_at_19.43.24-1.jpeg";
 import { RaviraOwlIcon } from "./RaviraLogo";
@@ -6,9 +6,7 @@ import { RaviraOwlIcon } from "./RaviraLogo";
 const ekosistemCards = [
   {
     icon: User,
-    color: "#1677FF",
-    bg: "rgba(22,119,255,0.1)",
-    border: "rgba(22,119,255,0.2)",
+    variant: "white" as const,
     label: "Kandidat",
     desc: "Rekomendasi pekerjaan berbasis AI, analisis skill gap, dan peluang karier lintas wilayah.",
     cta: "Lihat Portal Kandidat",
@@ -16,9 +14,7 @@ const ekosistemCards = [
   },
   {
     icon: Building2,
-    color: "#8b5cf6",
-    bg: "rgba(139,92,246,0.1)",
-    border: "rgba(139,92,246,0.2)",
+    variant: "dark" as const,
     label: "Perusahaan",
     desc: "Shortlist kandidat berbasis AI, pipeline rekrutmen, dan insight rekrutmen berbasis data.",
     cta: "Lihat Solusi Perusahaan",
@@ -26,9 +22,7 @@ const ekosistemCards = [
   },
   {
     icon: Landmark,
-    color: "#4DB8FF",
-    bg: "rgba(77,184,255,0.1)",
-    border: "rgba(77,184,255,0.2)",
+    variant: "lime" as const,
     label: "Pemerintah / Institusi",
     desc: "Workforce analytics agregat untuk mendukung kebijakan ketenagakerjaan berbasis data.",
     cta: "Lihat Analytics",
@@ -41,95 +35,207 @@ export function CTASection() {
   return (
     <section
       style={{
-        padding: "100px 24px",
-        background: "#071228",
-        position: "relative",
-        overflow: "hidden",
+        padding: "24px 16px 64px",
+        background: "#FFFFFF",
       }}
     >
-      {/* Background image with overlay */}
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-        <img
-          src={cityImage}
-          alt=""
-          aria-hidden
-          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", opacity: 0.07 }}
-        />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(7,18,40,0.97) 0%, rgba(10,27,61,0.9) 50%, rgba(7,18,40,0.97) 100%)" }} />
-      </div>
-
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(30,107,255,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-
-      <div style={{ maxWidth: 960, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 10 }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-          <RaviraOwlIcon size={56} />
+      <div
+        style={{
+          maxWidth: 1360,
+          margin: "0 auto",
+          borderRadius: 28,
+          background: "linear-gradient(180deg, #0849A8 0%, #0E67CC 48%, #389BFF 100%)",
+          padding: "76px 28px",
+          position: "relative",
+          overflow: "hidden",
+          boxShadow: "0 20px 60px rgba(8, 73, 168, 0.14)",
+        }}
+      >
+        {/* Background image with overlay */}
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+          <img
+            src={cityImage}
+            alt=""
+            aria-hidden
+            width={1600}
+            height={900}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", opacity: 0.12, mixBlendMode: "screen" }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(180deg, rgba(8,73,168,0.88) 0%, rgba(14,103,204,0.72) 55%, rgba(56,155,255,0.82) 100%)",
+            }}
+          />
         </div>
 
-        <span style={{
-          display: "inline-block",
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 11, color: "#4DB8FF", letterSpacing: "0.12em", textTransform: "uppercase",
-          padding: "4px 12px", border: "1px solid rgba(77,184,255,0.25)",
-          borderRadius: 100, background: "rgba(22,119,255,0.07)", marginBottom: 24,
-        }}>
-          Ekosistem Ravira
-        </span>
+        <div style={{ maxWidth: 1080, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 10 }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+            <RaviraOwlIcon size={52} />
+          </div>
 
-        <h2 style={{
-          fontFamily: "'Poppins', sans-serif",
-          fontSize: "clamp(26px, 4vw, 48px)",
-          fontWeight: 800, color: "#ffffff", lineHeight: 1.1,
-          letterSpacing: "-1.5px", marginBottom: 16,
-        }}>
-          Jelajahi Ekosistem Ravira
-        </h2>
+          <p
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#D4FF59",
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              marginBottom: 14,
+            }}
+          >
+            Ekosistem Ravira
+          </p>
 
-        <p style={{
-          fontFamily: "'Inter', sans-serif", fontSize: 16, color: "#4a6a9a",
-          lineHeight: 1.7, marginBottom: 52, maxWidth: 560, margin: "0 auto 52px",
-        }}>
-          Ravira hadir untuk tiga peran utama dalam ekosistem ketenagakerjaan Indonesia. Pilih portal yang sesuai untuk mengetahui lebih lanjut.
-        </p>
+          <h2
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: "clamp(28px, 4vw, 48px)",
+              fontWeight: 600,
+              color: "#FFFFFF",
+              lineHeight: 1.12,
+              letterSpacing: "-1.4px",
+              marginBottom: 16,
+            }}
+          >
+            Jelajahi Ekosistem Ravira
+          </h2>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20, textAlign: "left" }}>
-          {ekosistemCards.map((card) => {
-            const Icon = card.icon;
-            return (
-              <div
-                key={card.label}
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: `1px solid ${card.border}`,
-                  borderRadius: 20,
-                  padding: "28px 24px",
-                  backdropFilter: "blur(10px)",
-                  transition: "transform 0.2s, border-color 0.2s",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = card.color + "50"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = card.border; }}
-              >
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: card.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-                  <Icon size={22} color={card.color} />
-                </div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 8 }}>{card.label}</div>
-                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", lineHeight: 1.7, marginBottom: 20 }}>{card.desc}</p>
-                <button
-                  onClick={() => navigate(card.path)}
+          <p
+            style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 15,
+              color: "rgba(255,255,255,0.92)",
+              lineHeight: 1.7,
+              maxWidth: 560,
+              margin: "0 auto 48px",
+            }}
+          >
+            Ravira hadir untuk tiga peran utama dalam ekosistem ketenagakerjaan Indonesia. Pilih portal yang sesuai untuk mengetahui lebih lanjut.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20, textAlign: "left" }}>
+            {ekosistemCards.map((card) => {
+              const Icon = card.icon;
+              const isDark = card.variant === "dark";
+              const isLime = card.variant === "lime";
+
+              const cardBg = isDark ? "#0D1117" : isLime ? "#D4FF59" : "#FFFFFF";
+              const labelColor = isDark ? "#FFFFFF" : "#0D1117";
+              const descColor = isDark ? "#CBD5E1" : isLime ? "#1E293B" : "#4A5568";
+              const iconBg = isDark ? "#D4FF59" : isLime ? "#0D1117" : "#F4F5F7";
+              const iconColor = isLime ? "#D4FF59" : "#0D1117";
+
+              const btnBg = isDark ? "#D4FF59" : "#0D1117";
+              const btnColor = isDark ? "#0D1117" : "#FFFFFF";
+              const arrowBg = isDark ? "#0D1117" : "#D4FF59";
+              const arrowColor = isDark ? "#FFFFFF" : "#0D1117";
+
+              return (
+                <div
+                  key={card.label}
                   style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
-                    color: card.color, background: "none", border: `1px solid ${card.border}`,
-                    borderRadius: 8, padding: "8px 16px", cursor: "pointer",
-                    transition: "background 0.2s",
+                    background: cardBg,
+                    borderRadius: 24,
+                    padding: "28px 24px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    boxShadow: "0 18px 42px rgba(8, 28, 68, 0.18)",
+                    transition: "transform 0.2s",
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = card.bg; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
                 >
-                  {card.cta} <ArrowRight size={13} />
-                </button>
-              </div>
-            );
-          })}
+                  <div>
+                    <div
+                      style={{
+                        width: 46,
+                        height: 46,
+                        borderRadius: 14,
+                        background: iconBg,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginBottom: 18,
+                      }}
+                    >
+                      <Icon size={20} color={iconColor} />
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 18,
+                        fontWeight: 600,
+                        color: labelColor,
+                        marginBottom: 8,
+                      }}
+                    >
+                      {card.label}
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 13,
+                        color: descColor,
+                        lineHeight: 1.65,
+                        marginBottom: 24,
+                      }}
+                    >
+                      {card.desc}
+                    </p>
+                  </div>
+
+                  <div>
+                    <button
+                      onClick={() => navigate(card.path)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 10,
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                        color: btnColor,
+                        background: btnBg,
+                        border: "none",
+                        borderRadius: 100,
+                        padding: "6px 6px 6px 18px",
+                        minHeight: 44,
+                        cursor: "pointer",
+                        transition: "transform 0.2s",
+                      }}
+                    >
+                      <span>{card.cta}</span>
+                      <span
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: "50%",
+                          background: arrowBg,
+                          color: arrowColor,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <ArrowUpRight size={14} />
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

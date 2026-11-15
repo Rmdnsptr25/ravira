@@ -4,6 +4,7 @@ import { Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, 
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
 import { ApplicationConfirmModal } from "../components/Modals";
+import { useAppContext } from "../contexts/AppContext";
 import { toast } from "sonner";
 
 const sidebarItems: SidebarItem[] = [
@@ -72,6 +73,9 @@ function MatchRing({ score }: { score: number }) {
 
 export default function CrossRegionPage() {
   const navigate = useNavigate();
+  const { user } = useAppContext();
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
   const [activeRegion, setActiveRegion] = useState<string>("Semua Wilayah");
   const [showModal, setShowModal] = useState<{ title: string; company: string } | null>(null);
   const [interestedIds, setInterestedIds] = useState<Set<string>>(new Set());
@@ -104,9 +108,9 @@ export default function CrossRegionPage() {
   return (
     <DashboardLayout
       sidebarItems={sidebarItems}
-      userName="Budi Santoso"
+      userName={displayName}
       userRole="Kandidat"
-      userInitial="B"
+      userInitial={displayInitial}
     >
       {/* Header */}
       <div style={{ marginBottom: 28 }}>

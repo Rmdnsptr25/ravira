@@ -1,132 +1,366 @@
-import { Users, Building2, Landmark, GraduationCap, ArrowRight } from "lucide-react";
+import { Users, Building2, Landmark, GraduationCap, ArrowRight, BarChart3, Lightbulb } from "lucide-react";
 
 const highlights = [
-  { icon: Users, title: "Untuk Kandidat", desc: "Temukan pekerjaan sesuai skill, minat, lokasi, dan potensi karier.", color: "#1677FF" },
-  { icon: Building2, title: "Untuk Perusahaan", desc: "Dapatkan shortlist kandidat yang lebih relevan dan tervalidasi.", color: "#0D47A1" },
-  { icon: Landmark, title: "Untuk Pemerintah & Institusi", desc: "Pantau tren skill, supply-demand tenaga kerja, dan kebutuhan pelatihan daerah.", color: "#1677FF" },
+  { icon: Users, title: "Untuk Kandidat", desc: "Temukan pekerjaan sesuai skill, minat, lokasi, dan potensi karier." },
+  { icon: Building2, title: "Untuk Perusahaan", desc: "Dapatkan shortlist kandidat yang lebih relevan dan tervalidasi." },
+  { icon: Landmark, title: "Untuk Pemerintah & Institusi", desc: "Pantau tren skill, supply-demand tenaga kerja, dan kebutuhan pelatihan daerah." },
 ];
 
 const ecosystemSteps = [
-  { label: "Kandidat", color: "#1677FF" },
-  { label: "AI Matching", color: "#1677FF" },
-  { label: "Skill Gap", color: "#0D47A1" },
-  { label: "Training", color: "#0D47A1" },
-  { label: "Job Placement", color: "#1677FF" },
-  { label: "Analytics", color: "#1677FF" },
+  { label: "Kandidat" },
+  { label: "AI Matching" },
+  { label: "Skill Gap" },
+  { label: "Training" },
+  { label: "Job Placement" },
+  { label: "Analytics" },
 ];
 
 export function AboutSection() {
   return (
-    <section id="tentang" style={{ padding: "96px 24px", background: "#ffffff", position: "relative", overflow: "hidden" }}>
-      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-          <span style={{
-            fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#1677FF",
-            letterSpacing: "0.12em", textTransform: "uppercase",
-            padding: "4px 14px", border: "1px solid rgba(22,119,255,0.25)",
-            borderRadius: 100, background: "rgba(22,119,255,0.06)",
-          }}>
+    <section id="tentang" style={{ padding: "88px 24px", background: "#ffffff", position: "relative" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* Editorial Center Header with Inline Icon Badges (Aeline Reference) */}
+        <div style={{ textAlign: "center", maxWidth: 820, margin: "0 auto 56px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 11.5,
+              fontWeight: 700,
+              color: "#0D1117",
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              marginBottom: 18,
+            }}
+          >
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#0D1117" }} />
             Tentang Platform
-          </span>
+          </div>
+
+          <h2
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: "clamp(28px, 4.2vw, 48px)",
+              fontWeight: 600,
+              color: "#0D1117",
+              lineHeight: 1.18,
+              letterSpacing: "-0.03em",
+              marginBottom: 20,
+            }}
+          >
+            Apa Itu{" "}
+            <span
+              aria-hidden="true"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 42,
+                height: 42,
+                borderRadius: "50%",
+                background: "#389BFF",
+                color: "#ffffff",
+                verticalAlign: "middle",
+                margin: "0 4px",
+              }}
+            >
+              <BarChart3 size={20} />
+            </span>{" "}
+            <span style={{ color: "#0D1117", fontWeight: 700 }}>Ravira?</span>{" "}
+            <span
+              aria-hidden="true"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 42,
+                height: 42,
+                borderRadius: "50%",
+                background: "#D4FF59",
+                color: "#0D1117",
+                verticalAlign: "middle",
+                margin: "0 4px",
+              }}
+            >
+              <Lightbulb size={20} />
+            </span>
+          </h2>
+
+          <p
+            style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 15.5,
+              lineHeight: 1.75,
+              color: "#4A5568",
+              maxWidth: 720,
+              margin: "0 auto",
+            }}
+          >
+            Ravira adalah platform rekrutmen cerdas yang dirancang untuk menjawab masalah ketidaksesuaian antara kompetensi pencari kerja dan kebutuhan industri. Dengan AI dan data analytics, Ravira membantu kandidat membangun karier yang lebih terarah, perusahaan menemukan talenta yang tepat, serta pemerintah memahami tren kebutuhan tenaga kerja.
+          </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 64, alignItems: "center" }}>
-          <div>
-            <h2 style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 800,
-              color: "#0A1B3D", lineHeight: 1.15, letterSpacing: "-0.8px", marginBottom: 20,
-            }}>
-              Apa Itu{" "}
-              <span style={{ background: "linear-gradient(90deg, #1677FF, #4DB8FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                Ravira?
+        {/* 3-Column Editorial Bento Composition matching the Reference Image */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))",
+            gap: 20,
+            alignItems: "stretch",
+          }}
+        >
+          {/* Column 1: Sky-Blue Card with White Inset Card at Bottom */}
+          <div
+            style={{
+              borderRadius: 24,
+              background: "linear-gradient(180deg, #0E67CC 0%, #389BFF 100%)",
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              minHeight: 380,
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <span
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: "#ffffff",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                RAVIRA
               </span>
-            </h2>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 15, lineHeight: 1.8, color: "#4a6a9a", marginBottom: 32 }}>
-              Ravira adalah platform rekrutmen cerdas yang dirancang untuk menjawab masalah ketidaksesuaian antara kompetensi pencari kerja dan kebutuhan industri. Dengan AI dan data analytics, Ravira membantu kandidat membangun karier yang lebih terarah, perusahaan menemukan talenta yang tepat, serta pemerintah memahami tren kebutuhan tenaga kerja.
-            </p>
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  background: "#ffffff",
+                  color: "#0D1117",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <BarChart3 size={18} aria-hidden="true" />
+              </div>
+            </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {highlights.map(h => (
-                <div
-                  key={h.title}
-                  style={{
-                    display: "flex", alignItems: "flex-start", gap: 14,
-                    padding: "14px 18px", borderRadius: 12,
-                    background: "#f0f7ff",
-                    border: `1px solid ${h.color}16`,
-                    transition: "border-color 0.2s, transform 0.2s, box-shadow 0.2s",
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = `${h.color}40`; e.currentTarget.style.transform = "translateX(4px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(22,119,255,0.1)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = `${h.color}16`; e.currentTarget.style.transform = "translateX(0)"; e.currentTarget.style.boxShadow = "none"; }}
-                >
-                  <div style={{ width: 34, height: 34, borderRadius: 10, background: `${h.color}0e`, border: `1px solid ${h.color}22`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <h.icon size={16} color={h.color} />
+            {/* White Inset Card */}
+            <div
+              style={{
+                background: "#ffffff",
+                borderRadius: 18,
+                padding: "22px 20px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 14,
+                boxShadow: "0 10px 28px rgba(8, 42, 96, 0.14)",
+              }}
+            >
+              {highlights.map((h) => (
+                <div key={h.title} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      background: "#F4F5F7",
+                      color: "#0D1117",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <h.icon size={15} aria-hidden="true" />
                   </div>
                   <div>
-                    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D", marginBottom: 2 }}>{h.title}</div>
-                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>{h.desc}</div>
+                    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13.5, fontWeight: 700, color: "#0D1117", marginBottom: 2 }}>
+                      {h.title}
+                    </div>
+                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#4A5568", lineHeight: 1.5 }}>
+                      {h.desc}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div>
-            <div style={{
-              padding: "32px", borderRadius: 20,
-              background: "#f0f7ff",
-              border: "1px solid rgba(22,119,255,0.12)",
-              boxShadow: "0 8px 40px rgba(10,27,61,0.07)",
-            }}>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#1677FF", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 24 }}>
+          {/* Column 2: Soft Alabaster Card (#F4F5F7) */}
+          <div
+            style={{
+              borderRadius: 24,
+              background: "#F4F5F7",
+              padding: "28px 26px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              minHeight: 380,
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#4A5568",
+                  marginBottom: 8,
+                }}
+              >
                 AI Ecosystem Flow
               </div>
+              <div
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: 38,
+                  fontWeight: 700,
+                  color: "#0D1117",
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1.05,
+                  marginBottom: 20,
+                }}
+              >
+                6 Tahap
+              </div>
+            </div>
 
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {ecosystemSteps.map((step, i) => (
-                  <div key={step.label} style={{ display: "flex", alignItems: "center" }}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      <div style={{
-                        width: 38, height: 38, borderRadius: 10,
-                        background: `${step.color}0e`, border: `1px solid ${step.color}30`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontFamily: "'JetBrains Mono', monospace", fontSize: 11, fontWeight: 700, color: step.color,
-                      }}>
-                        {i + 1}
-                      </div>
-                      {i < ecosystemSteps.length - 1 && (
-                        <div style={{ width: 1, height: 20, background: `linear-gradient(180deg, ${step.color}44, ${ecosystemSteps[i + 1].color}22)` }} />
-                      )}
-                    </div>
-                    <div style={{ marginLeft: 14, marginBottom: i < ecosystemSteps.length - 1 ? 20 : 0, display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: "#0A1B3D" }}>{step.label}</span>
-                      {i < ecosystemSteps.length - 1 && <ArrowRight size={11} color="#BDE1FF" />}
-                    </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {ecosystemSteps.map((step, i) => (
+                <div
+                  key={step.label}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "9px 14px",
+                    borderRadius: 12,
+                    background: "#ffffff",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: i % 2 === 0 ? "#0D1117" : "#D4FF59",
+                        color: i % 2 === 0 ? "#ffffff" : "#0D1117",
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13.5, fontWeight: 600, color: "#0D1117" }}>
+                      {step.label}
+                    </span>
+                  </div>
+                  {i < ecosystemSteps.length - 1 && <ArrowRight size={13} color="#4A5568" aria-hidden="true" />}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Column 3: Stacked Lime-Chartreuse Card (#D4FF59) + Deep Obsidian Card (#0D1117) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div
+              style={{
+                flex: 1,
+                borderRadius: 24,
+                background: "#D4FF59",
+                padding: "28px 26px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#0D1117",
+                    marginBottom: 8,
+                  }}
+                >
+                  Untuk Siapa
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: 38,
+                    fontWeight: 700,
+                    color: "#0D1117",
+                    letterSpacing: "-0.03em",
+                    lineHeight: 1.05,
+                    marginBottom: 18,
+                  }}
+                >
+                  4 Peran
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {[
+                  { label: "Pencari Kerja", icon: Users },
+                  { label: "Perusahaan", icon: Building2 },
+                  { label: "Pemerintah", icon: Landmark },
+                  { label: "Institusi Pendidikan", icon: GraduationCap },
+                ].map((a) => (
+                  <div
+                    key={a.label}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "7px 12px",
+                      borderRadius: 999,
+                      background: "rgba(13, 17, 23, 0.08)",
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                    }}
+                  >
+                    <a.icon size={13} color="#0D1117" aria-hidden="true" />
+                    <span>{a.label}</span>
                   </div>
                 ))}
               </div>
+            </div>
 
-              <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(22,119,255,0.1)" }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#1677FF", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Untuk Siapa</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {[
-                    { label: "Pencari Kerja", icon: Users },
-                    { label: "Perusahaan", icon: Building2 },
-                    { label: "Pemerintah", icon: Landmark },
-                    { label: "Institusi Pendidikan", icon: GraduationCap },
-                  ].map(a => (
-                    <div key={a.label} style={{
-                      display: "flex", alignItems: "center", gap: 5,
-                      padding: "5px 10px", borderRadius: 7,
-                      background: "rgba(22,119,255,0.07)", border: "1px solid rgba(22,119,255,0.18)",
-                      fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 500, color: "#1677FF",
-                    }}>
-                      <a.icon size={11} color="#1677FF" /> {a.label}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div
+              style={{
+                borderRadius: 22,
+                background: "#0D1117",
+                padding: "22px 26px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#CBD5E1" }}>
+                AI Recruitment Ecosystem
+              </span>
+              <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 700, color: "#ffffff" }}>
+                Indonesia
+              </span>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { Shield, Eye, Bell, Lock, Trash2, CheckCircle2, Home, Briefcase, BarChar
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
 import { RevokeConsentModal, DeleteAccountModal } from "../components/Modals";
+import { useAppContext } from "../contexts/AppContext";
 import { toast } from "sonner";
 
 const sidebarItems: SidebarItem[] = [
@@ -37,6 +38,9 @@ const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 
 export default function PrivacySettingsPage() {
   const navigate = useNavigate();
+  const { user } = useAppContext();
+  const displayName = user?.fullName || "Kandidat";
+  const displayInitial = (displayName[0] || "K").toUpperCase();
 
   const [visibility, setVisibility] = useState("tertentu");
   const [aiConsent, setAiConsent] = useState(true);
@@ -69,7 +73,7 @@ export default function PrivacySettingsPage() {
   };
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Budi Santoso" userRole="Kandidat · UI Designer" userInitial="B">
+    <DashboardLayout sidebarItems={sidebarItems} userName={displayName} userRole="Kandidat" userInitial={displayInitial}>
       <div style={{ maxWidth: 720 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
           <div style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(22,119,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
