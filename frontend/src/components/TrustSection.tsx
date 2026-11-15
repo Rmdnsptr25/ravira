@@ -128,13 +128,15 @@ export function TrustSection() {
 
         <div
           ref={scrollRef}
+          className="ravira-no-scrollbar"
           style={{
             display: "flex",
             gap: 18,
             overflowX: "auto",
             scrollSnapType: "x mandatory",
-            paddingBottom: 12,
-            scrollbarWidth: "thin",
+            paddingBottom: 4,
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
           {securityItems.map((item) => {

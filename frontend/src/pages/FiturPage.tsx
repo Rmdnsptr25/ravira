@@ -136,13 +136,15 @@ export default function FiturPage() {
 
         <div
           ref={scrollRef}
+          className="ravira-no-scrollbar"
           style={{
             display: "flex",
             gap: 18,
             overflowX: "auto",
             scrollSnapType: "x mandatory",
-            paddingBottom: 14,
-            scrollbarWidth: "thin",
+            paddingBottom: 4,
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
           {features.map((f) => {

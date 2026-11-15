@@ -125,14 +125,16 @@ export default function UntukPemerintahHeatmapPage() {
 
           <div
             ref={scrollRef}
+            className="ravira-no-scrollbar"
             style={{
               display: "flex",
               gap: 14,
               overflowX: "auto",
               scrollSnapType: "x mandatory",
-              paddingBottom: 12,
+              paddingBottom: 4,
               marginBottom: 16,
-              scrollbarWidth: "thin",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
             }}
           >
             {regionData.map((r, i) => {
