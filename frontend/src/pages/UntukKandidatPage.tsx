@@ -140,14 +140,16 @@ export default function UntukKandidatPage() {
 
         <div
           ref={scrollRef}
+          className="ravira-no-scrollbar"
           style={{
             display: "flex",
             gap: 18,
             overflowX: "auto",
             scrollSnapType: "x mandatory",
-            paddingBottom: 14,
+            paddingBottom: 4,
             marginBottom: 56,
-            scrollbarWidth: "thin",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
           {sections.map((s) => {

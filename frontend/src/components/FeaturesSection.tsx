@@ -155,14 +155,15 @@ export function FeaturesSection() {
 
         <div
           ref={scrollRef}
-          className="horizontal-card-track"
+          className="horizontal-card-track ravira-no-scrollbar"
           style={{
             display: "flex",
             gap: 18,
             overflowX: "auto",
             scrollSnapType: "x mandatory",
-            paddingBottom: 12,
-            scrollbarWidth: "thin",
+            paddingBottom: 4,
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
           {features.map((f) => {

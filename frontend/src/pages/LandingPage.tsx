@@ -41,6 +41,16 @@ export default function LandingPage() {
         ::-webkit-scrollbar-thumb { background: rgba(13, 17, 23, 0.25); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(13, 17, 23, 0.45); }
 
+        .ravira-no-scrollbar {
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+        }
+        .ravira-no-scrollbar::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }

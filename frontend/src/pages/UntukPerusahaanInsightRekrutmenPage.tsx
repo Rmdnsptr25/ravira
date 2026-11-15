@@ -165,14 +165,16 @@ export default function UntukPerusahaanInsightRekrutmenPage() {
 
         <div
           ref={scrollRef}
+          className="ravira-no-scrollbar"
           style={{
             display: "flex",
             gap: 18,
             overflowX: "auto",
             scrollSnapType: "x mandatory",
-            paddingBottom: 14,
+            paddingBottom: 4,
             marginBottom: 48,
-            scrollbarWidth: "thin",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
           {insights.map((ins) => {

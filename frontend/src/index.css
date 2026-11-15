@@ -37,6 +37,17 @@ body {
   min-height: 100vh;
 }
 
+.ravira-no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.ravira-no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 a {
   color: inherit;
 }
