@@ -62,34 +62,35 @@ export default function RecruitmentAnalyticsPage() {
       userRole={displayRole}
       userInitial={displayInitial}
     >
-      <div style={{ padding: "32px", minHeight: "100vh", backgroundColor: "#f0f7ff" }}>
+      <div style={{ minHeight: "100vh" }}>
         <div style={{ marginBottom: "28px" }}>
-          <h1 style={{ fontFamily: "Poppins, sans-serif", fontSize: "24px", fontWeight: 700, color: "#0A1B3D", margin: 0 }}>
+          <h1 style={{ fontFamily: "Poppins, sans-serif", fontSize: "24px", fontWeight: 600, color: "#0D1117", margin: 0 }}>
             Analitik Rekrutmen
           </h1>
-          <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6b7280", marginTop: "6px" }}>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#4A5568", marginTop: "6px" }}>
             Pantau performa proses rekrutmen Anda
           </p>
         </div>
 
         {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
           {stats.map((s) => (
             <div
               key={s.label}
               style={{
-                backgroundColor: "#fff",
-                borderRadius: "14px",
-                padding: "24px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                borderTop: `3px solid ${s.color}`,
+                backgroundColor: "#F4F5F7",
+                borderRadius: "20px",
+                padding: "22px",
+                border: "1px solid #E2E8F0",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                <s.icon size={20} color={s.color} />
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#6b7280" }}>{s.label}</span>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: "#0D1117", color: "#D4FF59", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <s.icon size={17} />
+                </div>
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", fontWeight: 500, color: "#4A5568" }}>{s.label}</span>
               </div>
-              <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "32px", fontWeight: 800, color: s.color }}>
+              <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "28px", fontWeight: 600, color: "#0D1117" }}>
                 {s.value}
               </div>
             </div>

@@ -129,10 +129,12 @@ export default function CompetensiProjectionPage() {
         </div>
 
         {/* AI Insights */}
-        <div style={{ background: "linear-gradient(160deg, #0A1B3D 0%, #0d2a5c 100%)", borderRadius: 18, padding: "22px", boxShadow: "0 2px 10px rgba(10,27,61,0.1)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(77,184,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🤖</div>
-            <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#fff" }}>AI Insights</div>
+        <div style={{ background: "#0D1117", borderRadius: 22, padding: "24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "#D4FF59", color: "#0D1117", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <BarChart2 size={17} />
+            </div>
+            <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 15, fontWeight: 600, color: "#FFFFFF" }}>AI Insights</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {[

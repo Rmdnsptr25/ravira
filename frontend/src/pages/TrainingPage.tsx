@@ -54,7 +54,6 @@ interface TrainingItemForDisplay {
   progress: number;
   status: TrainingStatus;
   skills: string[];
-  color: string;
   url?: string;
 }
 
@@ -64,18 +63,6 @@ const tabs: Array<{ key: string; label: string }> = [
   { key: "Belum Dimulai", label: "Belum Dimulai" },
   { key: "Selesai", label: "Selesai" },
 ];
-
-const levelColor: Record<string, string> = {
-  Beginner: "#10d98e",
-  Intermediate: "#1677FF",
-  Advanced: "#ff9a3c",
-};
-
-const statusBadge: Record<TrainingStatus, { bg: string; color: string }> = {
-  "Sedang Berjalan": { bg: "rgba(22,119,255,0.1)", color: "#1677FF" },
-  "Belum Dimulai": { bg: "rgba(106,136,184,0.12)", color: "#6a88b8" },
-  "Selesai": { bg: "rgba(16,217,142,0.12)", color: "#10d98e" },
-};
 
 export default function TrainingPage() {
   const { user } = useAppContext();
@@ -163,10 +150,8 @@ export default function TrainingPage() {
         diff.includes("BEGINNER") || diff.includes("BASIC")
           ? "Beginner"
           : diff.includes("ADVANCED")
-          ? "Advanced"
-          : "Intermediate";
-
-      const color = levelColor[level] || "#1677FF";
+            ? "Advanced"
+            : "Intermediate";
 
       return {
         id: course.id,
@@ -179,7 +164,6 @@ export default function TrainingPage() {
         progress: progressPct,
         status,
         skills: course.skillTargets ?? [],
-        color,
         url: course.url,
       };
     });
@@ -196,7 +180,10 @@ export default function TrainingPage() {
           status: "IN_PROGRESS",
           progressPct: 25,
         });
-        setProgressList((prev) => [created, ...prev.filter((p) => p.courseId !== training.courseId)]);
+        setProgressList((prev) => [
+          created,
+          ...prev.filter((p) => p.courseId !== training.courseId),
+        ]);
         toast.success(`Pelatihan "${training.title}" dimulai!`);
       } else if (training.status === "Sedang Berjalan" && training.progressId) {
         const nextPct = Math.min(100, training.progress + 25);
@@ -206,7 +193,11 @@ export default function TrainingPage() {
           status: nextStatus,
         });
         setProgressList((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-        toast.success(nextPct >= 100 ? `Selamat! Kursus "${training.title}" telah selesai.` : `Progress bertambah menjadi ${nextPct}%`);
+        toast.success(
+          nextPct >= 100
+            ? `Selamat! Kursus "${training.title}" telah selesai.`
+            : `Progress bertambah menjadi ${nextPct}%`
+        );
       } else if (training.url) {
         window.open(training.url, "_blank");
       }
@@ -217,22 +208,24 @@ export default function TrainingPage() {
     }
   };
 
-  const filtered = activeFilter === "Semua" ? trainingList : trainingList.filter((t) => t.status === activeFilter);
-
-  const card: React.CSSProperties = {
-    background: "#fff",
-    borderRadius: 16,
-    padding: "24px",
-    boxShadow: "0 2px 12px rgba(10,27,61,0.07)",
-    border: "1px solid rgba(22,119,255,0.08)",
-  };
+  const filtered =
+    activeFilter === "Semua"
+      ? trainingList
+      : trainingList.filter((t) => t.status === activeFilter);
 
   const counts = {
-    "Semua": trainingList.length,
+    Semua: trainingList.length,
     "Sedang Berjalan": trainingList.filter((t) => t.status === "Sedang Berjalan").length,
     "Belum Dimulai": trainingList.filter((t) => t.status === "Belum Dimulai").length,
-    "Selesai": trainingList.filter((t) => t.status === "Selesai").length,
+    Selesai: trainingList.filter((t) => t.status === "Selesai").length,
   };
+
+  const statItems = [
+    { label: "Total Kursus", value: counts["Semua"], variant: "blue" as const },
+    { label: "Sedang Berjalan", value: counts["Sedang Berjalan"], variant: "light" as const },
+    { label: "Belum Dimulai", value: counts["Belum Dimulai"], variant: "lime" as const },
+    { label: "Selesai", value: counts["Selesai"], variant: "dark" as const },
+  ];
 
   return (
     <DashboardLayout
@@ -241,51 +234,178 @@ export default function TrainingPage() {
       userRole="Kandidat"
       userInitial={displayInitial}
     >
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 700, color: "#0A1B3D", margin: 0 }}>
+      {/* Framed Hero Banner */}
+      <section
+        style={{
+          borderRadius: 26,
+          background: "linear-gradient(180deg, #0849A8 0%, #0E67CC 52%, #2B8CFF 100%)",
+          padding: "28px 30px",
+          marginBottom: 24,
+          boxShadow: "0 16px 40px rgba(8, 73, 168, 0.12)",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#D4FF59",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            margin: "0 0 8px",
+          }}
+        >
+          Pengembangan Kompetensi
+        </p>
+        <h1
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: "clamp(24px, 3vw, 32px)",
+            fontWeight: 600,
+            color: "#FFFFFF",
+            letterSpacing: "-0.03em",
+            margin: "0 0 6px",
+            lineHeight: 1.15,
+          }}
+        >
           Rekomendasi Pelatihan
         </h1>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", marginTop: 6 }}>
+        <p
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14.5,
+            color: "rgba(255, 255, 255, 0.9)",
+            margin: 0,
+          }}
+        >
           Kursus yang dipilih AI berdasarkan skill gap dan kebutuhan industri nyata di Pulau Jawa.
         </p>
-      </div>
+      </section>
 
       {loading && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 24px", background: "#fff", borderRadius: 16, border: "1px solid rgba(22,119,255,0.1)", gap: 12, marginBottom: 24 }}>
-          <Loader2 size={32} className="animate-spin" color="#1677FF" />
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", margin: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "64px 24px",
+            background: "#F4F5F7",
+            borderRadius: 24,
+            border: "1px solid #E2E8F0",
+            gap: 12,
+            marginBottom: 24,
+          }}
+        >
+          <Loader2 size={32} className="animate-spin" color="#0E67CC" />
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4A5568", margin: 0 }}>
             Memuat data rekomendasi kursus dan progres pelatihan...
           </p>
         </div>
       )}
 
       {!loading && error && trainingList.length === 0 && (
-        <div style={{ ...card, textAlign: "center", padding: "48px 24px", borderColor: "rgba(239,68,68,0.2)", marginBottom: 28 }}>
-          <AlertCircle size={40} color="#dc2626" style={{ margin: "0 auto 12px" }} />
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#dc2626", marginBottom: 16 }}>{error}</p>
+        <div
+          style={{
+            background: "#FEF2F2",
+            borderRadius: 24,
+            border: "1px solid #FECACA",
+            textAlign: "center",
+            padding: "48px 24px",
+            marginBottom: 28,
+          }}
+        >
+          <AlertCircle size={40} color="#B91C1C" style={{ margin: "0 auto 12px" }} />
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#991B1B", marginBottom: 16 }}>
+            {error}
+          </p>
           <button
+            type="button"
             onClick={() => void loadTrainingData()}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 18px", borderRadius: 8, background: "#1677FF", color: "#fff", border: "none", cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600 }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "10px 22px",
+              minHeight: 42,
+              borderRadius: 999,
+              background: "#0D1117",
+              color: "#D4FF59",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 700,
+            }}
           >
             <RefreshCw size={14} /> Coba Lagi
           </button>
         </div>
       )}
 
-      {/* Stats row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
-        {[
-          { label: "Total Kursus", value: counts["Semua"], color: "#1677FF" },
-          { label: "Sedang Berjalan", value: counts["Sedang Berjalan"], color: "#1677FF" },
-          { label: "Belum Dimulai", value: counts["Belum Dimulai"], color: "#6a88b8" },
-          { label: "Selesai", value: counts["Selesai"], color: "#10d98e" },
-        ].map((stat) => (
-          <div key={stat.label} style={{ ...card, padding: "16px 20px" }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 28, fontWeight: 800, color: stat.color }}>{stat.value}</div>
-            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", marginTop: 2 }}>{stat.label}</div>
-          </div>
-        ))}
+      {/* Bento Stats row */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 16,
+          marginBottom: 24,
+        }}
+      >
+        {statItems.map((stat) => {
+          const isBlue = stat.variant === "blue";
+          const isLime = stat.variant === "lime";
+          const isDark = stat.variant === "dark";
+          const bg = isBlue
+            ? "linear-gradient(180deg, #0E67CC 0%, #2B8CFF 100%)"
+            : isLime
+              ? "#D4FF59"
+              : isDark
+                ? "#0D1117"
+                : "#F4F5F7";
+          const valColor = isBlue || isDark ? "#FFFFFF" : "#0D1117";
+          const labelColor = isBlue
+            ? "rgba(255, 255, 255, 0.9)"
+            : isDark
+              ? "#CBD5E1"
+              : "#4A5568";
+
+          return (
+            <div
+              key={stat.label}
+              style={{
+                background: bg,
+                borderRadius: 22,
+                border: stat.variant === "light" ? "1px solid #E2E8F0" : "none",
+                padding: "20px 22px",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: 32,
+                  fontWeight: 600,
+                  color: valColor,
+                  lineHeight: 1.05,
+                  letterSpacing: "-0.03em",
+                }}
+              >
+                {stat.value}
+              </div>
+              <div
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  color: labelColor,
+                  marginTop: 4,
+                }}
+              >
+                {stat.label}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Filter tabs */}
@@ -295,30 +415,35 @@ export default function TrainingPage() {
           return (
             <button
               key={tab.key}
+              type="button"
               onClick={() => setActiveFilter(tab.key)}
               style={{
                 fontFamily: "'Inter', sans-serif",
                 fontSize: 13,
-                fontWeight: isActive ? 600 : 400,
-                padding: "8px 18px",
-                borderRadius: 10,
-                border: isActive ? "1.5px solid #1677FF" : "1.5px solid rgba(22,119,255,0.15)",
-                background: isActive ? "#1677FF" : "#fff",
-                color: isActive ? "#fff" : "#6a88b8",
+                fontWeight: 600,
+                padding: "9px 18px",
+                minHeight: 40,
+                borderRadius: 999,
+                border: isActive ? "none" : "1px solid #E2E8F0",
+                background: isActive ? "#0D1117" : "#F4F5F7",
+                color: isActive ? "#D4FF59" : "#0D1117",
                 cursor: "pointer",
-                transition: "all 0.15s",
+                transition: "all 0.15s ease",
               }}
             >
               {tab.label}
-              <span style={{
-                marginLeft: 6,
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 11,
-                padding: "1px 6px",
-                borderRadius: 99,
-                background: isActive ? "rgba(255,255,255,0.2)" : "rgba(22,119,255,0.1)",
-                color: isActive ? "#fff" : "#1677FF",
-              }}>
+              <span
+                style={{
+                  marginLeft: 8,
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: isActive ? "rgba(212, 255, 89, 0.2)" : "#FFFFFF",
+                  color: isActive ? "#D4FF59" : "#0D1117",
+                }}
+              >
                 {counts[tab.key as keyof typeof counts] ?? 0}
               </span>
             </button>
@@ -327,15 +452,31 @@ export default function TrainingPage() {
       </div>
 
       {!loading && filtered.length === 0 && (
-        <div style={{ ...card, textAlign: "center", padding: "64px 24px", color: "#6a88b8", fontFamily: "'Inter', sans-serif", fontSize: 14 }}>
+        <div
+          style={{
+            background: "#F4F5F7",
+            borderRadius: 24,
+            border: "1px solid #E2E8F0",
+            textAlign: "center",
+            padding: "64px 24px",
+            color: "#4A5568",
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14,
+          }}
+        >
           Tidak ada kursus pelatihan yang sesuai dengan kategori ini.
         </div>
       )}
 
       {/* Training cards grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 20 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+          gap: 18,
+        }}
+      >
         {filtered.map((training) => {
-          const badge = statusBadge[training.status];
           const isCompleted = training.status === "Selesai";
           const isNotStarted = training.status === "Belum Dimulai";
           const isActing = actingCourseId === training.courseId;
@@ -344,127 +485,223 @@ export default function TrainingPage() {
             <div
               key={training.id}
               style={{
-                ...card,
+                background: "#F4F5F7",
+                borderRadius: 24,
+                border: "1px solid #E2E8F0",
+                padding: "22px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 0,
-                padding: 0,
-                overflow: "hidden",
+                justifyContent: "space-between",
               }}
             >
-              {/* Color accent bar */}
-              <div style={{ height: 4, background: `linear-gradient(90deg, ${training.color}, ${training.color}88)` }} />
-
-              <div style={{ padding: "20px 20px 18px" }}>
+              <div>
                 {/* Top row */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: 12 }}>
-                    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 15, fontWeight: 700, color: "#0A1B3D", marginBottom: 3 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 16,
+                        fontWeight: 600,
+                        color: "#0D1117",
+                        marginBottom: 4,
+                      }}
+                    >
                       {training.title}
                     </div>
-                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>
+                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12.5, color: "#4A5568" }}>
                       {training.platform}
                     </div>
                   </div>
-                  <span style={{
-                    fontFamily: "'Inter', sans-serif", fontSize: 11, fontWeight: 600,
-                    padding: "4px 10px", borderRadius: 99,
-                    background: badge.bg, color: badge.color,
-                    whiteSpace: "nowrap", flexShrink: 0,
-                  }}>
+                  <span
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "4px 12px",
+                      borderRadius: 999,
+                      background: isCompleted ? "#D4FF59" : "#FFFFFF",
+                      color: "#0D1117",
+                      border: "1px solid #E2E8F0",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}
+                  >
                     {training.status}
                   </span>
                 </div>
 
                 {/* Meta info */}
                 <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8" }}>
-                    <Clock size={11} /> {training.duration}
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 12,
+                      color: "#4A5568",
+                    }}
+                  >
+                    <Clock size={12} /> {training.duration}
                   </span>
-                  <span style={{
-                    fontFamily: "'Inter', sans-serif", fontSize: 11, fontWeight: 600,
-                    padding: "2px 8px", borderRadius: 99,
-                    background: `${levelColor[training.level]}18`,
-                    color: levelColor[training.level],
-                  }}>
+                  <span
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      padding: "2px 10px",
+                      borderRadius: 999,
+                      background: "#FFFFFF",
+                      border: "1px solid #E2E8F0",
+                      color: "#0D1117",
+                    }}
+                  >
                     {training.level}
                   </span>
                 </div>
 
                 {/* Progress bar */}
-                <div style={{ marginBottom: 6 }}>
+                <div
+                  style={{
+                    background: "#FFFFFF",
+                    borderRadius: 14,
+                    border: "1px solid #E2E8F0",
+                    padding: "12px 14px",
+                    marginBottom: 14,
+                  }}
+                >
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>Progress</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 700, color: isCompleted ? "#10d98e" : "#1677FF" }}>
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#4A5568" }}>
+                      Progress
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        color: "#0E67CC",
+                      }}
+                    >
                       {training.progress}%
                     </span>
                   </div>
-                  <div style={{ position: "relative", height: 7, background: "#eef4ff", borderRadius: 99 }}>
-                    <div style={{
-                      position: "absolute", left: 0, top: 0, height: "100%",
-                      width: `${training.progress}%`, borderRadius: 99,
-                      background: isCompleted
-                        ? "linear-gradient(90deg, #10d98e, #38f9b2)"
-                        : `linear-gradient(90deg, ${training.color}, ${training.color}bb)`,
-                    }} />
+                  <div
+                    style={{
+                      height: 6,
+                      background: "#E2E8F0",
+                      borderRadius: 999,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${training.progress}%`,
+                        borderRadius: 999,
+                        background: "#0E67CC",
+                      }}
+                    />
                   </div>
                 </div>
 
                 {/* Skills covered */}
-                <div style={{ marginTop: 14, marginBottom: 16 }}>
-                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", marginBottom: 6 }}>Skill yang dicakup:</div>
+                <div style={{ marginBottom: 18 }}>
+                  <div
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 11.5,
+                      color: "#4A5568",
+                      marginBottom: 6,
+                    }}
+                  >
+                    Skill yang dicakup:
+                  </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {training.skills.map((s) => (
-                      <span key={s} style={{
-                        fontFamily: "'Inter', sans-serif", fontSize: 11,
-                        padding: "2px 9px", borderRadius: 99,
-                        background: "#f0f7ff", color: "#1677FF",
-                        border: "1px solid rgba(22,119,255,0.15)",
-                      }}>
+                      <span
+                        key={s}
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 11.5,
+                          fontWeight: 500,
+                          padding: "3px 10px",
+                          borderRadius: 999,
+                          background: "#FFFFFF",
+                          color: "#0D1117",
+                          border: "1px solid #E2E8F0",
+                        }}
+                      >
                         {s}
                       </span>
                     ))}
                   </div>
                 </div>
+              </div>
 
-                {/* Buttons */}
-                <div style={{ display: "flex", gap: 8 }}>
+              {/* Buttons */}
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  disabled={isActing}
+                  onClick={() => void handleStartOrContinue(training)}
+                  style={{
+                    flex: 1,
+                    minHeight: 42,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    padding: "9px 14px",
+                    borderRadius: 999,
+                    border: "none",
+                    cursor: isActing ? "wait" : "pointer",
+                    background: "#0D1117",
+                    color: "#D4FF59",
+                  }}
+                >
+                  {isActing ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+                  {isCompleted
+                    ? "Buka Materi"
+                    : isNotStarted
+                      ? "Mulai Belajar"
+                      : "Tambah Progress (+25%)"}
+                </button>
+                {training.url && (
                   <button
-                    disabled={isActing}
-                    onClick={() => void handleStartOrContinue(training)}
+                    type="button"
+                    aria-label={`Buka tautan ${training.title}`}
+                    onClick={() => window.open(training.url, "_blank")}
                     style={{
-                      flex: 1,
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                      fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
-                      padding: "9px 0", borderRadius: 10, border: "none", cursor: isActing ? "wait" : "pointer",
-                      background: isCompleted
-                        ? "linear-gradient(135deg, #10d98e, #38f9b2)"
-                        : "linear-gradient(135deg, #1677FF, #4DB8FF)",
-                      color: "#fff",
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      width: 42,
+                      height: 42,
+                      borderRadius: "50%",
+                      border: "1px solid #CBD5E1",
+                      background: "#FFFFFF",
+                      color: "#0D1117",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    {isActing ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Play size={14} />
-                    )}
-                    {isCompleted ? "Pelajari Lagi" : isNotStarted ? "Mulai Belajar" : "Tingkatkan Progress"}
+                    <ExternalLink size={15} />
                   </button>
-                  {training.url && (
-                    <button
-                      onClick={() => window.open(training.url, "_blank")}
-                      style={{
-                        display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-                        fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
-                        padding: "9px 14px", borderRadius: 10,
-                        border: "1.5px solid rgba(22,119,255,0.2)",
-                        background: "#fff", color: "#1677FF", cursor: "pointer",
-                      }}
-                    >
-                      Buka <ExternalLink size={13} />
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           );

@@ -159,7 +159,7 @@ export default function DashboardCandidatePage() {
   const displayName = profile?.fullName || user?.fullName || "Kandidat";
   const displayInitial = (displayName[0] || "K").toUpperCase();
 
-  // 1. Kelengkapan Profil (deterministic formula aligned with CandidateSelfProfilePage)
+  // 1. Kelengkapan Profil
   const completionPct = useMemo(() => {
     let score = 0;
     const effectiveName = profile?.fullName || user?.fullName;
@@ -191,7 +191,7 @@ export default function DashboardCandidatePage() {
     [jobRecs]
   );
 
-  // 3. Skill Gap Utama (honest binary coverage from backend report — no fabricated percentages)
+  // 3. Skill Gap Utama
   const missingSkills = useMemo(
     () => skillGapReport?.missingSkills ?? [],
     [skillGapReport]
@@ -206,13 +206,11 @@ export default function DashboardCandidatePage() {
       skill: s.skillName,
       level: 0,
       gap: 100,
-      color: "#ff9a3c",
     }));
     const matched = matchedSkills.map((s) => ({
       skill: s.skillName,
       level: 100,
       gap: 0,
-      color: "#10d98e",
     }));
     return [...missing, ...matched].slice(0, 3);
   }, [missingSkills, matchedSkills]);
@@ -289,7 +287,7 @@ export default function DashboardCandidatePage() {
     ).length;
   }, [myApplications, contextApplications]);
 
-  // 6. Peluang Lintas Wilayah (derived from real job recommendations)
+  // 6. Peluang Lintas Wilayah
   const crossRegionItems = useMemo(() => {
     const candLoc = (profile?.location || user?.candidate?.location || "").trim().toLowerCase();
     const filtered = jobRecs.filter((rec) => {
@@ -316,7 +314,7 @@ export default function DashboardCandidatePage() {
       label: "Kelengkapan Profil",
       value: `${completionPct}%`,
       sub: completionSub,
-      color: "#1677FF",
+      variant: "blue" as const,
       icon: <User size={18} />,
       path: "/dashboard/kandidat/profil",
     },
@@ -324,7 +322,7 @@ export default function DashboardCandidatePage() {
       label: "Rekomendasi Pekerjaan",
       value: String(jobRecs.length),
       sub: jobRecs.length > 0 ? `${highMatchCount} kecocokan tinggi` : "Belum ada rekomendasi",
-      color: "#0D47A1",
+      variant: "light" as const,
       icon: <Briefcase size={18} />,
       path: "/dashboard/kandidat/rekomendasi",
     },
@@ -337,9 +335,9 @@ export default function DashboardCandidatePage() {
             ? `Target: ${skillGapReport.targetRole}`
             : "Perlu ditingkatkan"
           : matchedSkills.length > 0
-          ? "Semua target terpenuhi"
-          : "Analisis kompetensi",
-      color: "#ff9a3c",
+            ? "Semua target terpenuhi"
+            : "Analisis kompetensi",
+      variant: "lime" as const,
       icon: <TrendingUp size={18} />,
       path: "/dashboard/kandidat/skill-gap",
     },
@@ -350,7 +348,7 @@ export default function DashboardCandidatePage() {
         trainingProgress.length > 0
           ? `${activeCoursesCount || trainingProgress.length} kursus aktif`
           : "Belum ada kursus aktif",
-      color: "#10d98e",
+      variant: "dark" as const,
       icon: <BookOpen size={18} />,
       path: "/dashboard/kandidat/pelatihan",
     },
@@ -361,22 +359,93 @@ export default function DashboardCandidatePage() {
         totalApplicationsCount > 0
           ? `${pendingApplicationsCount} menunggu respons`
           : "Belum ada lamaran",
-      color: "#4DB8FF",
+      variant: "light" as const,
       icon: <FileText size={18} />,
       path: "/dashboard/kandidat/lamaran",
     },
   ];
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName={displayName} userRole="Kandidat" userInitial={displayInitial}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 800, color: "#0A1B3D", letterSpacing: "-0.5px", marginBottom: 4 }}>
-          Halo, {displayName} 👋
-        </h1>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8" }}>
-          Ini rekomendasi terbaik untuk Anda hari ini. AI kami terus bekerja di balik layar!
-        </p>
-      </div>
+    <DashboardLayout
+      sidebarItems={sidebarItems}
+      userName={displayName}
+      userRole="Kandidat"
+      userInitial={displayInitial}
+    >
+      {/* Framed Hero Banner matching Beranda */}
+      <section
+        style={{
+          borderRadius: 26,
+          background: "linear-gradient(180deg, #0849A8 0%, #0E67CC 52%, #2B8CFF 100%)",
+          padding: "28px 30px",
+          marginBottom: 24,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 16,
+          boxShadow: "0 16px 40px rgba(8, 73, 168, 0.12)",
+        }}
+      >
+        <div>
+          <p
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#D4FF59",
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              margin: "0 0 8px",
+            }}
+          >
+            Beranda Kandidat
+          </p>
+          <h1
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: "clamp(24px, 3vw, 32px)",
+              fontWeight: 600,
+              color: "#FFFFFF",
+              letterSpacing: "-0.03em",
+              margin: "0 0 6px",
+              lineHeight: 1.15,
+            }}
+          >
+            Halo, {displayName}
+          </h1>
+          <p
+            style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 14.5,
+              color: "rgba(255, 255, 255, 0.9)",
+              margin: 0,
+            }}
+          >
+            Ini rekomendasi terbaik untuk Anda hari ini berdasarkan profil dan keahlian terkini.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard/kandidat/rekomendasi")}
+          style={{
+            padding: "12px 24px",
+            minHeight: 44,
+            borderRadius: 999,
+            border: "none",
+            background: "#D4FF59",
+            color: "#0D1117",
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            cursor: "pointer",
+          }}
+        >
+          Jelajahi Lowongan
+        </button>
+      </section>
 
       {loading && (
         <div
@@ -386,16 +455,15 @@ export default function DashboardCandidatePage() {
             alignItems: "center",
             justifyContent: "center",
             padding: "56px 24px",
-            background: "#fff",
-            borderRadius: 18,
-            border: "1px solid rgba(22,119,255,0.1)",
-            boxShadow: "0 2px 12px rgba(10,27,61,0.05)",
+            background: "#F4F5F7",
+            borderRadius: 24,
+            border: "1px solid #E2E8F0",
             gap: 12,
             marginBottom: 24,
           }}
         >
-          <Loader2 size={32} className="animate-spin" color="#1677FF" />
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", margin: 0 }}>
+          <Loader2 size={32} className="animate-spin" color="#0E67CC" />
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4A5568", margin: 0 }}>
             Memuat data dashboard kandidat...
           </p>
         </div>
@@ -404,34 +472,35 @@ export default function DashboardCandidatePage() {
       {!loading && error && (
         <div
           style={{
-            background: "#fff",
-            borderRadius: 18,
-            border: "1px solid rgba(239,68,68,0.2)",
-            boxShadow: "0 2px 12px rgba(10,27,61,0.05)",
+            background: "#FEF2F2",
+            borderRadius: 24,
+            border: "1px solid #FECACA",
             padding: "40px 24px",
             textAlign: "center",
             marginBottom: 24,
           }}
         >
-          <AlertCircle size={36} color="#dc2626" style={{ margin: "0 auto 12px" }} />
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#dc2626", marginBottom: 16 }}>
+          <AlertCircle size={36} color="#B91C1C" style={{ margin: "0 auto 12px" }} />
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#991B1B", marginBottom: 16 }}>
             {error}
           </p>
           <button
+            type="button"
             onClick={() => void loadDashboardData()}
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 6,
-              padding: "9px 18px",
-              borderRadius: 10,
-              background: "#1677FF",
-              color: "#fff",
+              gap: 8,
+              padding: "10px 22px",
+              minHeight: 44,
+              borderRadius: 999,
+              background: "#0D1117",
+              color: "#D4FF59",
               border: "none",
               cursor: "pointer",
               fontFamily: "'Inter', sans-serif",
               fontSize: 13,
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           >
             <RefreshCw size={14} /> Coba Lagi
@@ -441,94 +510,213 @@ export default function DashboardCandidatePage() {
 
       {!loading && !error && (
         <>
-          {/* Stats row */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 28 }}>
-            {statsCards.map((s) => (
+          {/* Bento Stats Row */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+              gap: 16,
+              marginBottom: 24,
+            }}
+          >
+            {statsCards.map((s) => {
+              const isBlue = s.variant === "blue";
+              const isLime = s.variant === "lime";
+              const isDark = s.variant === "dark";
+
+              const bg = isBlue
+                ? "linear-gradient(180deg, #0E67CC 0%, #2B8CFF 100%)"
+                : isLime
+                  ? "#D4FF59"
+                  : isDark
+                    ? "#0D1117"
+                    : "#F4F5F7";
+
+              const valueColor = isBlue || isDark ? "#FFFFFF" : "#0D1117";
+              const labelColor = isBlue || isDark ? "#FFFFFF" : "#0D1117";
+              const subColor = isBlue
+                ? "rgba(255, 255, 255, 0.88)"
+                : isDark
+                  ? "#CBD5E1"
+                  : "#4A5568";
+              const iconBg = isBlue || isDark ? "#FFFFFF" : "#0D1117";
+              const iconColor = isBlue || isDark ? "#0D1117" : "#D4FF59";
+
+              return (
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={() => navigate(s.path)}
+                  style={{
+                    background: bg,
+                    borderRadius: 22,
+                    border: s.variant === "light" ? "1px solid #E2E8F0" : "none",
+                    padding: "20px 18px",
+                    textAlign: "left",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    minHeight: 156,
+                    cursor: "pointer",
+                    transition: "transform 0.18s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-3px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      background: iconBg,
+                      color: iconColor,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 14,
+                    }}
+                  >
+                    {s.icon}
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 28,
+                        fontWeight: 600,
+                        color: valueColor,
+                        lineHeight: 1.05,
+                        letterSpacing: "-0.03em",
+                        marginBottom: 6,
+                      }}
+                    >
+                      {s.value}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: labelColor,
+                        marginBottom: 2,
+                      }}
+                    >
+                      {s.label}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12,
+                        color: subColor,
+                      }}
+                    >
+                      {s.sub}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div
+            className="ravira-cand-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 350px",
+              gap: 20,
+              alignItems: "start",
+            }}
+          >
+            <div>
+              {/* Job Recommendations */}
               <div
-                key={s.label}
-                onClick={() => navigate(s.path)}
                 style={{
-                  background: "#fff",
-                  borderRadius: 14,
-                  border: "1px solid rgba(22,119,255,0.1)",
-                  boxShadow: "0 2px 12px rgba(10,27,61,0.05)",
-                  padding: "18px 16px",
-                  position: "relative",
-                  overflow: "hidden",
-                  transition: "transform 0.2s",
-                  cursor: "pointer",
+                  background: "#F4F5F7",
+                  borderRadius: 24,
+                  border: "1px solid #E2E8F0",
+                  padding: "24px",
+                  marginBottom: 20,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
               >
                 <div
                   style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 3,
-                    background: `linear-gradient(90deg, ${s.color}, ${s.color}55)`,
-                    borderRadius: "14px 14px 0 0",
-                  }}
-                />
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    background: `${s.color}12`,
-                    border: `1px solid ${s.color}22`,
                     display: "flex",
+                    justifyContent: "space-between",
                     alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 10,
-                    color: s.color,
+                    marginBottom: 18,
                   }}
                 >
-                  {s.icon}
-                </div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 800, color: s.color, lineHeight: 1, marginBottom: 4 }}>
-                  {s.value}
-                </div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, fontWeight: 600, color: "#0A1B3D", marginBottom: 2 }}>
-                  {s.label}
-                </div>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc" }}>{s.sub}</div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20, alignItems: "start" }}>
-            <div>
-              {/* Job Recommendations */}
-              <div style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", boxShadow: "0 2px 12px rgba(10,27,61,0.05)", padding: "24px", marginBottom: 20 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                  <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 17, fontWeight: 700, color: "#0A1B3D" }}>Rekomendasi Pekerjaan</h2>
+                  <h2
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                      margin: 0,
+                    }}
+                  >
+                    Rekomendasi Pekerjaan
+                  </h2>
                   <button
+                    type="button"
                     onClick={() => navigate("/dashboard/kandidat/rekomendasi")}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#1677FF", display: "flex", alignItems: "center", gap: 4 }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "#0E67CC",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
                   >
                     Lihat Semua <ChevronRight size={14} />
                   </button>
                 </div>
 
                 {jobRecs.length === 0 ? (
-                  <div style={{ padding: "24px 16px", textAlign: "center", borderRadius: 12, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.1)" }}>
-                    <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", marginBottom: 12 }}>
-                      Belum ada rekomendasi pekerjaan yang tersedia saat ini. Lengkapi profil dan keterampilan Anda untuk mendapatkan pencocokan AI.
+                  <div
+                    style={{
+                      padding: "28px 20px",
+                      textAlign: "center",
+                      borderRadius: 18,
+                      background: "#FFFFFF",
+                      border: "1px solid #E2E8F0",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 13.5,
+                        color: "#4A5568",
+                        marginBottom: 14,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      Belum ada rekomendasi pekerjaan yang tersedia saat ini. Lengkapi profil dan
+                      keterampilan Anda untuk mendapatkan pencocokan AI.
                     </p>
                     <button
+                      type="button"
                       onClick={() => navigate("/dashboard/kandidat/profil")}
                       style={{
-                        padding: "8px 16px",
-                        borderRadius: 9,
-                        border: "1px solid rgba(22,119,255,0.25)",
-                        background: "#f0f7ff",
+                        padding: "10px 20px",
+                        minHeight: 42,
+                        borderRadius: 999,
+                        border: "none",
+                        background: "#0D1117",
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1677FF",
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        color: "#D4FF59",
                         cursor: "pointer",
                       }}
                     >
@@ -536,91 +724,172 @@ export default function DashboardCandidatePage() {
                     </button>
                   </div>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                     {jobRecs.slice(0, 3).map((rec) => {
                       const jobTitle = rec.job.title;
                       const companyName = rec.company.name;
                       const jobLocation = rec.job.location || rec.company.location || "Indonesia";
                       const jobType = rec.job.workType || rec.job.jobType || "Full-time";
                       const reasonText =
-                        rec.matchExplanation?.[0] || "Berdasarkan kesesuaian profil dan kompetensi Anda";
+                        rec.matchExplanation?.[0] ||
+                        "Berdasarkan kesesuaian profil dan kompetensi Anda";
 
                       return (
                         <div
                           key={rec.job.id}
                           style={{
-                            padding: "16px",
-                            borderRadius: 12,
-                            border: "1px solid rgba(22,119,255,0.1)",
-                            background: "#f8fbff",
-                            transition: "border-color 0.2s, box-shadow 0.2s",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = "#1677FF30";
-                            e.currentTarget.style.boxShadow = "0 4px 16px rgba(22,119,255,0.08)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = "rgba(22,119,255,0.1)";
-                            e.currentTarget.style.boxShadow = "none";
+                            padding: "20px",
+                            borderRadius: 18,
+                            border: "1px solid #E2E8F0",
+                            background: "#FFFFFF",
                           }}
                         >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                              gap: 12,
+                              marginBottom: 10,
+                            }}
+                          >
                             <div>
-                              <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 15, fontWeight: 700, color: "#0A1B3D", marginBottom: 3 }}>
+                              <div
+                                style={{
+                                  fontFamily: "'Poppins', sans-serif",
+                                  fontSize: 16,
+                                  fontWeight: 600,
+                                  color: "#0D1117",
+                                  marginBottom: 3,
+                                }}
+                              >
                                 {jobTitle}
                               </div>
-                              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8" }}>
+                              <div
+                                style={{
+                                  fontFamily: "'Inter', sans-serif",
+                                  fontSize: 13.5,
+                                  color: "#4A5568",
+                                }}
+                              >
                                 {companyName}
                               </div>
                             </div>
-                            <div style={{ textAlign: "right" }}>
-                              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 800, color: "#1677FF", lineHeight: 1 }}>
+                            <div
+                              style={{
+                                textAlign: "right",
+                                background: "#F4F5F7",
+                                padding: "6px 12px",
+                                borderRadius: 12,
+                                border: "1px solid #E2E8F0",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontFamily: "'Poppins', sans-serif",
+                                  fontSize: 18,
+                                  fontWeight: 700,
+                                  color: "#0E67CC",
+                                  lineHeight: 1.1,
+                                }}
+                              >
                                 {rec.matchScore}%
                               </div>
-                              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: "#9ab4cc" }}>match score</div>
+                              <div
+                                style={{
+                                  fontFamily: "'Inter', sans-serif",
+                                  fontSize: 10.5,
+                                  color: "#4A5568",
+                                }}
+                              >
+                                match score
+                              </div>
                             </div>
                           </div>
-                          <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>
-                              <MapPin size={11} /> {jobLocation}
+
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 12,
+                              marginBottom: 12,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 5,
+                                fontFamily: "'Inter', sans-serif",
+                                fontSize: 12.5,
+                                color: "#4A5568",
+                              }}
+                            >
+                              <MapPin size={12} /> {jobLocation}
                             </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>
-                              <Clock size={11} /> {jobType}
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 5,
+                                fontFamily: "'Inter', sans-serif",
+                                fontSize: 12.5,
+                                color: "#4A5568",
+                              }}
+                            >
+                              <Clock size={12} /> {jobType}
                             </span>
                           </div>
-                          <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#4a6a9a", background: "rgba(22,119,255,0.05)", padding: "6px 10px", borderRadius: 8, marginBottom: 12 }}>
-                            💡 {reasonText}
+
+                          <div
+                            style={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 12.5,
+                              color: "#334155",
+                              background: "#F4F5F7",
+                              border: "1px solid #E2E8F0",
+                              padding: "8px 12px",
+                              borderRadius: 10,
+                              marginBottom: 14,
+                            }}
+                          >
+                            {reasonText}
                           </div>
-                          <div style={{ display: "flex", gap: 8 }}>
+
+                          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                             <button
+                              type="button"
                               onClick={() => navigate("/dashboard/kandidat/rekomendasi")}
                               style={{
                                 flex: 1,
-                                padding: "8px",
-                                borderRadius: 9,
-                                border: "1px solid rgba(22,119,255,0.25)",
-                                background: "#f0f7ff",
+                                minHeight: 42,
+                                padding: "8px 14px",
+                                borderRadius: 999,
+                                border: "1px solid #CBD5E1",
+                                background: "#FFFFFF",
                                 fontFamily: "'Inter', sans-serif",
-                                fontSize: 13,
-                                fontWeight: 500,
-                                color: "#1677FF",
+                                fontSize: 12.5,
+                                fontWeight: 600,
+                                color: "#0D1117",
                                 cursor: "pointer",
                               }}
                             >
                               Lihat Rekomendasi
                             </button>
                             <button
+                              type="button"
                               onClick={() => navigate(`/dashboard/kandidat/pekerjaan/${rec.job.id}`)}
                               style={{
                                 flex: 1,
-                                padding: "8px",
-                                borderRadius: 9,
+                                minHeight: 42,
+                                padding: "8px 14px",
+                                borderRadius: 999,
                                 border: "none",
-                                background: "linear-gradient(135deg, #1677FF, #0D47A1)",
+                                background: "#0D1117",
                                 fontFamily: "'Inter', sans-serif",
-                                fontSize: 13,
-                                fontWeight: 600,
-                                color: "#fff",
+                                fontSize: 12.5,
+                                fontWeight: 700,
+                                color: "#D4FF59",
                                 cursor: "pointer",
                               }}
                             >
@@ -635,157 +904,359 @@ export default function DashboardCandidatePage() {
               </div>
 
               {/* Pelatihan */}
-              <div style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", boxShadow: "0 2px 12px rgba(10,27,61,0.05)", padding: "24px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                  <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 17, fontWeight: 700, color: "#0A1B3D" }}>
+              <div
+                style={{
+                  background: "#F4F5F7",
+                  borderRadius: 24,
+                  border: "1px solid #E2E8F0",
+                  padding: "24px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 18,
+                  }}
+                >
+                  <h2
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                      margin: 0,
+                    }}
+                  >
                     Pelatihan yang Direkomendasikan
                   </h2>
                   <button
+                    type="button"
                     onClick={() => navigate("/dashboard/kandidat/pelatihan")}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#1677FF", display: "flex", alignItems: "center", gap: 4 }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "#0E67CC",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
                   >
                     Lihat Semua <ChevronRight size={14} />
                   </button>
                 </div>
 
                 {displayedTrainings.length === 0 ? (
-                  <div style={{ padding: "20px 16px", textAlign: "center", borderRadius: 12, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.1)" }}>
-                    <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", margin: 0 }}>
-                      Belum ada rekomendasi pelatihan saat ini. Periksa analisis Skill Gap Anda untuk mendapatkan rekomendasi kursus yang sesuai.
+                  <div
+                    style={{
+                      padding: "24px 16px",
+                      textAlign: "center",
+                      borderRadius: 18,
+                      background: "#FFFFFF",
+                      border: "1px solid #E2E8F0",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 13.5,
+                        color: "#4A5568",
+                        margin: 0,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      Belum ada rekomendasi pelatihan saat ini. Periksa analisis Skill Gap Anda
+                      untuk mendapatkan rekomendasi kursus yang sesuai.
                     </p>
                   </div>
                 ) : (
-                  displayedTrainings.map((t) => (
-                    <div
-                      key={t.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 14,
-                        padding: "14px 0",
-                        borderBottom: "1px solid rgba(22,119,255,0.06)",
-                      }}
-                    >
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {displayedTrainings.map((t) => (
                       <div
+                        key={t.id}
                         style={{
-                          width: 42,
-                          height: 42,
-                          borderRadius: 12,
-                          background: "linear-gradient(135deg, rgba(22,119,255,0.12), rgba(77,184,255,0.1))",
                           display: "flex",
                           alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
+                          gap: 14,
+                          padding: "16px",
+                          borderRadius: 18,
+                          background: "#FFFFFF",
+                          border: "1px solid #E2E8F0",
                         }}
                       >
-                        <BookOpen size={18} color="#1677FF" />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D", marginBottom: 2 }}>
-                          {t.title}
+                        <div
+                          aria-hidden="true"
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 12,
+                            background: "#0D1117",
+                            color: "#D4FF59",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <BookOpen size={18} />
                         </div>
-                        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", marginBottom: 6 }}>
-                          {t.platform} · {t.duration} · {t.level}
-                        </div>
-                        <div style={{ height: 4, borderRadius: 2, background: "#e8f0fe", overflow: "hidden" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <div
                             style={{
-                              height: "100%",
-                              width: `${t.progress}%`,
-                              background: "linear-gradient(90deg, #1677FF, #4DB8FF)",
-                              borderRadius: 2,
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: 14,
+                              fontWeight: 600,
+                              color: "#0D1117",
+                              marginBottom: 2,
                             }}
-                          />
+                          >
+                            {t.title}
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 12,
+                              color: "#4A5568",
+                              marginBottom: 8,
+                            }}
+                          >
+                            {t.platform} · {t.duration} · {t.level}
+                          </div>
+                          <div
+                            style={{
+                              height: 6,
+                              borderRadius: 999,
+                              background: "#E2E8F0",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                height: "100%",
+                                width: `${t.progress}%`,
+                                background: "#0E67CC",
+                                borderRadius: 999,
+                              }}
+                            />
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: "#0E67CC",
+                              marginTop: 4,
+                            }}
+                          >
+                            {t.progress}% selesai
+                          </div>
                         </div>
-                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#1677FF", marginTop: 3 }}>
-                          {t.progress}% selesai
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigate("/dashboard/kandidat/pelatihan")}
+                          style={{
+                            padding: "8px 16px",
+                            minHeight: 40,
+                            borderRadius: 999,
+                            border: "none",
+                            background: "#0D1117",
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#D4FF59",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Mulai Belajar
+                        </button>
                       </div>
-                      <button
-                        onClick={() => navigate("/dashboard/kandidat/pelatihan")}
-                        style={{
-                          padding: "7px 14px",
-                          borderRadius: 9,
-                          border: "none",
-                          background: "rgba(22,119,255,0.1)",
-                          fontFamily: "'Inter', sans-serif",
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "#1677FF",
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        Mulai Belajar
-                      </button>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
 
             <div>
               {/* Skill Gap */}
-              <div style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", boxShadow: "0 2px 12px rgba(10,27,61,0.05)", padding: "24px", marginBottom: 20 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 17, fontWeight: 700, color: "#0A1B3D" }}>Skill Gap Report</h2>
+              <div
+                style={{
+                  background: "#F4F5F7",
+                  borderRadius: 24,
+                  border: "1px solid #E2E8F0",
+                  padding: "24px",
+                  marginBottom: 20,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 6,
+                  }}
+                >
+                  <h2
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                      margin: 0,
+                    }}
+                  >
+                    Skill Gap Report
+                  </h2>
                   <button
+                    type="button"
                     onClick={() => navigate("/dashboard/kandidat/skill-gap")}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#1677FF", display: "flex", alignItems: "center", gap: 3 }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: "#0E67CC",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 3,
+                    }}
                   >
                     Detail <ChevronRight size={13} />
                   </button>
                 </div>
-                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", marginBottom: 18 }}>
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 12.5,
+                    color: "#4A5568",
+                    marginBottom: 18,
+                  }}
+                >
                   Skill yang perlu ditingkatkan berdasarkan posisi target Anda.
                 </p>
 
                 {skillGapItems.length === 0 ? (
-                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", marginBottom: 16 }}>
-                    Belum ada data analisis Skill Gap. Tambahkan keahlian pada profil Anda untuk melihat laporan.
+                  <p
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13,
+                      color: "#4A5568",
+                      marginBottom: 16,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    Belum ada data analisis Skill Gap. Tambahkan keahlian pada profil Anda untuk
+                    melihat laporan.
                   </p>
                 ) : (
-                  skillGapItems.map((sg) => (
-                    <div key={sg.skill} style={{ marginBottom: 16 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: "#0A1B3D" }}>{sg.skill}</span>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: sg.color, fontWeight: 700 }}>
-                          Gap {sg.gap}%
-                        </span>
-                      </div>
-                      <div style={{ height: 6, borderRadius: 3, background: "#e8f0fe", overflow: "hidden" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
+                    {skillGapItems.map((sg) => (
+                      <div
+                        key={sg.skill}
+                        style={{
+                          background: "#FFFFFF",
+                          borderRadius: 14,
+                          border: "1px solid #E2E8F0",
+                          padding: "14px",
+                        }}
+                      >
                         <div
                           style={{
-                            height: "100%",
-                            width: `${sg.level}%`,
-                            background: "linear-gradient(90deg, #1677FF, #4DB8FF)",
-                            borderRadius: 3,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginBottom: 6,
                           }}
-                        />
+                        >
+                          <span
+                            style={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 13.5,
+                              fontWeight: 600,
+                              color: "#0D1117",
+                            }}
+                          >
+                            {sg.skill}
+                          </span>
+                          <span
+                            style={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 11.5,
+                              color: sg.gap > 0 ? "#B45309" : "#047857",
+                              fontWeight: 700,
+                            }}
+                          >
+                            Gap {sg.gap}%
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            height: 6,
+                            borderRadius: 999,
+                            background: "#E2E8F0",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: "100%",
+                              width: `${sg.level}%`,
+                              background: "#0E67CC",
+                              borderRadius: 999,
+                            }}
+                          />
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginTop: 6,
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 11,
+                              color: "#4A5568",
+                            }}
+                          >
+                            Kamu: {sg.level}%
+                          </span>
+                          <span
+                            style={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 11,
+                              color: "#4A5568",
+                            }}
+                          >
+                            Target: 100%
+                          </span>
+                        </div>
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#9ab4cc" }}>
-                          Kamu: {sg.level}%
-                        </span>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#9ab4cc" }}>Target: 100%</span>
-                      </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
 
                 <button
+                  type="button"
                   onClick={() => navigate("/dashboard/kandidat/skill-gap")}
                   style={{
                     width: "100%",
-                    marginTop: 4,
-                    padding: "9px",
-                    borderRadius: 10,
-                    border: "1px solid rgba(22,119,255,0.2)",
-                    background: "#f0f7ff",
+                    minHeight: 42,
+                    padding: "10px 16px",
+                    borderRadius: 999,
+                    border: "1px solid #CBD5E1",
+                    background: "#FFFFFF",
                     fontFamily: "'Inter', sans-serif",
                     fontSize: 13,
                     fontWeight: 600,
-                    color: "#1677FF",
+                    color: "#0D1117",
                     cursor: "pointer",
                   }}
                 >
@@ -794,74 +1265,187 @@ export default function DashboardCandidatePage() {
               </div>
 
               {/* Cross Region */}
-              <div style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", boxShadow: "0 2px 12px rgba(10,27,61,0.05)", padding: "24px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 17, fontWeight: 700, color: "#0A1B3D" }}>Peluang Lintas Wilayah</h2>
+              <div
+                style={{
+                  background: "#F4F5F7",
+                  borderRadius: 24,
+                  border: "1px solid #E2E8F0",
+                  padding: "24px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 6,
+                  }}
+                >
+                  <h2
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                      margin: 0,
+                    }}
+                  >
+                    Peluang Lintas Wilayah
+                  </h2>
                   <button
+                    type="button"
                     onClick={() => navigate("/dashboard/kandidat/cross-region")}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#1677FF", display: "flex", alignItems: "center", gap: 3 }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: "#0E67CC",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 3,
+                    }}
                   >
                     Lihat Semua <ChevronRight size={13} />
                   </button>
                 </div>
-                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", marginBottom: 18 }}>
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 12.5,
+                    color: "#4A5568",
+                    marginBottom: 16,
+                  }}
+                >
                   Peluang menarik di luar kota Anda.
                 </p>
 
                 {crossRegionItems.length === 0 ? (
-                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", margin: 0 }}>
+                  <p
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13,
+                      color: "#4A5568",
+                      margin: 0,
+                    }}
+                  >
                     Belum ada peluang lintas wilayah yang cocok saat ini.
                   </p>
                 ) : (
-                  crossRegionItems.map((cr) => (
-                    <div
-                      key={cr.id}
-                      style={{
-                        padding: "14px",
-                        borderRadius: 12,
-                        border: "1px solid rgba(77,184,255,0.15)",
-                        background: "rgba(77,184,255,0.04)",
-                        marginBottom: 10,
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#0A1B3D" }}>{cr.title}</div>
-                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14, fontWeight: 700, color: "#4DB8FF" }}>
-                          {cr.match}%
-                        </div>
-                      </div>
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", marginBottom: 4 }}>{cr.company}</div>
-                      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-                        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", display: "flex", alignItems: "center", gap: 3 }}>
-                          <MapPin size={10} /> {cr.location}
-                        </span>
-                        <span style={{ padding: "2px 8px", borderRadius: 6, background: "rgba(77,184,255,0.1)", fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#4DB8FF" }}>
-                          {cr.type}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => navigate(`/dashboard/kandidat/pekerjaan/${cr.id}`)}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {crossRegionItems.map((cr) => (
+                      <div
+                        key={cr.id}
                         style={{
-                          width: "100%",
-                          padding: "7px",
-                          borderRadius: 9,
-                          border: "1px solid rgba(77,184,255,0.3)",
-                          background: "transparent",
-                          fontFamily: "'Inter', sans-serif",
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "#4DB8FF",
-                          cursor: "pointer",
+                          padding: "16px",
+                          borderRadius: 16,
+                          border: "1px solid #E2E8F0",
+                          background: "#FFFFFF",
                         }}
                       >
-                        Lihat Peluang
-                      </button>
-                    </div>
-                  ))
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: 8,
+                            marginBottom: 4,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: 13.5,
+                              fontWeight: 600,
+                              color: "#0D1117",
+                            }}
+                          >
+                            {cr.title}
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: 13.5,
+                              fontWeight: 700,
+                              color: "#0E67CC",
+                            }}
+                          >
+                            {cr.match}%
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: 12.5,
+                            color: "#4A5568",
+                            marginBottom: 8,
+                          }}
+                        >
+                          {cr.company}
+                        </div>
+                        <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                          <span
+                            style={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 11.5,
+                              color: "#4A5568",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            <MapPin size={11} /> {cr.location}
+                          </span>
+                          <span
+                            style={{
+                              padding: "2px 8px",
+                              borderRadius: 999,
+                              background: "#F4F5F7",
+                              border: "1px solid #E2E8F0",
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: "#0D1117",
+                            }}
+                          >
+                            {cr.type}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/dashboard/kandidat/pekerjaan/${cr.id}`)}
+                          style={{
+                            width: "100%",
+                            minHeight: 38,
+                            padding: "8px 12px",
+                            borderRadius: 999,
+                            border: "1px solid #CBD5E1",
+                            background: "#FFFFFF",
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: "#0D1117",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Lihat Peluang
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
           </div>
+
+          <style>{`
+            @media (max-width: 1024px) {
+              .ravira-cand-grid {
+                grid-template-columns: 1fr !important;
+              }
+            }
+          `}</style>
         </>
       )}
     </DashboardLayout>

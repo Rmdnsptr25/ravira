@@ -1,9 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  Home, Briefcase, Bookmark, BarChart2, BookOpen,
-  FileText, Globe, User, Settings,
-  MapPin, Calendar, ChevronRight, CheckCircle, Circle, Loader2, RefreshCw,
+  Home,
+  Briefcase,
+  Bookmark,
+  BarChart2,
+  BookOpen,
+  FileText,
+  Globe,
+  User,
+  Settings,
+  MapPin,
+  Calendar,
+  ChevronRight,
+  CheckCircle,
+  Circle,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
@@ -22,7 +35,15 @@ const sidebarItems: SidebarItem[] = [
   { key: "pengaturan", label: "Pengaturan Privasi", icon: <Settings size={16} />, path: "/dashboard/kandidat/privasi" },
 ];
 
-const tabs: Array<AppStatus | "Semua"> = ["Semua", "Dikirim", "Screening", "Interview", "Offer", "Diterima", "Ditolak"];
+const tabs: Array<AppStatus | "Semua"> = [
+  "Semua",
+  "Dikirim",
+  "Screening",
+  "Interview",
+  "Offer",
+  "Diterima",
+  "Ditolak",
+];
 
 const timelineSteps = ["Dikirim", "Screening", "Interview", "Offer", "Diterima"];
 
@@ -37,18 +58,13 @@ const statusOrder: Record<AppStatus, number> = {
 
 function getStatusStyle(status: AppStatus): { background: string; color: string; border: string } {
   switch (status) {
-    case "Dikirim":
-      return { background: "rgba(22,119,255,0.1)", color: "#1677FF", border: "1px solid rgba(22,119,255,0.25)" };
-    case "Screening":
-      return { background: "rgba(255,154,60,0.12)", color: "#ff9a3c", border: "1px solid rgba(255,154,60,0.3)" };
-    case "Interview":
-      return { background: "rgba(124,58,237,0.1)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.25)" };
     case "Offer":
-      return { background: "rgba(16,217,142,0.1)", color: "#10d98e", border: "1px solid rgba(16,217,142,0.3)" };
     case "Diterima":
-      return { background: "rgba(16,217,142,0.15)", color: "#059669", border: "1px solid rgba(16,217,142,0.4)" };
+      return { background: "#D4FF59", color: "#0D1117", border: "none" };
     case "Ditolak":
-      return { background: "rgba(255,107,107,0.1)", color: "#ff6b6b", border: "1px solid rgba(255,107,107,0.25)" };
+      return { background: "#FEF2F2", color: "#991B1B", border: "1px solid #FECACA" };
+    default:
+      return { background: "#FFFFFF", color: "#0D1117", border: "1px solid #CBD5E1" };
   }
 }
 
@@ -80,9 +96,8 @@ export default function MyApplicationsPage() {
     });
   }, [loadData]);
 
-  const filtered = activeTab === "Semua"
-    ? applications
-    : applications.filter((a) => a.status === activeTab);
+  const filtered =
+    activeTab === "Semua" ? applications : applications.filter((a) => a.status === activeTab);
 
   return (
     <DashboardLayout
@@ -91,71 +106,103 @@ export default function MyApplicationsPage() {
       userRole="Kandidat"
       userInitial={displayInitial}
     >
-      {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{
-          fontFamily: "'Poppins', sans-serif",
-          fontSize: 24,
-          fontWeight: 800,
-          color: "#0A1B3D",
-          letterSpacing: "-0.5px",
-          marginBottom: 6,
-        }}>
+      {/* Framed Hero Banner */}
+      <section
+        style={{
+          borderRadius: 26,
+          background: "linear-gradient(180deg, #0849A8 0%, #0E67CC 52%, #2B8CFF 100%)",
+          padding: "28px 30px",
+          marginBottom: 24,
+          boxShadow: "0 16px 40px rgba(8, 73, 168, 0.12)",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#D4FF59",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            margin: "0 0 8px",
+          }}
+        >
+          Pelacakan Lamaran
+        </p>
+        <h1
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: "clamp(24px, 3vw, 32px)",
+            fontWeight: 600,
+            color: "#FFFFFF",
+            letterSpacing: "-0.03em",
+            margin: "0 0 6px",
+            lineHeight: 1.15,
+          }}
+        >
           Lamaran Saya
         </h1>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8" }}>
+        <p
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14.5,
+            color: "rgba(255, 255, 255, 0.9)",
+            margin: 0,
+          }}
+        >
           Pantau status semua lamaran kerja Anda dalam satu tempat.
         </p>
-      </div>
+      </section>
 
-      {/* Tab bar */}
-      <div style={{
-        display: "flex",
-        gap: 6,
-        marginBottom: 24,
-        background: "#fff",
-        borderRadius: 14,
-        padding: "6px",
-        border: "1px solid rgba(22,119,255,0.1)",
-        boxShadow: "0 2px 8px rgba(10,27,61,0.04)",
-        flexWrap: "wrap",
-      }}>
+      {/* Pill Tab bar */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom: 24,
+          flexWrap: "wrap",
+        }}
+      >
         {tabs.map((tab) => {
           const isActive = activeTab === tab;
-          const count = tab === "Semua" ? applications.length : applications.filter((a) => a.status === tab).length;
+          const count =
+            tab === "Semua"
+              ? applications.length
+              : applications.filter((a) => a.status === tab).length;
           return (
             <button
               key={tab}
+              type="button"
               onClick={() => setActiveTab(tab)}
               style={{
-                padding: "8px 16px",
-                borderRadius: 10,
-                border: "none",
+                padding: "9px 18px",
+                minHeight: 40,
+                borderRadius: 999,
+                border: isActive ? "none" : "1px solid #E2E8F0",
                 cursor: "pointer",
                 fontFamily: "'Inter', sans-serif",
                 fontSize: 13,
-                fontWeight: isActive ? 700 : 500,
-                color: isActive ? "#fff" : "#6a88b8",
-                background: isActive
-                  ? "linear-gradient(135deg, #1677FF, #0D47A1)"
-                  : "transparent",
-                boxShadow: isActive ? "0 2px 8px rgba(22,119,255,0.3)" : "none",
-                transition: "all 0.18s",
-                display: "flex",
+                fontWeight: 600,
+                color: isActive ? "#D4FF59" : "#0D1117",
+                background: isActive ? "#0D1117" : "#F4F5F7",
+                transition: "all 0.15s ease",
+                display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
               }}
             >
               {tab}
-              <span style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 11,
-                fontWeight: 700,
-                padding: "1px 6px",
-                borderRadius: 6,
-                background: isActive ? "rgba(255,255,255,0.2)" : "rgba(22,119,255,0.08)",
-                color: isActive ? "#fff" : "#1677FF",
-              }}>
+              <span
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: isActive ? "rgba(212, 255, 89, 0.2)" : "#FFFFFF",
+                  color: isActive ? "#D4FF59" : "#0D1117",
+                }}
+              >
                 {count}
               </span>
             </button>
@@ -166,46 +213,52 @@ export default function MyApplicationsPage() {
       {/* Application cards */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {loading && applications.length === 0 && (
-          <div style={{
-            background: "#fff",
-            borderRadius: 16,
-            border: "1px solid rgba(22,119,255,0.1)",
-            padding: "48px 24px",
-            textAlign: "center",
-          }}>
-            <Loader2 size={36} className="animate-spin" color="#1677FF" style={{ margin: "0 auto 12px" }} />
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", margin: 0 }}>
+          <div
+            style={{
+              background: "#F4F5F7",
+              borderRadius: 24,
+              border: "1px solid #E2E8F0",
+              padding: "48px 24px",
+              textAlign: "center",
+            }}
+          >
+            <Loader2 size={36} className="animate-spin" color="#0E67CC" style={{ margin: "0 auto 12px" }} />
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4A5568", margin: 0 }}>
               Memuat data riwayat lamaran Anda...
             </p>
           </div>
         )}
 
         {!loading && error && applications.length === 0 && (
-          <div style={{
-            background: "#fff",
-            borderRadius: 16,
-            border: "1px solid rgba(239,68,68,0.2)",
-            padding: "48px 24px",
-            textAlign: "center",
-          }}>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#dc2626", marginBottom: 16 }}>
+          <div
+            style={{
+              background: "#FEF2F2",
+              borderRadius: 24,
+              border: "1px solid #FECACA",
+              padding: "48px 24px",
+              textAlign: "center",
+            }}
+          >
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#991B1B", marginBottom: 16 }}>
               {error}
             </p>
             <button
+              type="button"
               onClick={() => void loadData()}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "8px 18px",
-                borderRadius: 8,
-                background: "#1677FF",
-                color: "#fff",
+                padding: "10px 22px",
+                minHeight: 42,
+                borderRadius: 999,
+                background: "#0D1117",
+                color: "#D4FF59",
                 border: "none",
                 cursor: "pointer",
                 fontFamily: "'Inter', sans-serif",
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 700,
               }}
             >
               <RefreshCw size={14} /> Coba Lagi
@@ -214,15 +267,17 @@ export default function MyApplicationsPage() {
         )}
 
         {!loading && !error && filtered.length === 0 && (
-          <div style={{
-            background: "#fff",
-            borderRadius: 16,
-            border: "1px solid rgba(22,119,255,0.1)",
-            padding: "48px 24px",
-            textAlign: "center",
-          }}>
-            <FileText size={40} color="#c5d3f0" style={{ marginBottom: 12 }} />
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#9ab4cc" }}>
+          <div
+            style={{
+              background: "#F4F5F7",
+              borderRadius: 24,
+              border: "1px solid #E2E8F0",
+              padding: "56px 24px",
+              textAlign: "center",
+            }}
+          >
+            <FileText size={40} color="#0E67CC" style={{ margin: "0 auto 12px" }} />
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4A5568", margin: 0 }}>
               Tidak ada lamaran dengan status ini.
             </p>
           </div>
@@ -237,132 +292,195 @@ export default function MyApplicationsPage() {
             <div
               key={app.id}
               style={{
-                background: "#fff",
-                borderRadius: 16,
-                border: "1px solid rgba(22,119,255,0.1)",
-                boxShadow: "0 2px 12px rgba(10,27,61,0.05)",
-                padding: "22px 24px",
-                transition: "box-shadow 0.2s, transform 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 6px 24px rgba(22,119,255,0.1)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 2px 12px rgba(10,27,61,0.05)";
-                e.currentTarget.style.transform = "translateY(0)";
+                background: "#F4F5F7",
+                borderRadius: 24,
+                border: "1px solid #E2E8F0",
+                padding: "24px",
               }}
             >
               {/* Card top row */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontFamily: "'Poppins', sans-serif",
-                    fontSize: 16,
-                    fontWeight: 700,
-                    color: "#0A1B3D",
-                    marginBottom: 4,
-                  }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: 16,
+                  marginBottom: 16,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: 17,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                      marginBottom: 4,
+                    }}
+                  >
                     {app.posisi}
                   </div>
-                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", marginBottom: 8 }}>
+                  <div
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13.5,
+                      color: "#4A5568",
+                      marginBottom: 8,
+                    }}
+                  >
                     {app.perusahaan}
                   </div>
-                  <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#9ab4cc" }}>
-                      <MapPin size={11} /> {app.lokasi}
+                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12.5,
+                        color: "#4A5568",
+                      }}
+                    >
+                      <MapPin size={12} /> {app.lokasi}
                     </span>
-                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#9ab4cc" }}>
-                      <Calendar size={11} /> {app.tanggal}
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12.5,
+                        color: "#4A5568",
+                      }}
+                    >
+                      <Calendar size={12} /> {app.tanggal}
                     </span>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0, marginLeft: 16 }}>
-                  {/* Status badge */}
-                  <span style={{
-                    padding: "4px 12px",
-                    borderRadius: 20,
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    ...badge,
-                  }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    flexShrink: 0,
+                  }}
+                >
+                  <span
+                    style={{
+                      padding: "5px 14px",
+                      borderRadius: 999,
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      ...badge,
+                    }}
+                  >
                     {app.status}
                   </span>
-                  {/* Match score */}
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 22,
-                      fontWeight: 800,
-                      color: "#1677FF",
-                      lineHeight: 1,
-                    }}>
+                  <div
+                    style={{
+                      textAlign: "right",
+                      background: "#0D1117",
+                      padding: "8px 14px",
+                      borderRadius: 14,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 18,
+                        fontWeight: 700,
+                        color: "#D4FF59",
+                        lineHeight: 1,
+                      }}
+                    >
                       {app.match}%
                     </div>
-                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: "#9ab4cc" }}>match score</div>
+                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: "#CBD5E1" }}>
+                      match score
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Mini horizontal timeline */}
-              <div style={{
-                background: "#f8fbff",
-                borderRadius: 10,
-                padding: "14px 16px",
-                marginBottom: 16,
-                border: "1px solid rgba(22,119,255,0.07)",
-              }}>
+              <div
+                style={{
+                  background: "#FFFFFF",
+                  borderRadius: 16,
+                  padding: "16px 18px",
+                  marginBottom: 16,
+                  border: "1px solid #E2E8F0",
+                }}
+              >
                 <div style={{ display: "flex", alignItems: "center" }}>
                   {timelineSteps.map((step, idx) => {
                     const isDone = !isRejected && currentStep >= idx;
                     const isCurrent = !isRejected && currentStep === idx;
                     const isLast = idx === timelineSteps.length - 1;
 
-                    const nodeColor = isDone ? "#1677FF" : isRejected && step === "Diterima" ? "#ff6b6b" : "#d1ddf0";
-                    const lineColor = (!isRejected && currentStep > idx) ? "#1677FF" : "rgba(22,119,255,0.12)";
+                    const nodeColor = isDone
+                      ? "#0E67CC"
+                      : isRejected && step === "Diterima"
+                        ? "#B91C1C"
+                        : "#CBD5E1";
+                    const lineColor = !isRejected && currentStep > idx ? "#0E67CC" : "#E2E8F0";
 
                     return (
-                      <div key={step} style={{ display: "flex", alignItems: "center", flex: isLast ? "0 0 auto" : 1 }}>
-                        {/* Node */}
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                          <div style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: "50%",
-                            background: isDone ? nodeColor : "transparent",
-                            border: `2px solid ${nodeColor}`,
+                      <div
+                        key={step}
+                        style={{ display: "flex", alignItems: "center", flex: isLast ? "0 0 auto" : 1 }}
+                      >
+                        <div
+                          style={{
                             display: "flex",
+                            flexDirection: "column",
                             alignItems: "center",
-                            justifyContent: "center",
-                            boxShadow: isCurrent ? "0 0 0 3px rgba(22,119,255,0.15)" : "none",
-                            flexShrink: 0,
-                          }}>
-                            {isDone && <CheckCircle size={12} color="#fff" strokeWidth={3} />}
+                            gap: 4,
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: "50%",
+                              background: isDone ? nodeColor : "transparent",
+                              border: `2px solid ${nodeColor}`,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {isDone && <CheckCircle size={12} color="#FFFFFF" strokeWidth={3} />}
                             {!isDone && <Circle size={8} color={nodeColor} strokeWidth={2.5} />}
                           </div>
-                          <span style={{
-                            fontFamily: "'Inter', sans-serif",
-                            fontSize: 9,
-                            fontWeight: isCurrent ? 700 : 500,
-                            color: isCurrent ? "#1677FF" : isDone ? "#4a6a9a" : "#b0c0d8",
-                            whiteSpace: "nowrap",
-                          }}>
+                          <span
+                            style={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: 10.5,
+                              fontWeight: isCurrent ? 700 : 500,
+                              color: isCurrent ? "#0D1117" : isDone ? "#0D1117" : "#4A5568",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {step}
                           </span>
                         </div>
-                        {/* Connector line */}
                         {!isLast && (
-                          <div style={{
-                            flex: 1,
-                            height: 2,
-                            background: lineColor,
-                            marginBottom: 16,
-                            marginLeft: 2,
-                            marginRight: 2,
-                            borderRadius: 1,
-                          }} />
+                          <div
+                            style={{
+                              flex: 1,
+                              height: 2,
+                              background: lineColor,
+                              marginBottom: 18,
+                              marginLeft: 4,
+                              marginRight: 4,
+                              borderRadius: 1,
+                            }}
+                          />
                         )}
                       </div>
                     );
@@ -373,21 +491,22 @@ export default function MyApplicationsPage() {
               {/* Action button */}
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <button
+                  type="button"
                   onClick={() => navigate(`/dashboard/kandidat/lamaran/${app.id}`)}
                   style={{
-                    display: "flex",
+                    display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
-                    padding: "9px 20px",
-                    borderRadius: 10,
+                    padding: "9px 22px",
+                    minHeight: 40,
+                    borderRadius: 999,
                     border: "none",
-                    background: "linear-gradient(135deg, #1677FF, #0D47A1)",
+                    background: "#0D1117",
                     fontFamily: "'Inter', sans-serif",
                     fontSize: 13,
-                    fontWeight: 600,
-                    color: "#fff",
+                    fontWeight: 700,
+                    color: "#D4FF59",
                     cursor: "pointer",
-                    boxShadow: "0 2px 8px rgba(22,119,255,0.3)",
                   }}
                 >
                   Lihat Status <ChevronRight size={14} />

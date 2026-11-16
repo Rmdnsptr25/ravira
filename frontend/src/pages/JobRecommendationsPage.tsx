@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings, Search, MapPin, ChevronDown, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Home,
+  Briefcase,
+  Bookmark,
+  BarChart2,
+  BookOpen,
+  FileText,
+  Globe,
+  User,
+  Settings,
+  Search,
+  MapPin,
+  ChevronDown,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout, type SidebarItem } from "../components/DashboardLayout";
 import { ApplicationConfirmModal, ApplicationSuccessModal } from "../components/Modals";
@@ -42,12 +58,35 @@ interface Job {
 
 function formatSalary(min: number | null, max: number | null): string {
   if (!min && !max) return "Gaji kompetitif";
-  const formatter = new Intl.NumberFormat("id-ID", { notation: "compact", maximumFractionDigits: 1 });
+  const formatter = new Intl.NumberFormat("id-ID", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  });
   if (min && max) return `Rp ${formatter.format(min)}-${formatter.format(max)}`;
   return `Mulai Rp ${formatter.format(min ?? max ?? 0)}`;
 }
 
-const locationOptions = ["Semua Lokasi", "Jakarta", "Jakarta Pusat", "Jakarta Selatan", "Jakarta Barat", "Jakarta Timur", "Jakarta Utara", "Bogor", "Depok", "Tangerang", "Bekasi", "Bandung", "Cimahi", "Semarang", "Solo", "Yogyakarta", "Surabaya", "Malang", "Sidoarjo"];
+const locationOptions = [
+  "Semua Lokasi",
+  "Jakarta",
+  "Jakarta Pusat",
+  "Jakarta Selatan",
+  "Jakarta Barat",
+  "Jakarta Timur",
+  "Jakarta Utara",
+  "Bogor",
+  "Depok",
+  "Tangerang",
+  "Bekasi",
+  "Bandung",
+  "Cimahi",
+  "Semarang",
+  "Solo",
+  "Yogyakarta",
+  "Surabaya",
+  "Malang",
+  "Sidoarjo",
+];
 const typeOptions = ["Semua Tipe", "Full-time", "Hybrid", "Remote"];
 const salaryOptions = ["Semua Gaji", "< 12 jt", "12–18 jt", "> 18 jt"];
 const industryOptions = ["Semua Industri", "E-commerce", "Teknologi", "Travel", "EdTech"];
@@ -69,23 +108,30 @@ function SelectDropdown({
         onChange={(e) => onChange(e.target.value)}
         style={{
           appearance: "none",
-          padding: "8px 36px 8px 14px",
-          borderRadius: 10,
-          border: "1.5px solid rgba(22,119,255,0.18)",
-          background: "#fff",
+          padding: "9px 36px 9px 16px",
+          minHeight: 40,
+          borderRadius: 999,
+          border: "1px solid #E2E8F0",
+          background: "#F4F5F7",
           fontFamily: "'Inter', sans-serif",
           fontSize: 13,
-          color: "#0A1B3D",
+          fontWeight: 500,
+          color: "#0D1117",
           cursor: "pointer",
           outline: "none",
-          minWidth: 150,
+          minWidth: 148,
         }}
       >
         {options.map((o) => (
-          <option key={o} value={o}>{o}</option>
+          <option key={o} value={o}>
+            {o}
+          </option>
         ))}
       </select>
-      <ChevronDown size={14} style={{ position: "absolute", right: 10, color: "#6a88b8", pointerEvents: "none" }} />
+      <ChevronDown
+        size={14}
+        style={{ position: "absolute", right: 12, color: "#4A5568", pointerEvents: "none" }}
+      />
     </div>
   );
 }
@@ -93,17 +139,17 @@ function SelectDropdown({
 function SkillTag({ label, color }: { label: string; color: "green" | "red" }) {
   const styles =
     color === "green"
-      ? { background: "rgba(16,185,129,0.1)", color: "#059669", border: "1px solid rgba(16,185,129,0.25)" }
-      : { background: "rgba(239,68,68,0.08)", color: "#dc2626", border: "1px solid rgba(239,68,68,0.2)" };
+      ? { background: "#D4FF59", color: "#0D1117", border: "none" }
+      : { background: "#FFFFFF", color: "#4A5568", border: "1px solid #CBD5E1" };
   return (
     <span
       style={{
         ...styles,
-        padding: "3px 10px",
+        padding: "4px 10px",
         borderRadius: 999,
         fontFamily: "'Inter', sans-serif",
-        fontSize: 11,
-        fontWeight: 500,
+        fontSize: 11.5,
+        fontWeight: 600,
       }}
     >
       {label}
@@ -182,7 +228,9 @@ export default function JobRecommendationsPage() {
         const salaryMax = matchingPub?.salaryMax ?? null;
         const matchedSkills = rec.breakdown?.skillMatch?.matchedSkills ?? [];
         const missingSkills = rec.breakdown?.skillMatch?.missingRequiredSkills ?? [];
-        const aiReason = rec.matchExplanation?.[0] || "Dihitung berdasarkan relevansi profil dan kebutuhan lowongan.";
+        const aiReason =
+          rec.matchExplanation?.[0] ||
+          "Dihitung berdasarkan relevansi profil dan kebutuhan lowongan.";
 
         return {
           id: rec.job.id,
@@ -226,7 +274,8 @@ export default function JobRecommendationsPage() {
   const filtered = sourceJobs
     .filter((job) => {
       const q = search.toLowerCase();
-      if (q && !job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q)) return false;
+      if (q && !job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q))
+        return false;
       if (locationFilter !== "Semua Lokasi" && job.location !== locationFilter) return false;
       if (typeFilter !== "Semua Tipe" && job.type !== typeFilter) return false;
       if (industryFilter !== "Semua Industri" && job.industry !== industryFilter) return false;
@@ -247,7 +296,16 @@ export default function JobRecommendationsPage() {
       unsaveJob(job.id);
       toast.success("Lowongan dihapus dari daftar tersimpan");
     } else {
-      saveJob({ id: job.id, title: job.title, company: job.company, location: job.location, type: job.type, salary: job.salary, match: job.match, matchedSkills: job.matchedSkills.slice(0, 3) });
+      saveJob({
+        id: job.id,
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        type: job.type,
+        salary: job.salary,
+        match: job.match,
+        matchedSkills: job.matchedSkills.slice(0, 3),
+      });
       toast.success("Lowongan berhasil disimpan!");
     }
   };
@@ -259,47 +317,67 @@ export default function JobRecommendationsPage() {
       userRole="Kandidat"
       userInitial={displayInitial}
     >
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
-        {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <h1
-            style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: 24,
-              fontWeight: 700,
-              color: "#0A1B3D",
-              margin: 0,
-              marginBottom: 6,
-            }}
-          >
-            Rekomendasi Pekerjaan
-          </h1>
-          <p
-            style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 14,
-              color: "#6a88b8",
-              margin: 0,
-            }}
-          >
-            Pekerjaan berikut dipilih berdasarkan skill, pengalaman, lokasi, dan preferensi karier Anda.
-          </p>
-        </div>
+      {/* Framed Hero Banner */}
+      <section
+        style={{
+          borderRadius: 26,
+          background: "linear-gradient(180deg, #0849A8 0%, #0E67CC 52%, #2B8CFF 100%)",
+          padding: "28px 30px",
+          marginBottom: 24,
+          boxShadow: "0 16px 40px rgba(8, 73, 168, 0.12)",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#D4FF59",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            margin: "0 0 8px",
+          }}
+        >
+          Pencocokan Pekerjaan AI
+        </p>
+        <h1
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: "clamp(24px, 3vw, 32px)",
+            fontWeight: 600,
+            color: "#FFFFFF",
+            letterSpacing: "-0.03em",
+            margin: "0 0 6px",
+            lineHeight: 1.15,
+          }}
+        >
+          Rekomendasi Pekerjaan
+        </h1>
+        <p
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14.5,
+            color: "rgba(255, 255, 255, 0.9)",
+            margin: "0 0 20px",
+          }}
+        >
+          Pekerjaan berikut dipilih berdasarkan skill, pengalaman, lokasi, dan preferensi karier
+          Anda.
+        </p>
 
-        {/* Search */}
+        {/* Pill Search inside Hero */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: 10,
-            background: "#fff",
-            border: "1.5px solid rgba(22,119,255,0.18)",
-            borderRadius: 12,
-            padding: "10px 16px",
-            marginBottom: 16,
+            background: "#FFFFFF",
+            borderRadius: 999,
+            padding: "11px 20px",
+            maxWidth: 640,
           }}
         >
-          <Search size={16} color="#6a88b8" />
+          <Search size={16} color="#4A5568" />
           <input
             type="text"
             placeholder="Cari posisi atau perusahaan..."
@@ -311,192 +389,206 @@ export default function JobRecommendationsPage() {
               outline: "none",
               fontFamily: "'Inter', sans-serif",
               fontSize: 14,
-              color: "#0A1B3D",
+              color: "#0D1117",
               background: "transparent",
             }}
           />
         </div>
+      </section>
 
-        {/* Filters */}
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 10,
-            marginBottom: 28,
-          }}
-        >
-          <SelectDropdown value={locationFilter} onChange={setLocationFilter} options={locationOptions} />
-          <SelectDropdown value={typeFilter} onChange={setTypeFilter} options={typeOptions} />
-          <SelectDropdown value={salaryFilter} onChange={setSalaryFilter} options={salaryOptions} />
-          <SelectDropdown value={industryFilter} onChange={setIndustryFilter} options={industryOptions} />
-          <div style={{ marginLeft: "auto" }}>
-            <SelectDropdown value={sortBy} onChange={setSortBy} options={sortOptions} />
-          </div>
+      {/* Filters */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 10,
+          marginBottom: 20,
+        }}
+      >
+        <SelectDropdown value={locationFilter} onChange={setLocationFilter} options={locationOptions} />
+        <SelectDropdown value={typeFilter} onChange={setTypeFilter} options={typeOptions} />
+        <SelectDropdown value={salaryFilter} onChange={setSalaryFilter} options={salaryOptions} />
+        <SelectDropdown value={industryFilter} onChange={setIndustryFilter} options={industryOptions} />
+        <div style={{ marginLeft: "auto" }}>
+          <SelectDropdown value={sortBy} onChange={setSortBy} options={sortOptions} />
         </div>
+      </div>
 
-        {/* Result count */}
-        <p
-          style={{
-            fontFamily: "'Inter', sans-serif",
-            fontSize: 13,
-            color: "#6a88b8",
-            marginBottom: 16,
-          }}
-        >
-          Menampilkan <strong style={{ color: "#0A1B3D" }}>{filtered.length}</strong> pekerjaan
-        </p>
+      {/* Result count */}
+      <p
+        style={{
+          fontFamily: "'Inter', sans-serif",
+          fontSize: 13.5,
+          color: "#4A5568",
+          marginBottom: 16,
+        }}
+      >
+        Menampilkan <strong style={{ color: "#0D1117" }}>{filtered.length}</strong> pekerjaan
+      </p>
 
-        {/* Job cards */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {filtered.map((job) => {
-            const isSaved = isJobSaved(job.id);
-            return (
+      {/* Job cards */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {filtered.map((job) => {
+          const isSaved = isJobSaved(job.id);
+          return (
+            <div
+              key={job.id}
+              style={{
+                background: "#F4F5F7",
+                borderRadius: 24,
+                border: "1px solid #E2E8F0",
+                padding: 24,
+              }}
+            >
+              {/* Top row */}
               <div
-                key={job.id}
                 style={{
-                  background: "#fff",
-                  borderRadius: 16,
-                  border: "1.5px solid rgba(22,119,255,0.1)",
-                  padding: 24,
-                  boxShadow: "0 2px 12px rgba(10,27,61,0.05)",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  marginBottom: 14,
+                  flexWrap: "wrap",
                 }}
               >
-                {/* Top row */}
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 12 }}>
-                  {/* Job info */}
-                  <div style={{ flex: 1 }}>
-                    <h2
-                      style={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: 17,
-                        fontWeight: 700,
-                        color: "#0A1B3D",
-                        margin: 0,
-                        marginBottom: 4,
-                      }}
-                    >
-                      {job.title}
-                    </h2>
-                    <p
-                      style={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: 14,
-                        color: "#6a88b8",
-                        margin: 0,
-                        marginBottom: 8,
-                      }}
-                    >
-                      {job.company}
-                    </p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 4,
-                          fontFamily: "'Inter', sans-serif",
-                          fontSize: 13,
-                          color: "#6a88b8",
-                        }}
-                      >
-                        <MapPin size={13} /> {job.location}
-                      </span>
-                      <span
-                        style={{
-                          background: "rgba(22,119,255,0.08)",
-                          color: "#1677FF",
-                          border: "1px solid rgba(22,119,255,0.2)",
-                          borderRadius: 999,
-                          padding: "2px 10px",
-                          fontFamily: "'Inter', sans-serif",
-                          fontSize: 12,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {job.type}
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "'JetBrains Mono', monospace",
-                          fontSize: 13,
-                          color: "#0A1B3D",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {job.salary}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Match score */}
-                  <div
+                <div style={{ flex: 1, minWidth: 220 }}>
+                  <h2
                     style={{
-                      textAlign: "center",
-                      background: "linear-gradient(135deg, #e8f1ff, #f0f7ff)",
-                      border: "1.5px solid rgba(22,119,255,0.2)",
-                      borderRadius: 14,
-                      padding: "12px 20px",
-                      flexShrink: 0,
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                      margin: "0 0 4px",
                     }}
                   >
-                    <div
-                      style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: 28,
-                        fontWeight: 700,
-                        color: "#1677FF",
-                        lineHeight: 1,
-                      }}
-                    >
-                      {job.match}%
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: 11,
-                        color: "#4DB8FF",
-                        fontWeight: 500,
-                        marginTop: 4,
-                      }}
-                    >
-                      Match Score
-                    </div>
-                  </div>
-                </div>
-
-                {/* AI reason */}
-                <div
-                  style={{
-                    background: "rgba(22,119,255,0.05)",
-                    border: "1px solid rgba(22,119,255,0.15)",
-                    borderRadius: 10,
-                    padding: "10px 14px",
-                    marginBottom: 14,
-                  }}
-                >
+                    {job.title}
+                  </h2>
                   <p
                     style={{
                       fontFamily: "'Inter', sans-serif",
-                      fontSize: 13,
-                      color: "#1677FF",
-                      fontStyle: "italic",
-                      margin: 0,
+                      fontSize: 14,
+                      color: "#4A5568",
+                      margin: "0 0 10px",
                     }}
                   >
-                    {job.aiReason}
+                    {job.company}
                   </p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 13,
+                        color: "#4A5568",
+                      }}
+                    >
+                      <MapPin size={13} /> {job.location}
+                    </span>
+                    <span
+                      style={{
+                        background: "#FFFFFF",
+                        color: "#0D1117",
+                        border: "1px solid #E2E8F0",
+                        borderRadius: 999,
+                        padding: "3px 12px",
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {job.type}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 13.5,
+                        color: "#0D1117",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {job.salary}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Skills */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 18, alignItems: "flex-start" }}>
+                {/* Match score */}
+                <div
+                  style={{
+                    textAlign: "center",
+                    background: "#0D1117",
+                    borderRadius: 18,
+                    padding: "12px 20px",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: 26,
+                      fontWeight: 700,
+                      color: "#D4FF59",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {job.match}%
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 11,
+                      color: "#CBD5E1",
+                      fontWeight: 500,
+                      marginTop: 4,
+                    }}
+                  >
+                    Match Score
+                  </div>
+                </div>
+              </div>
+
+              {/* AI reason */}
+              <div
+                style={{
+                  background: "#FFFFFF",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: 14,
+                  padding: "12px 16px",
+                  marginBottom: 16,
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13,
+                    color: "#334155",
+                    margin: 0,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {job.aiReason}
+                </p>
+              </div>
+
+              {/* Skills */}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 20,
+                  marginBottom: 18,
+                  alignItems: "flex-start",
+                }}
+              >
+                {job.matchedSkills.length > 0 && (
                   <div>
                     <p
                       style={{
                         fontFamily: "'Inter', sans-serif",
                         fontSize: 11,
-                        color: "#6a88b8",
-                        fontWeight: 600,
+                        color: "#4A5568",
+                        fontWeight: 700,
                         textTransform: "uppercase",
                         letterSpacing: "0.06em",
                         margin: "0 0 6px",
@@ -510,13 +602,15 @@ export default function JobRecommendationsPage() {
                       ))}
                     </div>
                   </div>
+                )}
+                {job.missingSkills.length > 0 && (
                   <div>
                     <p
                       style={{
                         fontFamily: "'Inter', sans-serif",
                         fontSize: 11,
-                        color: "#6a88b8",
-                        fontWeight: 600,
+                        color: "#4A5568",
+                        fontWeight: 700,
                         textTransform: "uppercase",
                         letterSpacing: "0.06em",
                         margin: "0 0 6px",
@@ -530,141 +624,152 @@ export default function JobRecommendationsPage() {
                       ))}
                     </div>
                   </div>
-                </div>
-
-                {/* Actions */}
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <button
-                    onClick={() => navigate(`/dashboard/kandidat/pekerjaan/${job.id}`)}
-                    style={{
-                      padding: "9px 18px",
-                      borderRadius: 10,
-                      border: "1.5px solid rgba(22,119,255,0.3)",
-                      background: "#f0f7ff",
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: "#1677FF",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Lihat Detail
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (isSaved) {
-                        navigate("/dashboard/kandidat/tersimpan");
-                      } else {
-                        handleSave(job);
-                      }
-                    }}
-                    style={{
-                      padding: "9px 18px",
-                      borderRadius: 10,
-                      border: isSaved ? "1.5px solid rgba(16,185,129,0.35)" : "1.5px solid rgba(22,119,255,0.2)",
-                      background: isSaved ? "rgba(16,185,129,0.08)" : "#fff",
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: isSaved ? "#059669" : "#6a88b8",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {isSaved ? "Tersimpan" : "Simpan"}
-                  </button>
-                  <button
-                    onClick={() => setShowModal(job)}
-                    style={{
-                      padding: "9px 22px",
-                      borderRadius: 10,
-                      border: "none",
-                      background: "linear-gradient(135deg, #1677FF, #0D47A1)",
-                      fontFamily: "'Poppins', sans-serif",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: "#fff",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Lamar
-                  </button>
-                </div>
+                )}
               </div>
-            );
-          })}
-        </div>
 
-        {loading && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "48px 24px",
-              background: "#fff",
-              borderRadius: 16,
-              border: "1.5px solid rgba(22,119,255,0.1)",
-              gap: 12,
-            }}
-          >
-            <Loader2 size={32} className="animate-spin" color="#1677FF" />
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", margin: 0 }}>
-              Memuat rekomendasi lowongan pekerjaan dari server...
-            </p>
-          </div>
-        )}
-
-        {!loading && error && sourceJobs.length === 0 && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "48px 24px",
-              background: "#fff",
-              borderRadius: 16,
-              border: "1.5px solid rgba(239,68,68,0.2)",
-            }}
-          >
-            <AlertCircle size={36} color="#dc2626" style={{ margin: "0 auto 12px" }} />
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#dc2626", marginBottom: 16 }}>
-              {error}
-            </p>
-            <button
-              onClick={() => void loadJobsData()}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 18px",
-                borderRadius: 8,
-                background: "#1677FF",
-                color: "#fff",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 13,
-                fontWeight: 600,
-              }}
-            >
-              <RefreshCw size={14} /> Coba Lagi
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && filtered.length === 0 && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "64px 24px",
-              color: "#6a88b8",
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 14,
-            }}
-          >
-            Tidak ada pekerjaan yang cocok dengan filter Anda.
-          </div>
-        )}
+              {/* Actions */}
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/dashboard/kandidat/pekerjaan/${job.id}`)}
+                  style={{
+                    padding: "9px 20px",
+                    minHeight: 42,
+                    borderRadius: 999,
+                    border: "1px solid #CBD5E1",
+                    background: "#FFFFFF",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "#0D1117",
+                    cursor: "pointer",
+                  }}
+                >
+                  Lihat Detail
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isSaved) {
+                      navigate("/dashboard/kandidat/tersimpan");
+                    } else {
+                      handleSave(job);
+                    }
+                  }}
+                  style={{
+                    padding: "9px 20px",
+                    minHeight: 42,
+                    borderRadius: 999,
+                    border: isSaved ? "none" : "1px solid #CBD5E1",
+                    background: isSaved ? "#D4FF59" : "#FFFFFF",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#0D1117",
+                    cursor: "pointer",
+                  }}
+                >
+                  {isSaved ? "Tersimpan" : "Simpan"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(job)}
+                  style={{
+                    padding: "9px 24px",
+                    minHeight: 42,
+                    borderRadius: 999,
+                    border: "none",
+                    background: "#0D1117",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#D4FF59",
+                    cursor: "pointer",
+                  }}
+                >
+                  Lamar
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
+
+      {loading && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "48px 24px",
+            background: "#F4F5F7",
+            borderRadius: 24,
+            border: "1px solid #E2E8F0",
+            gap: 12,
+          }}
+        >
+          <Loader2 size={32} className="animate-spin" color="#0E67CC" />
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4A5568", margin: 0 }}>
+            Memuat rekomendasi lowongan pekerjaan dari server...
+          </p>
+        </div>
+      )}
+
+      {!loading && error && sourceJobs.length === 0 && (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "48px 24px",
+            background: "#FEF2F2",
+            borderRadius: 24,
+            border: "1px solid #FECACA",
+          }}
+        >
+          <AlertCircle size={36} color="#B91C1C" style={{ margin: "0 auto 12px" }} />
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#991B1B", marginBottom: 16 }}>
+            {error}
+          </p>
+          <button
+            type="button"
+            onClick={() => void loadJobsData()}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "10px 22px",
+              minHeight: 42,
+              borderRadius: 999,
+              background: "#0D1117",
+              color: "#D4FF59",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            <RefreshCw size={14} /> Coba Lagi
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && filtered.length === 0 && (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "64px 24px",
+            color: "#4A5568",
+            background: "#F4F5F7",
+            borderRadius: 24,
+            border: "1px solid #E2E8F0",
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14,
+          }}
+        >
+          Tidak ada pekerjaan yang cocok dengan filter Anda.
+        </div>
+      )}
 
       {showModal && (
         <ApplicationConfirmModal

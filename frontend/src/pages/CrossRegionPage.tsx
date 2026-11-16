@@ -1,6 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings, MapPin, TrendingUp, Building2 } from "lucide-react";
+import {
+  Home,
+  Briefcase,
+  Bookmark,
+  BarChart2,
+  BookOpen,
+  FileText,
+  Globe,
+  User,
+  Settings,
+  MapPin,
+  TrendingUp,
+  Building2,
+} from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import type { SidebarItem } from "../components/DashboardLayout";
 import { ApplicationConfirmModal } from "../components/Modals";
@@ -27,7 +40,13 @@ interface Opportunity {
   company: string;
   location: string;
   from: string;
-  region: "DKI Jakarta" | "Jawa Barat" | "Jawa Tengah" | "DI Yogyakarta" | "Jawa Timur" | "Banten";
+  region:
+    | "DKI Jakarta"
+    | "Jawa Barat"
+    | "Jawa Tengah"
+    | "DI Yogyakarta"
+    | "Jawa Timur"
+    | "Banten";
   type: WorkType;
   salary: string;
   match: number;
@@ -42,34 +61,15 @@ const opportunities: Opportunity[] = [
   { id: "opp-6", title: "UI/UX Designer", company: "BCA Digital", location: "Jakarta", from: "Bekasi", region: "DKI Jakarta", type: "Remote OK", salary: "10–16 jt", match: 68 },
 ];
 
-const regionFilters = ["Semua Wilayah", "DKI Jakarta", "Jawa Barat", "Jawa Tengah", "DI Yogyakarta", "Jawa Timur", "Banten"] as const;
-
-const workTypeBadge: Record<WorkType, { bg: string; color: string }> = {
-  "Remote OK": { bg: "rgba(16,217,142,0.12)", color: "#10d98e" },
-  "Relokasi": { bg: "rgba(255,154,60,0.12)", color: "#ff9a3c" },
-  "Hybrid": { bg: "rgba(22,119,255,0.1)", color: "#1677FF" },
-};
-
-function MatchRing({ score }: { score: number }) {
-  const color = score >= 80 ? "#10d98e" : score >= 70 ? "#1677FF" : "#ff9a3c";
-  return (
-    <div style={{
-      width: 52, height: 52, borderRadius: "50%",
-      background: `conic-gradient(${color} ${score * 3.6}deg, #eef4ff ${score * 3.6}deg)`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      flexShrink: 0,
-    }}>
-      <div style={{
-        width: 38, height: 38, borderRadius: "50%", background: "#fff",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        flexDirection: "column",
-      }}>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 800, color, lineHeight: 1 }}>{score}</span>
-        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 8, color: "#6a88b8", lineHeight: 1 }}>match</span>
-      </div>
-    </div>
-  );
-}
+const regionFilters = [
+  "Semua Wilayah",
+  "DKI Jakarta",
+  "Jawa Barat",
+  "Jawa Tengah",
+  "DI Yogyakarta",
+  "Jawa Timur",
+  "Banten",
+] as const;
 
 export default function CrossRegionPage() {
   const navigate = useNavigate();
@@ -80,9 +80,10 @@ export default function CrossRegionPage() {
   const [showModal, setShowModal] = useState<{ title: string; company: string } | null>(null);
   const [interestedIds, setInterestedIds] = useState<Set<string>>(new Set());
 
-  const filtered = activeRegion === "Semua Wilayah"
-    ? opportunities
-    : opportunities.filter((o) => o.region === activeRegion);
+  const filtered =
+    activeRegion === "Semua Wilayah"
+      ? opportunities
+      : opportunities.filter((o) => o.region === activeRegion);
 
   const toggleInterested = (id: string) => {
     setInterestedIds((prev) => {
@@ -97,13 +98,32 @@ export default function CrossRegionPage() {
     });
   };
 
-  const card: React.CSSProperties = {
-    background: "#fff",
-    borderRadius: 16,
-    padding: "24px",
-    boxShadow: "0 2px 12px rgba(10,27,61,0.07)",
-    border: "1px solid rgba(22,119,255,0.08)",
-  };
+  const statItems = [
+    {
+      label: "Total Peluang",
+      value: opportunities.length,
+      icon: Briefcase,
+      variant: "blue" as const,
+    },
+    {
+      label: "Remote OK",
+      value: opportunities.filter((o) => o.type === "Remote OK").length,
+      icon: Globe,
+      variant: "light" as const,
+    },
+    {
+      label: "Relokasi",
+      value: opportunities.filter((o) => o.type === "Relokasi").length,
+      icon: MapPin,
+      variant: "lime" as const,
+    },
+    {
+      label: "Avg. Match",
+      value: `${Math.round(opportunities.reduce((a, o) => a + o.match, 0) / opportunities.length)}%`,
+      icon: TrendingUp,
+      variant: "dark" as const,
+    },
+  ];
 
   return (
     <DashboardLayout
@@ -112,117 +132,178 @@ export default function CrossRegionPage() {
       userRole="Kandidat"
       userInitial={displayInitial}
     >
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 700, color: "#0A1B3D", margin: 0 }}>
+      {/* Framed Hero Banner */}
+      <section
+        style={{
+          borderRadius: 26,
+          background: "linear-gradient(180deg, #0849A8 0%, #0E67CC 52%, #2B8CFF 100%)",
+          padding: "28px 30px",
+          marginBottom: 24,
+          boxShadow: "0 16px 40px rgba(8, 73, 168, 0.12)",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#D4FF59",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            margin: "0 0 8px",
+          }}
+        >
+          Mobilitas Karier Nasional
+        </p>
+        <h1
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: "clamp(24px, 3vw, 32px)",
+            fontWeight: 600,
+            color: "#FFFFFF",
+            letterSpacing: "-0.03em",
+            margin: "0 0 6px",
+            lineHeight: 1.15,
+          }}
+        >
           Peluang Lintas Wilayah
         </h1>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", marginTop: 6 }}>
-          Temukan peluang karier terbaik di seluruh Indonesia.
+        <p
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14.5,
+            color: "rgba(255, 255, 255, 0.9)",
+            margin: 0,
+          }}
+        >
+          Temukan peluang karier terbaik di seluruh Indonesia ({opportunities.length} lowongan
+          tersebar di {new Set(opportunities.map((o) => o.region)).size} wilayah).
         </p>
-      </div>
+      </section>
 
-      {/* Stats row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
-        {[
-          { label: "Total Peluang", value: opportunities.length, icon: <Briefcase size={16} color="#1677FF" />, color: "#1677FF" },
-          { label: "Remote OK", value: opportunities.filter((o) => o.type === "Remote OK").length, icon: <Globe size={16} color="#10d98e" />, color: "#10d98e" },
-          { label: "Relokasi", value: opportunities.filter((o) => o.type === "Relokasi").length, icon: <MapPin size={16} color="#ff9a3c" />, color: "#ff9a3c" },
-          { label: "Avg. Match", value: `${Math.round(opportunities.reduce((a, o) => a + o.match, 0) / opportunities.length)}%`, icon: <TrendingUp size={16} color="#4DB8FF" />, color: "#4DB8FF" },
-        ].map((stat) => (
-          <div key={stat.label} style={{ ...card, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: `${stat.color}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              {stat.icon}
-            </div>
-            <div>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 22, fontWeight: 800, color: stat.color }}>{stat.value}</div>
-              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8" }}>{stat.label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Bento Stats row */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 16,
+          marginBottom: 24,
+        }}
+      >
+        {statItems.map((stat) => {
+          const Icon = stat.icon;
+          const isBlue = stat.variant === "blue";
+          const isLime = stat.variant === "lime";
+          const isDark = stat.variant === "dark";
+          const bg = isBlue
+            ? "linear-gradient(180deg, #0E67CC 0%, #2B8CFF 100%)"
+            : isLime
+              ? "#D4FF59"
+              : isDark
+                ? "#0D1117"
+                : "#F4F5F7";
+          const valColor = isBlue || isDark ? "#FFFFFF" : "#0D1117";
+          const subColor = isBlue
+            ? "rgba(255, 255, 255, 0.9)"
+            : isDark
+              ? "#CBD5E1"
+              : "#4A5568";
+          const iconBg = isBlue || isDark ? "#FFFFFF" : "#0D1117";
+          const iconColor = isBlue || isDark ? "#0D1117" : "#D4FF59";
 
-      {/* Map placeholder */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{
-          borderRadius: 16,
-          overflow: "hidden",
-          height: 200,
-          background: "linear-gradient(135deg, #0A1B3D 0%, #0d2b5e 40%, #1677FF22 70%, #4DB8FF11 100%)",
-          border: "1px solid rgba(22,119,255,0.2)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          gap: 12,
-          position: "relative",
-        }}>
-          {/* Decorative dots */}
-          {[
-            { top: "30%", left: "20%", size: 10 },
-            { top: "55%", left: "45%", size: 14 },
-            { top: "40%", left: "65%", size: 10 },
-            { top: "60%", left: "75%", size: 12 },
-            { top: "35%", left: "55%", size: 8 },
-            { top: "65%", left: "30%", size: 10 },
-          ].map((dot, i) => (
-            <div key={i} style={{
-              position: "absolute", top: dot.top, left: dot.left,
-              width: dot.size, height: dot.size, borderRadius: "50%",
-              background: "#4DB8FF",
-              boxShadow: `0 0 ${dot.size * 2}px #4DB8FF88`,
-              animation: "pulse 2s infinite",
-            }} />
-          ))}
-          {/* Grid lines */}
-          <div style={{
-            position: "absolute", inset: 0, opacity: 0.08,
-            backgroundImage: "linear-gradient(rgba(77,184,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(77,184,255,1) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }} />
-          <Globe size={32} color="#4DB8FF" style={{ position: "relative", zIndex: 1 }} />
-          <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-            <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 16, fontWeight: 700, color: "#fff" }}>Peta Persebaran Lowongan</div>
-            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "rgba(77,184,255,0.7)", marginTop: 4 }}>
-              {opportunities.length} lowongan tersebar di {new Set(opportunities.map((o) => o.region)).size} wilayah Indonesia
+          return (
+            <div
+              key={stat.label}
+              style={{
+                background: bg,
+                borderRadius: 22,
+                border: stat.variant === "light" ? "1px solid #E2E8F0" : "none",
+                padding: "20px",
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+              }}
+            >
+              <div
+                aria-hidden="true"
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  background: iconBg,
+                  color: iconColor,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Icon size={18} />
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: 26,
+                    fontWeight: 600,
+                    color: valColor,
+                    lineHeight: 1.05,
+                  }}
+                >
+                  {stat.value}
+                </div>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: subColor }}>
+                  {stat.label}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
 
       {/* Region filter tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
         {regionFilters.map((region) => {
           const isActive = activeRegion === region;
-          const count = region === "Semua Wilayah" ? opportunities.length : opportunities.filter((o) => o.region === region).length;
+          const count =
+            region === "Semua Wilayah"
+              ? opportunities.length
+              : opportunities.filter((o) => o.region === region).length;
           return (
             <button
               key={region}
+              type="button"
               onClick={() => setActiveRegion(region)}
               style={{
                 fontFamily: "'Inter', sans-serif",
                 fontSize: 13,
-                fontWeight: isActive ? 600 : 400,
-                padding: "8px 16px",
-                borderRadius: 10,
-                border: isActive ? "1.5px solid #1677FF" : "1.5px solid rgba(22,119,255,0.15)",
-                background: isActive ? "#1677FF" : "#fff",
-                color: isActive ? "#fff" : "#6a88b8",
+                fontWeight: 600,
+                padding: "9px 18px",
+                minHeight: 40,
+                borderRadius: 999,
+                border: isActive ? "none" : "1px solid #E2E8F0",
+                background: isActive ? "#0D1117" : "#F4F5F7",
+                color: isActive ? "#D4FF59" : "#0D1117",
                 cursor: "pointer",
-                transition: "all 0.15s",
-                display: "flex",
+                transition: "all 0.15s ease",
+                display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
               }}
             >
               {region}
               {count > 0 && (
-                <span style={{
-                  fontFamily: "'JetBrains Mono', monospace", fontSize: 11,
-                  padding: "1px 6px", borderRadius: 99,
-                  background: isActive ? "rgba(255,255,255,0.2)" : "rgba(22,119,255,0.1)",
-                  color: isActive ? "#fff" : "#1677FF",
-                }}>
+                <span
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    background: isActive ? "rgba(212, 255, 89, 0.2)" : "#FFFFFF",
+                    color: isActive ? "#D4FF59" : "#0D1117",
+                  }}
+                >
                   {count}
                 </span>
               )}
@@ -233,90 +314,245 @@ export default function CrossRegionPage() {
 
       {/* Opportunity cards grid */}
       {filtered.length === 0 ? (
-        <div style={{ ...card, textAlign: "center", padding: "48px 24px", color: "#6a88b8" }}>
-          <Globe size={40} color="#d0dff2" style={{ marginBottom: 12 }} />
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 16, fontWeight: 600, color: "#b0c4de" }}>Tidak ada peluang di wilayah ini</div>
+        <div
+          style={{
+            background: "#F4F5F7",
+            borderRadius: 24,
+            border: "1px solid #E2E8F0",
+            textAlign: "center",
+            padding: "56px 24px",
+            color: "#4A5568",
+          }}
+        >
+          <Globe size={40} color="#0E67CC" style={{ margin: "0 auto 12px" }} />
+          <div
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 16,
+              fontWeight: 600,
+              color: "#0D1117",
+            }}
+          >
+            Tidak ada peluang di wilayah ini
+          </div>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 20 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+            gap: 18,
+          }}
+        >
           {filtered.map((opp) => {
-            const typeBadge = workTypeBadge[opp.type];
             const isInterested = interestedIds.has(opp.id);
             return (
-              <div key={opp.id} style={{ ...card, display: "flex", flexDirection: "column", gap: 14 }}>
+              <div
+                key={opp.id}
+                style={{
+                  background: "#F4F5F7",
+                  borderRadius: 24,
+                  border: "1px solid #E2E8F0",
+                  padding: "22px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 14,
+                }}
+              >
                 {/* Top */}
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-                  <div style={{ width: 46, height: 46, borderRadius: 12, background: "linear-gradient(135deg, #eef4ff, #dbeeff)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Building2 size={20} color="#1677FF" />
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: "#0D1117",
+                      color: "#D4FF59",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Building2 size={18} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 15, fontWeight: 700, color: "#0A1B3D" }}>{opp.title}</div>
-                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", marginTop: 2 }}>{opp.company}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: "#0D1117",
+                      }}
+                    >
+                      {opp.title}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 13,
+                        color: "#4A5568",
+                        marginTop: 2,
+                      }}
+                    >
+                      {opp.company}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        marginTop: 4,
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12,
+                        color: "#4A5568",
+                      }}
+                    >
                       <MapPin size={11} /> {opp.location}
                     </div>
                   </div>
-                  <MatchRing score={opp.match} />
+                  <div
+                    style={{
+                      background: "#0D1117",
+                      borderRadius: 14,
+                      padding: "8px 12px",
+                      textAlign: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: "#D4FF59",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {opp.match}%
+                    </div>
+                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 9.5, color: "#CBD5E1" }}>
+                      match
+                    </div>
+                  </div>
                 </div>
 
                 {/* Badges */}
                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                  <span style={{
-                    fontFamily: "'Inter', sans-serif", fontSize: 11, fontWeight: 600,
-                    padding: "3px 10px", borderRadius: 99,
-                    background: typeBadge.bg, color: typeBadge.color,
-                  }}>
+                  <span
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 11.5,
+                      fontWeight: 600,
+                      padding: "3px 12px",
+                      borderRadius: 999,
+                      background: "#D4FF59",
+                      color: "#0D1117",
+                    }}
+                  >
                     {opp.type}
                   </span>
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, padding: "3px 10px", borderRadius: 99, background: "#f0f7ff", color: "#1677FF", border: "1px solid rgba(22,119,255,0.15)" }}>
+                  <span
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 11.5,
+                      fontWeight: 500,
+                      padding: "3px 12px",
+                      borderRadius: 999,
+                      background: "#FFFFFF",
+                      color: "#0D1117",
+                      border: "1px solid #E2E8F0",
+                    }}
+                  >
                     {opp.region}
                   </span>
                 </div>
 
                 {/* Salary */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: 10, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.08)" }}>
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>Estimasi Gaji</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 700, color: "#0A1B3D" }}>Rp {opp.salary}</span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "10px 14px",
+                    borderRadius: 12,
+                    background: "#FFFFFF",
+                    border: "1px solid #E2E8F0",
+                  }}
+                >
+                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#4A5568" }}>
+                    Estimasi Gaji
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                    }}
+                  >
+                    Rp {opp.salary}
+                  </span>
                 </div>
 
                 {/* Tandai Tertarik */}
                 <button
+                  type="button"
                   onClick={() => toggleInterested(opp.id)}
                   style={{
-                    fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600,
-                    padding: "7px 14px", borderRadius: 10,
-                    border: `1.5px solid ${isInterested ? "#10d98e" : "rgba(22,119,255,0.2)"}`,
-                    background: isInterested ? "rgba(16,217,142,0.08)" : "#fff",
-                    color: isInterested ? "#10d98e" : "#6a88b8",
-                    cursor: "pointer", transition: "all 0.15s",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    padding: "8px 14px",
+                    minHeight: 38,
+                    borderRadius: 999,
+                    border: isInterested ? "none" : "1px solid #CBD5E1",
+                    background: isInterested ? "#D4FF59" : "#FFFFFF",
+                    color: "#0D1117",
+                    cursor: "pointer",
                     textAlign: "center",
                   }}
                 >
-                  {isInterested ? "Tertandai ✓" : "Tandai Tertarik"}
+                  {isInterested ? "Tertandai" : "Tandai Tertarik"}
                 </button>
 
                 {/* Buttons */}
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
+                    type="button"
                     onClick={() => navigate("/dashboard/kandidat/detail-cross-region")}
                     style={{
                       flex: 1,
-                      fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
-                      padding: "9px", borderRadius: 10,
-                      border: "1.5px solid rgba(22,119,255,0.2)",
-                      background: "#fff", color: "#1677FF", cursor: "pointer",
+                      minHeight: 40,
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      padding: "8px 14px",
+                      borderRadius: 999,
+                      border: "1px solid #CBD5E1",
+                      background: "#FFFFFF",
+                      color: "#0D1117",
+                      cursor: "pointer",
                     }}
                   >
                     Lihat Detail
                   </button>
                   <button
+                    type="button"
                     onClick={() => setShowModal({ title: opp.title, company: opp.company })}
                     style={{
                       flex: 1,
-                      fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
-                      padding: "9px", borderRadius: 10, border: "none",
-                      background: "linear-gradient(135deg, #1677FF, #4DB8FF)",
-                      color: "#fff", cursor: "pointer",
+                      minHeight: 40,
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      padding: "8px 14px",
+                      borderRadius: 999,
+                      border: "none",
+                      background: "#0D1117",
+                      color: "#D4FF59",
+                      cursor: "pointer",
                     }}
                   >
                     Lamar
