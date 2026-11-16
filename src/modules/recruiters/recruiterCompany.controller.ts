@@ -20,3 +20,13 @@ export const updateRecruiterCompanyProfile = asyncHandler(
     sendSuccess(res, "Company profile updated successfully.", updatedCompany);
   }
 );
+
+export const uploadRecruiterCompanyLogo = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const result = await recruiterCompanyService.uploadRecruiterCompanyLogo(
+      req.user!.id,
+      req.file!
+    );
+    sendSuccess(res, "Company logo uploaded successfully.", result);
+  }
+);

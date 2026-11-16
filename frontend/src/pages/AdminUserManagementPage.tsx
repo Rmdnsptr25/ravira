@@ -1,22 +1,23 @@
 import { useState } from "react";
-import { LayoutDashboard, Building2, Shield, AlertTriangle, Activity, ClipboardList, Cpu, Users, Settings, Search, UserX, KeyRound } from "lucide-react";
+import { CheckCircle2, KeyRound, Search, Users, UserX, X } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
-import type { SidebarItem } from "../components/DashboardLayout";
+import { adminSidebarItems } from "../constants/adminSidebar";
 
-const sidebarItems: SidebarItem[] = [
-  { key: "overview", label: "Overview", icon: <LayoutDashboard size={16} />, path: "/dashboard/admin" },
-  { key: "verifikasi", label: "Verifikasi Perusahaan", icon: <Building2 size={16} />, path: "/dashboard/admin/verifikasi-perusahaan" },
-  { key: "moderasi", label: "Moderasi Lowongan", icon: <Shield size={16} />, path: "/dashboard/admin/moderasi-lowongan" },
-  { key: "laporan", label: "Laporan Abuse", icon: <AlertTriangle size={16} />, path: "/dashboard/admin/laporan-abuse" },
-  { key: "monitoring", label: "Monitoring Integrasi", icon: <Activity size={16} />, path: "/dashboard/admin/monitoring-integrasi" },
-  { key: "audit", label: "Audit Log", icon: <ClipboardList size={16} />, path: "/dashboard/admin/audit-log" },
-  { key: "ai", label: "AI Performance", icon: <Cpu size={16} />, path: "/dashboard/admin/model-ai" },
-  { key: "users", label: "Manajemen User", icon: <Users size={16} />, path: "/dashboard/admin/user-management" },
-  { key: "pengaturan", label: "Pengaturan Sistem", icon: <Settings size={16} />, path: "/dashboard/admin/pengaturan" },
-];
+type UserRoleLabel = "Kandidat" | "Recruiter" | "Pemerintah" | "Admin";
+type UserAccountStatus = "Aktif" | "Suspended";
 
-const users = [
+interface ManagedUserRow {
+  id: number;
+  nama: string;
+  email: string;
+  role: UserRoleLabel;
+  status: UserAccountStatus;
+  daftar: string;
+  lastLogin: string;
+}
+
+const initialUsers: ManagedUserRow[] = [
   { id: 1, nama: "Budi Santoso", email: "budi.santoso@gmail.com", role: "Kandidat", status: "Aktif", daftar: "2026-01-15", lastLogin: "2026-05-30" },
   { id: 2, nama: "PT Gojek Indonesia", email: "recruiter@gojek.com", role: "Recruiter", status: "Aktif", daftar: "2025-11-03", lastLogin: "2026-05-29" },
   { id: 3, nama: "Siti Aminah", email: "siti.aminah@yahoo.com", role: "Kandidat", status: "Suspended", daftar: "2026-02-20", lastLogin: "2026-05-10" },
@@ -29,128 +30,268 @@ const users = [
   { id: 10, nama: "Kemnaker RI", email: "info@kemnaker.go.id", role: "Pemerintah", status: "Aktif", daftar: "2025-07-09", lastLogin: "2026-05-25" },
 ];
 
-const roleColor: Record<string, string> = {
-  Kandidat: "#1677FF",
-  Recruiter: "#8b5cf6",
-  Pemerintah: "#4DB8FF",
-  Admin: "#ff6b6b",
-};
-const roleBg: Record<string, string> = {
-  Kandidat: "rgba(22,119,255,0.1)",
-  Recruiter: "rgba(139,92,246,0.1)",
-  Pemerintah: "rgba(77,184,255,0.1)",
-  Admin: "rgba(255,107,107,0.1)",
-};
-
-const statCards = [
-  { label: "Total User", value: "48,924", color: "#1677FF" },
-  { label: "Kandidat", value: "45,231", color: "#1677FF" },
-  { label: "Recruiter", value: "2,847", color: "#8b5cf6" },
-  { label: "Pemerintah", value: "63", color: "#4DB8FF" },
-  { label: "Admin", value: "3", color: "#ff6b6b" },
+const roleTabs: Array<"Semua" | UserRoleLabel> = [
+  "Semua",
+  "Kandidat",
+  "Recruiter",
+  "Pemerintah",
+  "Admin",
 ];
 
 export default function AdminUserManagementPage() {
+  const [users, setUsers] = useState<ManagedUserRow[]>(initialUsers);
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("Semua");
-  const [statusFilter, setStatusFilter] = useState("Semua");
-  const [suspendTarget, setSuspendTarget] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<"Semua" | UserRoleLabel>("Semua");
+  const [statusFilter, setStatusFilter] = useState<"Semua" | UserAccountStatus>("Semua");
+  const [statusModalTarget, setStatusModalTarget] = useState<ManagedUserRow | null>(null);
 
-  const roles = ["Semua", "Kandidat", "Recruiter", "Pemerintah", "Admin"];
-  const statuses = ["Semua", "Aktif", "Suspended"];
+  const activeCount = users.filter((u) => u.status === "Aktif").length;
+  const suspendedCount = users.length - activeCount;
 
   const filtered = users.filter((u) => {
-    const matchSearch = search === "" || u.nama.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
+    const q = search.trim().toLowerCase();
+    const matchSearch =
+      !q || u.nama.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
     const matchRole = roleFilter === "Semua" || u.role === roleFilter;
     const matchStatus = statusFilter === "Semua" || u.status === statusFilter;
     return matchSearch && matchRole && matchStatus;
   });
 
+  const handleConfirmStatusToggle = () => {
+    if (!statusModalTarget) return;
+    const nextStatus: UserAccountStatus =
+      statusModalTarget.status === "Aktif" ? "Suspended" : "Aktif";
+    setUsers((prev) =>
+      prev.map((u) => (u.id === statusModalTarget.id ? { ...u, status: nextStatus } : u))
+    );
+    if (nextStatus === "Suspended") {
+      toast.warning(`Akun ${statusModalTarget.nama} dinonaktifkan sementara.`);
+    } else {
+      toast.success(`Akun ${statusModalTarget.nama} diaktifkan kembali.`);
+    }
+    setStatusModalTarget(null);
+  };
+
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Admin Ravira" userRole="Super Admin" userInitial="A">
-      {suspendTarget && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(10,27,61,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "#fff", borderRadius: 18, padding: 32, maxWidth: 380, width: "90%", boxShadow: "0 8px 40px rgba(10,27,61,0.18)" }}>
-            <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 17, fontWeight: 700, color: "#0A1B3D", marginBottom: 10 }}>Suspend User?</div>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", marginBottom: 20 }}>
-              Akun <strong style={{ color: "#0A1B3D" }}>{suspendTarget}</strong> akan disuspend dan tidak dapat mengakses platform.
+    <DashboardLayout sidebarItems={adminSidebarItems}>
+      <section className="admin-page" aria-labelledby="user-management-title">
+        <header className="admin-page-header">
+          <div>
+            <p className="admin-page-context">Sistem</p>
+            <h1 id="user-management-title">Manajemen pengguna</h1>
+            <p>
+              Kelola status akses akun kandidat, recruiter, instansi pemerintah, dan administrator platform RAVIRA.
             </p>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setSuspendTarget(null)} style={{ flex: 1, padding: "10px", borderRadius: 10, border: "1px solid rgba(22,119,255,0.2)", background: "#f0f7ff", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", cursor: "pointer" }}>Batal</button>
-              <button onClick={() => { toast.warning(`User ${suspendTarget} berhasil disuspend`); setSuspendTarget(null); }} style={{ flex: 2, padding: "10px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #f59e0b, #d97706)", fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer" }}>
-                Ya, Suspend
+          </div>
+        </header>
+
+        <div className="admin-queue-summary" aria-label="Ringkasan akun pengguna">
+          <div className="admin-queue-primary">
+            <span>Akun aktif terdaftar</span>
+            <strong>{activeCount}</strong>
+            <p>Total {users.length} akun terpantau pada direktori sampel (48,924 pengguna keseluruhan).</p>
+          </div>
+          <div className="admin-queue-note">
+            <span>Akun ditangguhkan</span>
+            <strong>{suspendedCount}</strong>
+            <p>Penangguhan atau pemulihan akses akun selalu memerlukan konfirmasi admin.</p>
+          </div>
+        </div>
+
+        <div className="admin-work-panel">
+          <div className="admin-work-panel-header">
+            <div>
+              <h2>Direktori akun pengguna</h2>
+              <p>Saring akun berdasarkan peran, status aktif, atau nama/email.</p>
+            </div>
+            <div className="admin-segmented-control" aria-label="Filter peran pengguna">
+              {roleTabs.map((role) => (
+                <button
+                  key={role}
+                  type="button"
+                  aria-pressed={roleFilter === role}
+                  onClick={() => setRoleFilter(role)}
+                >
+                  {role}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-toolbar">
+            <div className="admin-toolbar-group">
+              <div className="admin-search-field">
+                <Search size={15} color="#64748b" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Cari nama atau email..."
+                  aria-label="Cari pengguna"
+                />
+              </div>
+              <select
+                className="admin-select"
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value as "Semua" | UserAccountStatus)
+                }
+                aria-label="Filter status akun"
+              >
+                <option value="Semua">Semua status</option>
+                <option value="Aktif">Aktif</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+            </div>
+            <span className="admin-cell-subtitle">
+              Menampilkan {filtered.length} dari {users.length} pengguna
+            </span>
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="admin-state">
+              <Users size={28} aria-hidden="true" />
+              <strong>Tidak ada pengguna ditemukan</strong>
+              <p>Coba ubah filter peran, status, atau kata kunci pencarian.</p>
+            </div>
+          ) : (
+            <div className="admin-responsive-table">
+              <table className="admin-data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Pengguna</th>
+                    <th scope="col">Peran</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Terdaftar</th>
+                    <th scope="col">Login terakhir</th>
+                    <th scope="col">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((user) => {
+                    const isSuspended = user.status === "Suspended";
+                    return (
+                      <tr key={user.id}>
+                        <td>
+                          <span className="admin-cell-title">{user.nama}</span>
+                          <span className="admin-cell-subtitle">{user.email}</span>
+                        </td>
+                        <td>
+                          <span className="admin-status admin-status-neutral">{user.role}</span>
+                        </td>
+                        <td>
+                          <span
+                            className={
+                              isSuspended
+                                ? "admin-status admin-status-rejected"
+                                : "admin-status admin-status-approved"
+                            }
+                          >
+                            {user.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td>{user.daftar}</td>
+                        <td>{user.lastLogin}</td>
+                        <td>
+                          <div className="admin-row-actions">
+                            <button
+                              type="button"
+                              className={
+                                isSuspended
+                                  ? "admin-button admin-button-approve"
+                                  : "admin-button admin-button-danger-quiet"
+                              }
+                              onClick={() => setStatusModalTarget(user)}
+                            >
+                              {isSuspended ? (
+                                <>
+                                  <CheckCircle2 size={14} aria-hidden="true" />
+                                  Aktifkan
+                                </>
+                              ) : (
+                                <>
+                                  <UserX size={14} aria-hidden="true" />
+                                  Suspend
+                                </>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              className="admin-button admin-button-secondary"
+                              onClick={() =>
+                                toast.success(`Tautan reset password dikirim ke ${user.email}.`)
+                              }
+                            >
+                              <KeyRound size={14} aria-hidden="true" />
+                              Reset password
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {statusModalTarget && (
+        <div className="admin-dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="user-status-dialog-title">
+          <div className="admin-dialog">
+            <div className="admin-dialog-header">
+              <div>
+                <p className="admin-page-context">{statusModalTarget.role}</p>
+                <h2 id="user-status-dialog-title">
+                  {statusModalTarget.status === "Aktif" ? "Tangguhkan akun?" : "Aktifkan kembali akun?"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="admin-icon-button"
+                onClick={() => setStatusModalTarget(null)}
+                aria-label="Tutup dialog"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="admin-dialog-body">
+              <p>
+                {statusModalTarget.status === "Aktif" ? (
+                  <>
+                    Akun <strong>{statusModalTarget.nama}</strong> ({statusModalTarget.email}) akan ditangguhkan dan tidak dapat masuk ke platform sampai diaktifkan kembali.
+                  </>
+                ) : (
+                  <>
+                    Akun <strong>{statusModalTarget.nama}</strong> ({statusModalTarget.email}) akan diaktifkan kembali sehingga dapat mengakses platform RAVIRA.
+                  </>
+                )}
+              </p>
+            </div>
+            <div className="admin-dialog-actions">
+              <button
+                type="button"
+                className="admin-button admin-button-secondary"
+                onClick={() => setStatusModalTarget(null)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className={
+                  statusModalTarget.status === "Aktif"
+                    ? "admin-button admin-button-danger"
+                    : "admin-button admin-button-approve"
+                }
+                onClick={handleConfirmStatusToggle}
+              >
+                {statusModalTarget.status === "Aktif" ? "Ya, tangguhkan" : "Ya, aktifkan"}
               </button>
             </div>
           </div>
         </div>
       )}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 22, fontWeight: 800, color: "#0A1B3D", marginBottom: 4 }}>Manajemen User</h1>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8" }}>Kelola akun pengguna platform Ravira</p>
-      </div>
-
-      {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 24 }}>
-        {statCards.map((s) => (
-          <div key={s.label} style={{ background: "#fff", borderRadius: 14, border: "1px solid rgba(22,119,255,0.1)", padding: "14px 16px", boxShadow: "0 2px 8px rgba(10,27,61,0.04)" }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 22, fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", marginTop: 4 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 18, alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", borderRadius: 10, border: "1px solid rgba(22,119,255,0.15)", padding: "8px 12px", flex: 1, maxWidth: 280 }}>
-          <Search size={14} color="#6a88b8" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama atau email..." style={{ border: "none", outline: "none", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D", background: "transparent", width: "100%" }} />
-        </div>
-        <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D", border: "1px solid rgba(22,119,255,0.2)", borderRadius: 8, padding: "8px 12px", outline: "none", background: "#fff" }}>
-          {roles.map((r) => <option key={r} value={r}>{r === "Semua" ? "Semua Role" : r}</option>)}
-        </select>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D", border: "1px solid rgba(22,119,255,0.2)", borderRadius: 8, padding: "8px 12px", outline: "none", background: "#fff" }}>
-          {statuses.map((s) => <option key={s} value={s}>{s === "Semua" ? "Semua Status" : s}</option>)}
-        </select>
-      </div>
-
-      {/* Table */}
-      <div style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", overflow: "hidden", boxShadow: "0 2px 10px rgba(10,27,61,0.04)" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "rgba(22,119,255,0.04)", borderBottom: "1px solid rgba(22,119,255,0.1)" }}>
-              {["Nama", "Email", "Role", "Status", "Tanggal Daftar", "Last Login", "Aksi"].map((h) => (
-                <th key={h} style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#6a88b8", textAlign: "left", padding: "12px 16px" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((u, i) => (
-              <tr key={u.id} style={{ borderBottom: i < filtered.length - 1 ? "1px solid rgba(22,119,255,0.06)" : "none" }}>
-                <td style={{ padding: "13px 16px", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D" }}>{u.nama}</td>
-                <td style={{ padding: "13px 16px", fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>{u.email}</td>
-                <td style={{ padding: "13px 16px" }}>
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, fontWeight: 600, color: roleColor[u.role], background: roleBg[u.role], borderRadius: 6, padding: "3px 9px", border: `1px solid ${roleColor[u.role]}30` }}>{u.role}</span>
-                </td>
-                <td style={{ padding: "13px 16px" }}>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: u.status === "Aktif" ? "#10d98e" : "#ff6b6b", background: u.status === "Aktif" ? "rgba(16,217,142,0.1)" : "rgba(255,107,107,0.1)", borderRadius: 5, padding: "3px 7px", border: `1px solid ${u.status === "Aktif" ? "rgba(16,217,142,0.3)" : "rgba(255,107,107,0.3)"}` }}>{u.status.toUpperCase()}</span>
-                </td>
-                <td style={{ padding: "13px 16px", fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#9ab4cc" }}>{u.daftar}</td>
-                <td style={{ padding: "13px 16px", fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#9ab4cc" }}>{u.lastLogin}</td>
-                <td style={{ padding: "13px 16px" }}>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={() => setSuspendTarget(u.nama)} style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#f59e0b", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 7, padding: "5px 9px", cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}>
-                      <UserX size={11} /> Suspend
-                    </button>
-                    <button onClick={() => toast.success("Email reset terkirim")} style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#1677FF", background: "rgba(22,119,255,0.08)", border: "1px solid rgba(22,119,255,0.25)", borderRadius: 7, padding: "5px 9px", cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}>
-                      <KeyRound size={11} /> Reset Password
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </DashboardLayout>
   );
 }

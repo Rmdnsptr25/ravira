@@ -1,21 +1,22 @@
-import { LayoutDashboard, Building2, Shield, AlertTriangle, Activity, ClipboardList, Cpu, Users, Settings, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
-import type { SidebarItem } from "../components/DashboardLayout";
+import { adminSidebarItems } from "../constants/adminSidebar";
 
-const sidebarItems: SidebarItem[] = [
-  { key: "overview", label: "Overview", icon: <LayoutDashboard size={16} />, path: "/dashboard/admin" },
-  { key: "verifikasi", label: "Verifikasi Perusahaan", icon: <Building2 size={16} />, path: "/dashboard/admin/verifikasi-perusahaan" },
-  { key: "moderasi", label: "Moderasi Lowongan", icon: <Shield size={16} />, path: "/dashboard/admin/moderasi-lowongan" },
-  { key: "laporan", label: "Laporan Abuse", icon: <AlertTriangle size={16} />, path: "/dashboard/admin/laporan-abuse" },
-  { key: "monitoring", label: "Monitoring Integrasi", icon: <Activity size={16} />, path: "/dashboard/admin/monitoring-integrasi" },
-  { key: "audit", label: "Audit Log", icon: <ClipboardList size={16} />, path: "/dashboard/admin/audit-log" },
-  { key: "ai", label: "AI Performance", icon: <Cpu size={16} />, path: "/dashboard/admin/model-ai" },
-  { key: "users", label: "Manajemen User", icon: <Users size={16} />, path: "/dashboard/admin/user-management" },
-  { key: "pengaturan", label: "Pengaturan Sistem", icon: <Settings size={16} />, path: "/dashboard/admin/pengaturan" },
-];
+type IntegrationStatus = "OK" | "Error";
 
-const integrations = [
+interface IntegrationItem {
+  id: number;
+  name: string;
+  endpoint: string;
+  lastPing: string;
+  uptime: number;
+  latency: number;
+  status: IntegrationStatus;
+}
+
+const initialIntegrations: IntegrationItem[] = [
   { id: 1, name: "BPS Open Data API", endpoint: "api.bps.go.id/v1/data", lastPing: "2 menit lalu", uptime: 99.8, latency: 134, status: "OK" },
   { id: 2, name: "Kemnaker Job Portal", endpoint: "portal.kemnaker.go.id/api", lastPing: "5 menit lalu", uptime: 98.7, latency: 210, status: "OK" },
   { id: 3, name: "BPJS Ketenagakerjaan", endpoint: "api.bpjsketenagakerjaan.go.id", lastPing: "12 menit lalu", uptime: 87.2, latency: 2450, status: "Error" },
@@ -24,70 +25,155 @@ const integrations = [
   { id: 6, name: "Dukcapil Verifikasi", endpoint: "api.dukcapil.kemendagri.go.id", lastPing: "8 menit lalu", uptime: 99.1, latency: 188, status: "OK" },
 ];
 
-const globalStats = [
-  { label: "Total APIs", value: "6", color: "#1677FF" },
-  { label: "Status OK", value: "4", color: "#10d98e" },
-  { label: "Error", value: "2", color: "#ff6b6b" },
-  { label: "Avg Uptime", value: "99.2%", color: "#8b5cf6" },
-];
-
 export default function AdminMonitoringPage() {
+  const [integrations, setIntegrations] = useState<IntegrationItem[]>(initialIntegrations);
+  const [statusFilter, setStatusFilter] = useState<"Semua" | IntegrationStatus>("Semua");
+
+  const okCount = integrations.filter((item) => item.status === "OK").length;
+  const errorCount = integrations.length - okCount;
+  const avgUptime = (
+    integrations.reduce((sum, item) => sum + item.uptime, 0) / integrations.length
+  ).toFixed(1);
+
+  const filtered = integrations.filter(
+    (item) => statusFilter === "Semua" || item.status === statusFilter
+  );
+
+  const handleRetrySync = (target: IntegrationItem) => {
+    setIntegrations((prev) =>
+      prev.map((item) =>
+        item.id === target.id
+          ? {
+              ...item,
+              lastPing: "Baru saja",
+              status: "OK",
+              latency: Math.min(item.latency, 240),
+            }
+          : item
+      )
+    );
+    toast.success(`Sinkronisasi ${target.name} berhasil diperbarui.`);
+  };
+
+  const handleRefreshAll = () => {
+    setIntegrations((prev) =>
+      prev.map((item) => ({
+        ...item,
+        lastPing: "Baru saja",
+      }))
+    );
+    toast.success("Status seluruh integrasi API diperbarui.");
+  };
+
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Admin Ravira" userRole="Super Admin" userInitial="A">
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 22, fontWeight: 800, color: "#0A1B3D", marginBottom: 4 }}>Monitoring Integrasi API</h1>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8" }}>Pantau status koneksi dan performa integrasi layanan eksternal</p>
-      </div>
-
-      {/* Global Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 28 }}>
-        {globalStats.map((s) => (
-          <div key={s.label} style={{ background: "#fff", borderRadius: 14, border: "1px solid rgba(22,119,255,0.1)", padding: "16px 20px", boxShadow: "0 2px 8px rgba(10,27,61,0.04)" }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 28, fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", marginTop: 4 }}>{s.label}</div>
+    <DashboardLayout sidebarItems={adminSidebarItems}>
+      <section className="admin-page" aria-labelledby="monitoring-title">
+        <header className="admin-page-header">
+          <div>
+            <p className="admin-page-context">Sistem</p>
+            <h1 id="monitoring-title">Monitoring integrasi API</h1>
+            <p>
+              Pantau ketersediaan endpoint eksternal, waktu respons, dan ulangi sinkronisasi jika terjadi gangguan.
+            </p>
           </div>
-        ))}
-      </div>
+          <button
+            type="button"
+            className="admin-button admin-button-secondary"
+            onClick={handleRefreshAll}
+          >
+            <RefreshCw size={16} aria-hidden="true" />
+            Periksa semua
+          </button>
+        </header>
 
-      {/* Integration Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
-        {integrations.map((api) => {
-          const isOk = api.status === "OK";
-          return (
-            <div key={api.id} style={{ background: "#fff", borderRadius: 18, border: `1px solid ${isOk ? "rgba(16,217,142,0.15)" : "rgba(255,107,107,0.2)"}`, padding: "20px 22px", boxShadow: "0 2px 10px rgba(10,27,61,0.04)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: isOk ? "#10d98e" : "#ff6b6b", boxShadow: `0 0 8px ${isOk ? "#10d98e" : "#ff6b6b"}80`, flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D" }}>{api.name}</div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#9ab4cc", marginTop: 2 }}>{api.endpoint}</div>
-                  </div>
-                </div>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: isOk ? "#10d98e" : "#ff6b6b", background: isOk ? "rgba(16,217,142,0.1)" : "rgba(255,107,107,0.1)", borderRadius: 6, padding: "3px 8px", border: `1px solid ${isOk ? "rgba(16,217,142,0.3)" : "rgba(255,107,107,0.3)"}` }}>{api.status}</span>
-              </div>
+        <div className="admin-queue-summary" aria-label="Ringkasan kesehatan integrasi">
+          <div className="admin-queue-primary">
+            <span>Layanan aktif</span>
+            <strong>
+              {okCount} / {integrations.length}
+            </strong>
+            <p>Rata-rata uptime seluruh integrasi saat ini berada di {avgUptime}%.</p>
+          </div>
+          <div className="admin-queue-note">
+            <span>Perlu tindak lanjut</span>
+            <strong>{errorCount}</strong>
+            <p>Endpoint bermasalah memerlukan uji ulang koneksi atau pengecekan kredensial integrasi.</p>
+          </div>
+        </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc", marginBottom: 2 }}>Last Ping</div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "#0A1B3D" }}>{api.lastPing}</div>
-                </div>
-                <div>
-                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc", marginBottom: 2 }}>Uptime</div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: api.uptime >= 95 ? "#10d98e" : api.uptime >= 80 ? "#f59e0b" : "#ff6b6b", fontWeight: 700 }}>{api.uptime}%</div>
-                </div>
-                <div>
-                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc", marginBottom: 2 }}>Latency</div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: api.latency < 500 ? "#10d98e" : api.latency < 2000 ? "#f59e0b" : "#ff6b6b", fontWeight: 700 }}>{api.latency}ms</div>
-                </div>
-              </div>
-
-              <button onClick={() => toast.success("Sinkronisasi diulang")} style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#1677FF", background: "rgba(22,119,255,0.08)", border: "1px solid rgba(22,119,255,0.25)", borderRadius: 8, padding: "7px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                <RefreshCw size={12} /> Retry Sync
-              </button>
+        <div className="admin-work-panel">
+          <div className="admin-work-panel-header">
+            <div>
+              <h2>Daftar koneksi eksternal</h2>
+              <p>Status koneksi, latensi terakhir, dan tindakan sinkronisasi per layanan.</p>
             </div>
-          );
-        })}
-      </div>
+            <div className="admin-segmented-control" aria-label="Filter status integrasi">
+              {(["Semua", "OK", "Error"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  aria-pressed={statusFilter === tab}
+                  onClick={() => setStatusFilter(tab)}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-responsive-table">
+            <table className="admin-data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Layanan &amp; endpoint</th>
+                  <th scope="col">Ping terakhir</th>
+                  <th scope="col">Uptime</th>
+                  <th scope="col">Latensi</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((api) => {
+                  const isOk = api.status === "OK";
+                  return (
+                    <tr key={api.id}>
+                      <td>
+                        <span className="admin-cell-title">{api.name}</span>
+                        <span className="admin-cell-subtitle">{api.endpoint}</span>
+                      </td>
+                      <td>{api.lastPing}</td>
+                      <td>{api.uptime}%</td>
+                      <td>{api.latency} ms</td>
+                      <td>
+                        <span
+                          className={
+                            isOk
+                              ? "admin-status admin-status-approved"
+                              : "admin-status admin-status-rejected"
+                          }
+                        >
+                          {api.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="admin-button admin-button-secondary"
+                          onClick={() => handleRetrySync(api)}
+                        >
+                          <RefreshCw size={14} aria-hidden="true" />
+                          Ulangi sinkronisasi
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </DashboardLayout>
   );
 }

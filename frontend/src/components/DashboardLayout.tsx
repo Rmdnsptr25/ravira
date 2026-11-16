@@ -4,19 +4,22 @@ import { LogOut, Menu, X } from "lucide-react";
 import { RaviraOwlIcon } from "./RaviraLogo";
 import { useAppContext } from "../contexts/AppContext";
 import { CompanyVerificationNotice } from "./CompanyVerificationNotice";
+import type { RaviraRole } from "../services/raviraApi";
 
 export interface SidebarItem {
   key: string;
   label: string;
   icon: React.ReactNode;
   path: string;
+  section?: string;
+  roles?: readonly RaviraRole[];
 }
 
 interface DashboardLayoutProps {
   sidebarItems: SidebarItem[];
-  userName: string;
-  userRole: string;
-  userInitial: string;
+  userName?: string;
+  userRole?: string;
+  userInitial?: string;
   activeKey?: string;
   children: React.ReactNode;
 }
@@ -33,6 +36,17 @@ export function DashboardLayout({
   const location = useLocation();
   const { user, logout } = useAppContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const resolvedUserName = user?.fullName || userName || "Pengguna RAVIRA";
+  const resolvedUserRole = user
+    ? { CANDIDATE: "Kandidat", RECRUITER: "Recruiter", ADMIN: "Admin", SUPER_ADMIN: "Super Admin" }[user.role]
+    : userRole || "Pengguna";
+  const resolvedUserInitial = (user?.fullName || userInitial || "R").trim().charAt(0).toUpperCase();
+  const visibleSidebarItems = sidebarItems.filter(
+    (item) => !item.roles || (user ? item.roles.includes(user.role) : false)
+  );
+  const activeItem = visibleSidebarItems.find((item) =>
+    activeKey ? item.key === activeKey : location.pathname === item.path || (item.path !== "/dashboard/admin" && location.pathname.startsWith(`${item.path}/`))
+  );
 
   const handleLogout = () => {
     const loginPath = user
@@ -146,7 +160,7 @@ export function DashboardLayout({
                 marginTop: 6,
               }}
             >
-              {userRole}
+              {resolvedUserRole}
             </div>
           </div>
 
@@ -162,31 +176,38 @@ export function DashboardLayout({
               gap: 4,
             }}
           >
-            {sidebarItems.map((item) => {
-              const isActive = activeKey ? item.key === activeKey : location.pathname === item.path;
+            {visibleSidebarItems.map((item, index) => {
+              const isActive = activeKey
+                ? item.key === activeKey
+                : location.pathname === item.path ||
+                  (item.path !== "/dashboard/admin" && location.pathname.startsWith(`${item.path}/`));
+              const showSection = item.section && item.section !== visibleSidebarItems[index - 1]?.section;
               return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => {
-                    navigate(item.path);
-                    setSidebarOpen(false);
-                  }}
-                  className={`ravira-sidebar-btn ${isActive ? "ravira-sidebar-btn-active" : ""}`}
-                >
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
+                <div key={item.key}>
+                  {showSection && <div className="ravira-sidebar-section">{item.section}</div>}
+                  <button
+                    type="button"
+                    aria-current={isActive ? "page" : undefined}
+                    onClick={() => {
+                      navigate(item.path);
+                      setSidebarOpen(false);
                     }}
+                    className={`ravira-sidebar-btn ${isActive ? "ravira-sidebar-btn-active" : ""}`}
                   >
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                </button>
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {item.icon}
+                    </span>
+                    <span>{item.label}</span>
+                  </button>
+                </div>
               );
             })}
           </nav>
@@ -226,7 +247,7 @@ export function DashboardLayout({
                   flexShrink: 0,
                 }}
               >
-                {userInitial}
+                {resolvedUserInitial}
               </div>
               <div style={{ minWidth: 0 }}>
                 <div
@@ -240,7 +261,7 @@ export function DashboardLayout({
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {userName}
+                  {resolvedUserName}
                 </div>
                 <div
                   style={{
@@ -252,7 +273,7 @@ export function DashboardLayout({
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {userRole}
+                  {resolvedUserRole}
                 </div>
               </div>
             </div>
@@ -317,6 +338,11 @@ export function DashboardLayout({
             {sidebarOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>
 
+          <div className="ravira-topbar-context">
+            <span>Ruang kerja admin</span>
+            <strong>{activeItem?.label || "Dashboard"}</strong>
+          </div>
+
           <div style={{ flex: 1 }} />
 
           <div
@@ -346,7 +372,7 @@ export function DashboardLayout({
                 fontWeight: 700,
               }}
             >
-              {userInitial}
+              {resolvedUserInitial}
             </div>
             <div>
               <div
@@ -358,7 +384,7 @@ export function DashboardLayout({
                   lineHeight: 1.2,
                 }}
               >
-                {userName}
+                {resolvedUserName}
               </div>
               <div
                 style={{
@@ -368,7 +394,7 @@ export function DashboardLayout({
                   lineHeight: 1.2,
                 }}
               >
-                {userRole}
+                {resolvedUserRole}
               </div>
             </div>
           </div>
@@ -402,7 +428,7 @@ export function DashboardLayout({
           width: 100%;
           min-height: 42px;
           padding: 10px 14px;
-          border-radius: 999px;
+          border-radius: 10px;
           border: none;
           cursor: pointer;
           text-align: left;
@@ -422,6 +448,31 @@ export function DashboardLayout({
           background: #D4FF59;
           color: #0D1117;
           font-weight: 700;
+        }
+        .ravira-sidebar-section {
+          padding: 14px 14px 7px;
+          color: rgba(255, 255, 255, 0.66);
+          font-family: 'Inter', sans-serif;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+        .ravira-topbar-context {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          margin-left: 4px;
+        }
+        .ravira-topbar-context span {
+          color: #64748B;
+          font-size: 11px;
+        }
+        .ravira-topbar-context strong {
+          color: #0D1117;
+          font-family: 'Poppins', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
         }
         .ravira-logout-btn {
           display: flex;
@@ -465,6 +516,7 @@ export function DashboardLayout({
           }
           .menu-toggle { display: inline-flex !important; }
           .main-content { margin-left: 0 !important; }
+          .ravira-topbar-context { margin-left: 10px; }
           .ravira-dashboard-shell main {
             padding: 20px 16px 36px !important;
           }

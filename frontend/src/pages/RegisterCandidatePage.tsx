@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Upload, Shield, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { RaviraOwlIcon } from "../components/RaviraLogo";
 import { useAppContext } from "../contexts/AppContext";
+import { uploadCandidateCv } from "../services/raviraApi";
 
 const bidangOptions = [
   "Teknologi Informasi",
@@ -22,10 +23,28 @@ const pendidikanOptions = ["SMA/SMK", "D3", "S1", "S2", "S3"];
 export default function RegisterCandidatePage() {
   const navigate = useNavigate();
   const { registerCandidate } = useAppContext();
-  const [cvFile, setCvFile] = useState<string | null>(null);
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [isDraggingCv, setIsDraggingCv] = useState(false);
+  const cvInputRef = useRef<HTMLInputElement | null>(null);
   const [consent1, setConsent1] = useState(false);
   const [consent2, setConsent2] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSelectCvFile = (file?: File) => {
+    if (!file) return;
+    const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    if (ext !== ".pdf" && file.type !== "application/pdf") {
+      toast.error("Hanya file CV berformat PDF yang diperbolehkan.");
+      if (cvInputRef.current) cvInputRef.current.value = "";
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file CV melebihi batas maksimal 5MB.");
+      if (cvInputRef.current) cvInputRef.current.value = "";
+      return;
+    }
+    setCvFile(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,7 +58,20 @@ export default function RegisterCandidatePage() {
         password: String(form.get("password") ?? ""),
         location: String(form.get("location") ?? ""),
       });
-      toast.success("Akun kandidat berhasil dibuat.");
+      if (cvFile) {
+        try {
+          await uploadCandidateCv(cvFile);
+          toast.success("Akun kandidat dibuat dan CV PDF berhasil diunggah.");
+        } catch (uploadError) {
+          toast.warning(
+            uploadError instanceof Error
+              ? `Akun dibuat, namun unggah CV gagal: ${uploadError.message}`
+              : "Akun dibuat, namun unggah CV gagal. Anda dapat mengunggah ulang di halaman Profil."
+          );
+        }
+      } else {
+        toast.success("Akun kandidat berhasil dibuat.");
+      }
       navigate("/dashboard/kandidat");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Registrasi gagal.");
@@ -230,30 +262,55 @@ export default function RegisterCandidatePage() {
               </div>
 
               <div className="ravira-field" style={{ marginBottom: 22 }}>
-                <label htmlFor="cand-cv-trigger" className="ravira-label">
-                  Upload CV (PDF, DOC, DOCX)
+                <label htmlFor="cand-cv-input" className="ravira-label">
+                  Upload CV (PDF saja)
                 </label>
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   id="cand-cv-trigger"
-                  type="button"
-                  onClick={() => setCvFile("cv_kandidat.pdf")}
-                  className={`ravira-upload-btn ${cvFile ? "ravira-upload-btn-active" : ""}`}
+                  onClick={() => cvInputRef.current?.click()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      cvInputRef.current?.click();
+                    }
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDraggingCv(true);
+                  }}
+                  onDragLeave={() => setIsDraggingCv(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingCv(false);
+                    handleSelectCvFile(e.dataTransfer.files?.[0]);
+                  }}
+                  className={`ravira-upload-btn ${cvFile || isDraggingCv ? "ravira-upload-btn-active" : ""}`}
                 >
                   <span className="ravira-upload-icon" aria-hidden="true">
                     <Upload size={18} />
                   </span>
                   {cvFile ? (
                     <span className="ravira-upload-text">
-                      <strong>Berkas dipilih: {cvFile}</strong>
-                      <span>Klik untuk mengganti file</span>
+                      <strong>Berkas dipilih: {cvFile.name}</strong>
+                      <span>Seret file baru atau klik untuk mengganti</span>
                     </span>
                   ) : (
                     <span className="ravira-upload-text">
-                      <strong>Klik atau seret CV Anda ke sini</strong>
-                      <span>PDF, DOC, atau DOCX • Maks. 5MB</span>
+                      <strong>Klik atau seret file CV PDF Anda ke sini</strong>
+                      <span>Hanya PDF • Maks. 5MB</span>
                     </span>
                   )}
-                </button>
+                </div>
+                <input
+                  id="cand-cv-input"
+                  ref={cvInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  style={{ display: "none" }}
+                  onChange={(e) => handleSelectCvFile(e.target.files?.[0])}
+                />
               </div>
 
               <div className="ravira-consent-box">

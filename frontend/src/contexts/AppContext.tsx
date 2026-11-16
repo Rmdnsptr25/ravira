@@ -344,7 +344,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (getAuthToken()) {
       saveJobForCandidate(job.id).catch((err) => {
         setSavedJobs(prev => prev.filter(s => s.id !== job.id));
-        console.error("Failed to persist saved job:", err);
+        if (import.meta.env.DEV) {
+          console.error("Failed to persist saved job:", err);
+        }
       });
     }
   }, []);
@@ -355,7 +357,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (getAuthToken()) {
         removeSavedJobForCandidate(id).catch((err) => {
           setSavedJobs(previous);
-          console.error("Failed to remove saved job:", err);
+          if (import.meta.env.DEV) {
+            console.error("Failed to remove saved job:", err);
+          }
         });
       }
       return prev.filter(s => s.id !== id);

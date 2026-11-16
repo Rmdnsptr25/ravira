@@ -8,10 +8,15 @@ import {
 import fs from "fs/promises";
 import path from "path";
 import prisma from "../../config/prisma";
+import { env } from "../../config/env";
 import { CV_UPLOAD_DIR } from "../../middlewares/candidateCvUploadMiddleware";
 import { AppError } from "../../utils/appError";
 import { createAuditLog } from "../audit-logs/auditLog.service";
 import { createNotification } from "../notifications/notifications.service";
+import {
+  isSupabaseStorageConfigured,
+  uploadBufferToSupabaseStorage
+} from "../storage/supabaseStorage.service";
 import { BasicCvParseResult, parseCvFile } from "./candidateCvParser.service";
 
 type PrismaExecutor = PrismaClient | Prisma.TransactionClient;
@@ -287,6 +292,20 @@ export const uploadMyCv = async (
     });
 
     createdDocumentId = createdDocument.id;
+
+    if (isSupabaseStorageConfigured()) {
+      try {
+        const buffer = await fs.readFile(file.path);
+        await uploadBufferToSupabaseStorage({
+          bucket: env.SUPABASE_DOC_BUCKET,
+          objectPath: `pdf/${path.basename(file.path)}`,
+          buffer,
+          contentType: file.mimetype
+        });
+      } catch {
+        // Supabase mirror upload is best-effort; local parsing continues.
+      }
+    }
 
     try {
       const parseResult = await parseCvFile(file.path, file.mimetype);

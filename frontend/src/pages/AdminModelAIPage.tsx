@@ -1,134 +1,238 @@
-import { LayoutDashboard, Building2, Shield, AlertTriangle, Activity, ClipboardList, Cpu, Users, Settings, Play, Calendar } from "lucide-react";
+import { useState } from "react";
+import { Calendar, Eye, Play, X } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
-import type { SidebarItem } from "../components/DashboardLayout";
+import { adminSidebarItems } from "../constants/adminSidebar";
 
-const sidebarItems: SidebarItem[] = [
-  { key: "overview", label: "Overview", icon: <LayoutDashboard size={16} />, path: "/dashboard/admin" },
-  { key: "verifikasi", label: "Verifikasi Perusahaan", icon: <Building2 size={16} />, path: "/dashboard/admin/verifikasi-perusahaan" },
-  { key: "moderasi", label: "Moderasi Lowongan", icon: <Shield size={16} />, path: "/dashboard/admin/moderasi-lowongan" },
-  { key: "laporan", label: "Laporan Abuse", icon: <AlertTriangle size={16} />, path: "/dashboard/admin/laporan-abuse" },
-  { key: "monitoring", label: "Monitoring Integrasi", icon: <Activity size={16} />, path: "/dashboard/admin/monitoring-integrasi" },
-  { key: "audit", label: "Audit Log", icon: <ClipboardList size={16} />, path: "/dashboard/admin/audit-log" },
-  { key: "ai", label: "AI Performance", icon: <Cpu size={16} />, path: "/dashboard/admin/model-ai" },
-  { key: "users", label: "Manajemen User", icon: <Users size={16} />, path: "/dashboard/admin/user-management" },
-  { key: "pengaturan", label: "Pengaturan Sistem", icon: <Settings size={16} />, path: "/dashboard/admin/pengaturan" },
-];
+interface ModelVersionRow {
+  version: string;
+  status: "Current" | "Previous" | "Staging";
+  deployed: string;
+  accuracy: string;
+  f1: string;
+  size: string;
+  notes: string;
+}
 
-const kpis = [
-  { label: "Accuracy", value: "94.2%", sub: "+0.8% dari bulan lalu", color: "#10d98e" },
-  { label: "F1 Score", value: "0.92", sub: "Precision 0.94 · Recall 0.90", color: "#1677FF" },
-  { label: "Avg Inference Time", value: "120ms", sub: "P95: 340ms · P99: 680ms", color: "#f59e0b" },
-  { label: "Daily Predictions", value: "48.2K", sub: "+12% dari minggu lalu", color: "#8b5cf6" },
-];
-
-const models = [
-  { version: "v2.4.1", status: "Current", deployed: "2026-05-01", accuracy: "94.2%", f1: "0.92", size: "1.2 GB" },
-  { version: "v2.3.8", status: "Previous", deployed: "2026-03-15", accuracy: "92.7%", f1: "0.90", size: "1.1 GB" },
-  { version: "v2.5.0-beta", status: "Staging", deployed: "—", accuracy: "95.1%", f1: "0.93", size: "1.4 GB" },
+const models: ModelVersionRow[] = [
+  { version: "v2.4.1", status: "Current", deployed: "2026-05-01", accuracy: "94.2%", f1: "0.92", size: "1.2 GB", notes: "Versi produksi aktif untuk pencocokan kandidat dan lowongan." },
+  { version: "v2.3.8", status: "Previous", deployed: "2026-03-15", accuracy: "92.7%", f1: "0.90", size: "1.1 GB", notes: "Versi sebelumnya, disimpan sebagai cadangan rollback." },
+  { version: "v2.5.0-beta", status: "Staging", deployed: "—", accuracy: "95.1%", f1: "0.93", size: "1.4 GB", notes: "Kandidat rilis dengan kalibrasi bobot skill teknis baru." },
 ];
 
 const barData = [82, 76, 88, 91, 85, 93, 89, 94, 91, 87, 95, 92];
 const months = ["Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des", "Jan", "Feb", "Mar", "Apr", "Mei"];
 
-const statusColor: Record<string, string> = { Current: "#10d98e", Previous: "#6a88b8", Staging: "#f59e0b" };
-const statusBg: Record<string, string> = { Current: "rgba(16,217,142,0.1)", Previous: "rgba(106,136,184,0.1)", Staging: "rgba(245,158,11,0.1)" };
+const statusClassMap: Record<ModelVersionRow["status"], string> = {
+  Current: "admin-status admin-status-approved",
+  Previous: "admin-status admin-status-neutral",
+  Staging: "admin-status admin-status-pending",
+};
 
 export default function AdminModelAIPage() {
+  const [selectedModel, setSelectedModel] = useState<ModelVersionRow | null>(null);
+  const [retrainingQueued, setRetrainingQueued] = useState(false);
+
+  const handleScheduleRetraining = () => {
+    setRetrainingQueued(true);
+    toast.success("Pembaruan model dijadwalkan untuk antrean berikutnya.");
+  };
+
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Admin Ravira" userRole="Super Admin" userInitial="A">
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 22, fontWeight: 800, color: "#0A1B3D", marginBottom: 4 }}>Model AI Performance</h1>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8" }}>Monitor performa model rekomendasi kerja berbasis AI</p>
-      </div>
-
-      {/* KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        {kpis.map((k) => (
-          <div key={k.label} style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(22,119,255,0.1)", padding: "18px 20px", boxShadow: "0 2px 8px rgba(10,27,61,0.04)" }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, fontWeight: 800, color: k.color, marginBottom: 4 }}>{k.value}</div>
-            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>{k.label}</div>
-            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9ab4cc" }}>{k.sub}</div>
+    <DashboardLayout sidebarItems={adminSidebarItems}>
+      <section className="admin-page" aria-labelledby="ai-model-title">
+        <header className="admin-page-header">
+          <div>
+            <p className="admin-page-context">Sistem</p>
+            <h1 id="ai-model-title">Kinerja model AI</h1>
+            <p>
+              Pantau akurasi rekomendasi kerja, latensi inferensi, dan riwayat versi model yang berjalan di RAVIRA.
+            </p>
           </div>
-        ))}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 18, marginBottom: 18 }}>
-        {/* Accuracy Bar Chart */}
-        <div style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", padding: "22px" }}>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D", marginBottom: 18 }}>Tren Akurasi Model (12 Bulan)</div>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 160 }}>
-            {barData.map((v, i) => (
-              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "#9ab4cc" }}>{v}</span>
-                <div style={{ width: "100%", height: `${(v / 100) * 140}px`, background: i === barData.length - 1 ? "#1677FF" : "rgba(22,119,255,0.25)", borderRadius: "4px 4px 0 0", transition: "height 0.3s" }} />
-                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 9, color: "#9ab4cc" }}>{months[i]}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Retraining Schedule */}
-        <div style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", padding: "22px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <Calendar size={16} color="#1677FF" />
-            <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D" }}>Jadwal Retraining</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-            {[
-              { label: "Jadwal Berikutnya", value: "1 Juni 2026", color: "#1677FF" },
-              { label: "Frekuensi", value: "Bulanan", color: "#0A1B3D" },
-              { label: "Dataset Size", value: "2.4M records", color: "#0A1B3D" },
-              { label: "Est. Duration", value: "4-6 jam", color: "#0A1B3D" },
-              { label: "Last Training", value: "1 Mei 2026", color: "#10d98e" },
-              { label: "Training Loss", value: "0.043", color: "#10d98e" },
-            ].map((item) => (
-              <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10, borderBottom: "1px solid rgba(22,119,255,0.06)" }}>
-                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>{item.label}</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: item.color, fontWeight: 600 }}>{item.value}</span>
-              </div>
-            ))}
-          </div>
-          <button onClick={() => toast.info("Retraining dijadwalkan")} style={{ width: "100%", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 700, color: "#fff", background: "#1677FF", border: "none", borderRadius: 10, padding: "10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-            <Play size={14} /> Trigger Retraining
+          <button
+            type="button"
+            className="admin-button admin-button-primary"
+            onClick={handleScheduleRetraining}
+            disabled={retrainingQueued}
+          >
+            <Play size={15} aria-hidden="true" />
+            {retrainingQueued ? "Retraining terjadwal" : "Jadwalkan retraining"}
           </button>
-        </div>
-      </div>
+        </header>
 
-      {/* Model Versions Table */}
-      <div style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", overflow: "hidden", boxShadow: "0 2px 10px rgba(10,27,61,0.04)" }}>
-        <div style={{ padding: "18px 22px", borderBottom: "1px solid rgba(22,119,255,0.08)" }}>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D" }}>Riwayat Versi Model</div>
+        <div className="admin-queue-summary" aria-label="Ringkasan metrik model AI">
+          <div className="admin-queue-primary">
+            <span>Akurasi model aktif (v2.4.1)</span>
+            <strong>94.2%</strong>
+            <p>F1 Score 0.92 (Precision 0.94 · Recall 0.90) — naik +0.8% dibanding bulan sebelumnya.</p>
+          </div>
+          <div className="admin-queue-note">
+            <span>Rata-rata latensi inferensi</span>
+            <strong>120 ms</strong>
+            <p>Menangani 48.2K evaluasi kecocokan per hari (P95: 340 ms · P99: 680 ms).</p>
+          </div>
         </div>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "rgba(22,119,255,0.04)", borderBottom: "1px solid rgba(22,119,255,0.1)" }}>
-              {["Versi", "Status", "Deploy Date", "Accuracy", "F1 Score", "Model Size", ""].map((h) => (
-                <th key={h} style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#6a88b8", textAlign: "left", padding: "12px 20px" }}>{h}</th>
+
+        <div className="admin-grid-asymmetric">
+          <div className="admin-work-panel">
+            <div className="admin-work-panel-header">
+              <div>
+                <h2>Tren akurasi model (12 bulan)</h2>
+                <p>Persentase kecocokan evaluasi bulanan pada data uji internal.</p>
+              </div>
+            </div>
+            <div className="admin-panel-body">
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 170 }}>
+                {barData.map((val, idx) => (
+                  <div
+                    key={months[idx]}
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <span className="admin-cell-subtitle" style={{ marginTop: 0 }}>
+                      {val}%
+                    </span>
+                    <div
+                      style={{
+                        width: "100%",
+                        height: `${(val / 100) * 124}px`,
+                        background: idx === barData.length - 1 ? "#0d315d" : "#cbd5e1",
+                        borderRadius: "5px 5px 0 0",
+                      }}
+                    />
+                    <span className="admin-cell-subtitle" style={{ marginTop: 0 }}>
+                      {months[idx]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="admin-work-panel">
+            <div className="admin-work-panel-header">
+              <div>
+                <h2>Jadwal pembaruan</h2>
+                <p>Ringkasan siklus retraining berkala.</p>
+              </div>
+              <Calendar size={18} color="#0e67cc" aria-hidden="true" />
+            </div>
+            <div className="admin-panel-body" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {[
+                { label: "Jadwal berikutnya", value: "1 Juni 2026" },
+                { label: "Frekuensi", value: "Bulanan" },
+                { label: "Ukuran dataset", value: "2.4M records" },
+                { label: "Estimasi durasi", value: "4–6 jam" },
+                { label: "Pelatihan terakhir", value: "1 Mei 2026" },
+                { label: "Training loss", value: "0.043" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingBottom: 10,
+                    borderBottom: "1px solid #e4e9ef",
+                  }}
+                >
+                  <span style={{ fontSize: 13, color: "#526074" }}>{item.label}</span>
+                  <strong style={{ fontSize: 13, color: "#172033" }}>{item.value}</strong>
+                </div>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {models.map((m, i) => (
-              <tr key={m.version} style={{ borderBottom: i < models.length - 1 ? "1px solid rgba(22,119,255,0.06)" : "none" }}>
-                <td style={{ padding: "14px 20px", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 700, color: "#0A1B3D" }}>{m.version}</td>
-                <td style={{ padding: "14px 20px" }}>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: statusColor[m.status], background: statusBg[m.status], borderRadius: 6, padding: "3px 8px", border: `1px solid ${statusColor[m.status]}40` }}>{m.status.toUpperCase()}</span>
-                </td>
-                <td style={{ padding: "14px 20px", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "#6a88b8" }}>{m.deployed}</td>
-                <td style={{ padding: "14px 20px", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: "#10d98e", fontWeight: 700 }}>{m.accuracy}</td>
-                <td style={{ padding: "14px 20px", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: "#1677FF", fontWeight: 700 }}>{m.f1}</td>
-                <td style={{ padding: "14px 20px", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "#6a88b8" }}>{m.size}</td>
-                <td style={{ padding: "14px 20px" }}>
-                  <button onClick={() => toast.info(`Detail model ${m.version}: Accuracy ${m.accuracy}, F1 ${m.f1}`)} style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, fontWeight: 600, color: "#1677FF", background: "rgba(22,119,255,0.08)", border: "1px solid rgba(22,119,255,0.2)", borderRadius: 7, padding: "5px 10px", cursor: "pointer" }}>
-                    Lihat Detail
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="admin-work-panel">
+          <div className="admin-work-panel-header">
+            <div>
+              <h2>Riwayat versi model</h2>
+              <p>Daftar versi model yang aktif, cadangan, dan dalam tahap pengujian.</p>
+            </div>
+          </div>
+          <div className="admin-responsive-table">
+            <table className="admin-data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Versi</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Tanggal deploy</th>
+                  <th scope="col">Akurasi</th>
+                  <th scope="col">F1 Score</th>
+                  <th scope="col">Ukuran</th>
+                  <th scope="col">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {models.map((model) => (
+                  <tr key={model.version}>
+                    <td>
+                      <span className="admin-cell-title">{model.version}</span>
+                    </td>
+                    <td>
+                      <span className={statusClassMap[model.status]}>{model.status.toUpperCase()}</span>
+                    </td>
+                    <td>{model.deployed}</td>
+                    <td>{model.accuracy}</td>
+                    <td>{model.f1}</td>
+                    <td>{model.size}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="admin-button admin-button-secondary"
+                        onClick={() => setSelectedModel(model)}
+                      >
+                        <Eye size={14} aria-hidden="true" />
+                        Detail
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {selectedModel && (
+        <div className="admin-dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="model-detail-title">
+          <div className="admin-dialog">
+            <div className="admin-dialog-header">
+              <div>
+                <p className="admin-page-context">{selectedModel.status}</p>
+                <h2 id="model-detail-title">Model {selectedModel.version}</h2>
+              </div>
+              <button
+                type="button"
+                className="admin-icon-button"
+                onClick={() => setSelectedModel(null)}
+                aria-label="Tutup detail model"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="admin-dialog-body">
+              <p>
+                <strong>Akurasi:</strong> {selectedModel.accuracy} · <strong>F1 Score:</strong> {selectedModel.f1} · <strong>Ukuran:</strong> {selectedModel.size}
+              </p>
+              <p>
+                <strong>Catatan Rilis:</strong> {selectedModel.notes}
+              </p>
+            </div>
+            <div className="admin-dialog-actions">
+              <button type="button" className="admin-button admin-button-secondary" onClick={() => setSelectedModel(null)}>
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

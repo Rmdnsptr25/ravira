@@ -162,7 +162,6 @@ const routes = [
   { path: "/dashboard/admin/moderasi-lowongan", Component: AdminModerasiPage },
   { path: "/dashboard/admin/laporan-abuse", Component: AdminAbuseReportPage },
   { path: "/dashboard/admin/sanggahan", Component: AdminAppealsPage },
-  { path: "/dashboard/admin/appeals", Component: AdminAppealsPage },
   { path: "/dashboard/admin/monitoring-integrasi", Component: AdminMonitoringPage },
   { path: "/dashboard/admin/audit-log", Component: AdminAuditLogPage },
   { path: "/dashboard/admin/model-ai", Component: AdminModelAIPage },

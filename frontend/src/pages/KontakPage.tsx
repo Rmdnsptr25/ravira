@@ -75,24 +75,24 @@ export default function KontakPage() {
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "64px 24px" }}>
         {/* Contact Info Strip */}
         <div style={{ display: "flex", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 220, background: "#F4F5F7", borderRadius: 20, padding: "20px 22px", display: "flex", alignItems: "center", gap: 14 }}>
+          <a href="mailto:raviraindonesia@gmail.com" style={{ flex: 1, minWidth: 220, boxSizing: "border-box", background: "#F4F5F7", borderRadius: 20, padding: "20px 22px", display: "flex", alignItems: "center", gap: 14, textDecoration: "none", cursor: "pointer" }}>
             <div style={{ width: 40, height: 40, borderRadius: 12, background: "#0D1117", color: "#D4FF59", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Mail size={18} />
             </div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 12, fontWeight: 600, color: "#4A5568", marginBottom: 2 }}>Email</div>
-              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: "#0D1117" }}>halo@ravira.id</div>
+              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: "#0D1117", overflowWrap: "anywhere" }}>raviraindonesia@gmail.com</div>
             </div>
-          </div>
-          <div style={{ flex: 1, minWidth: 220, background: "#D4FF59", borderRadius: 20, padding: "20px 22px", display: "flex", alignItems: "center", gap: 14 }}>
+          </a>
+          <a href="https://wa.me/6285700398224" target="_blank" rel="noopener noreferrer" style={{ flex: 1, minWidth: 220, boxSizing: "border-box", background: "#D4FF59", borderRadius: 20, padding: "20px 22px", display: "flex", alignItems: "center", gap: 14, textDecoration: "none", cursor: "pointer" }}>
             <div style={{ width: 40, height: 40, borderRadius: 12, background: "#0D1117", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <MessageSquare size={18} />
             </div>
             <div>
               <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 12, fontWeight: 600, color: "#1E293B", marginBottom: 2 }}>WhatsApp</div>
-              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 700, color: "#0D1117" }}>+62 812-0000-RAVI</div>
+              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 700, color: "#0D1117" }}>+62 857-0039-8224</div>
             </div>
-          </div>
+          </a>
         </div>
 
         {/* Form */}

@@ -1,6 +1,8 @@
 import { CvParsingStatus } from "@prisma/client";
 import fs from "fs/promises";
 import zlib from "zlib";
+import { z } from "zod";
+import { generateGeminiJson, isGeminiConfigured } from "../ai/gemini.service";
 
 const MAX_PARSED_TEXT_LENGTH = 20000;
 
@@ -199,6 +201,61 @@ const extractTextFromDocx = (buffer: Buffer) => {
   }
 };
 
+const geminiCvSkillsSchema = z.object({
+  skills: z
+    .array(
+      z.object({
+        skillName: z.string().trim().min(1).max(80),
+        confidenceScore: z.number().min(1).max(100)
+      })
+    )
+    .max(25)
+});
+
+export const extractSkillsWithGemini = async (
+  text: string
+): Promise<ExtractedCvSkill[] | null> => {
+  if (!isGeminiConfigured() || text.trim().length < 10) {
+    return null;
+  }
+
+  const prompt = [
+    "Ekstrak daftar skill teknis dan profesional yang benar-benar tertulis di teks CV berikut.",
+    "Aturan:",
+    "- Hanya ekstrak skill yang nyata ada di teks CV (jangan mengarang skill).",
+    "- Kembalikan maksimal 25 skill unik.",
+    "- Berikan confidenceScore bilangan bulat 60-98 sesuai kejelasan konteks di CV.",
+    "- Kembalikan JSON valid: {\"skills\": [{\"skillName\": string, \"confidenceScore\": number}]}.",
+    "",
+    `Teks CV:\n${text.slice(0, 6000)}`
+  ].join("\n");
+
+  const result = await generateGeminiJson({
+    prompt,
+    schema: geminiCvSkillsSchema
+  });
+
+  if (!result || result.skills.length === 0) {
+    return null;
+  }
+
+  const seen = new Set<string>();
+  const deduped: ExtractedCvSkill[] = [];
+  for (const item of result.skills) {
+    const key = item.skillName.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push({
+        skillName: item.skillName,
+        confidenceScore: Math.round(item.confidenceScore),
+        source: "CV_PARSER"
+      });
+    }
+  }
+
+  return deduped;
+};
+
 export const extractSkillsFromText = (text: string): ExtractedCvSkill[] => {
   return skillKeywords
     .filter((keyword) => keywordPatterns[keyword].test(text))
@@ -219,13 +276,15 @@ export const parseCvFile = async (
     : extractTextFromDocx(buffer);
   const normalizedText = parsedText.slice(0, MAX_PARSED_TEXT_LENGTH);
   const hasUsefulText = /[A-Za-z]/.test(normalizedText) && normalizedText.length >= 10;
-  const extractedSkills = hasUsefulText ? extractSkillsFromText(normalizedText) : [];
 
   if (!hasUsefulText) {
     return {
       parsingStatus: CvParsingStatus.NEED_REVIEW
     };
   }
+
+  const geminiSkills = await extractSkillsWithGemini(normalizedText);
+  const extractedSkills = geminiSkills ?? extractSkillsFromText(normalizedText);
 
   return {
     parsingStatus: CvParsingStatus.SUCCESS,

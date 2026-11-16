@@ -97,14 +97,14 @@ export function Footer() {
             <h5 style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, fontWeight: 700, color: "#FFFFFF", letterSpacing: "0.12em", marginBottom: 18, textTransform: "uppercase" }}>
               Kontak
             </h5>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <a href="mailto:raviraindonesia@gmail.com" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, textDecoration: "none", cursor: "pointer" }}>
               <Mail size={14} color="#D4FF59" />
-              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#CBD5E1" }}>hello@ravira.id</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#CBD5E1", overflowWrap: "anywhere" }}>raviraindonesia@gmail.com</span>
+            </a>
+            <a href="https://wa.me/6285700398224" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, textDecoration: "none", cursor: "pointer" }}>
               <Phone size={14} color="#D4FF59" />
-              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#CBD5E1" }}>+62 21 1234 5678</span>
-            </div>
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#CBD5E1" }}>+62 857-0039-8224</span>
+            </a>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <MapPin size={14} color="#D4FF59" />
               <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#CBD5E1" }}>Jakarta, Indonesia</span>

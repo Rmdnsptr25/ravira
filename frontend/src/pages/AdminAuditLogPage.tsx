@@ -1,22 +1,21 @@
 import { useState } from "react";
-import { LayoutDashboard, Building2, Shield, AlertTriangle, Activity, ClipboardList, Cpu, Users, Settings, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
+import { ChevronLeft, ChevronRight, Eye, FileText, Search, X } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
-import type { SidebarItem } from "../components/DashboardLayout";
+import { adminSidebarItems } from "../constants/adminSidebar";
 
-const sidebarItems: SidebarItem[] = [
-  { key: "overview", label: "Overview", icon: <LayoutDashboard size={16} />, path: "/dashboard/admin" },
-  { key: "verifikasi", label: "Verifikasi Perusahaan", icon: <Building2 size={16} />, path: "/dashboard/admin/verifikasi-perusahaan" },
-  { key: "moderasi", label: "Moderasi Lowongan", icon: <Shield size={16} />, path: "/dashboard/admin/moderasi-lowongan" },
-  { key: "laporan", label: "Laporan Abuse", icon: <AlertTriangle size={16} />, path: "/dashboard/admin/laporan-abuse" },
-  { key: "monitoring", label: "Monitoring Integrasi", icon: <Activity size={16} />, path: "/dashboard/admin/monitoring-integrasi" },
-  { key: "audit", label: "Audit Log", icon: <ClipboardList size={16} />, path: "/dashboard/admin/audit-log" },
-  { key: "ai", label: "AI Performance", icon: <Cpu size={16} />, path: "/dashboard/admin/model-ai" },
-  { key: "users", label: "Manajemen User", icon: <Users size={16} />, path: "/dashboard/admin/user-management" },
-  { key: "pengaturan", label: "Pengaturan Sistem", icon: <Settings size={16} />, path: "/dashboard/admin/pengaturan" },
-];
+type AuditAction = "LOGIN" | "CREATE" | "UPDATE" | "DELETE" | "APPROVE";
 
-const logs = [
+interface AuditLogRow {
+  id: number;
+  timestamp: string;
+  user: string;
+  action: AuditAction;
+  resource: string;
+  ip: string;
+  detail: string;
+}
+
+const logs: AuditLogRow[] = [
   { id: 1, timestamp: "2026-05-30 14:32:11", user: "admin@ravira.id", action: "APPROVE", resource: "Perusahaan: PT Gojek Indonesia", ip: "192.168.1.100", detail: "Verifikasi perusahaan disetujui" },
   { id: 2, timestamp: "2026-05-30 14:15:42", user: "admin2@ravira.id", action: "DELETE", resource: "Lowongan ID: #4892", ip: "192.168.1.102", detail: "Lowongan dihapus karena melanggar ToS" },
   { id: 3, timestamp: "2026-05-30 13:58:09", user: "superadmin@ravira.id", action: "UPDATE", resource: "Pengaturan: rate_limit_api", ip: "10.0.0.1", detail: "Rate limit diubah dari 100 ke 200 req/min" },
@@ -34,95 +33,238 @@ const logs = [
   { id: 15, timestamp: "2026-05-30 08:30:17", user: "admin3@ravira.id", action: "CREATE", resource: "Report: #3412", ip: "192.168.1.105", detail: "Laporan abuse baru dibuat oleh admin" },
 ];
 
-const actionColor: Record<string, string> = {
-  LOGIN: "#10d98e",
-  CREATE: "#1677FF",
-  UPDATE: "#f59e0b",
-  DELETE: "#ff6b6b",
-  APPROVE: "#8b5cf6",
+const actionBadgeClass: Record<AuditAction, string> = {
+  LOGIN: "admin-status admin-status-neutral",
+  CREATE: "admin-status admin-status-approved",
+  UPDATE: "admin-status admin-status-pending",
+  DELETE: "admin-status admin-status-rejected",
+  APPROVE: "admin-status admin-status-approved",
 };
 
-const actionBg: Record<string, string> = {
-  LOGIN: "rgba(16,217,142,0.1)",
-  CREATE: "rgba(22,119,255,0.1)",
-  UPDATE: "rgba(245,158,11,0.1)",
-  DELETE: "rgba(255,107,107,0.1)",
-  APPROVE: "rgba(139,92,246,0.1)",
-};
+const actions: Array<"Semua" | AuditAction> = ["Semua", "LOGIN", "CREATE", "UPDATE", "DELETE", "APPROVE"];
+const PAGE_SIZE = 6;
 
 export default function AdminAuditLogPage() {
   const [search, setSearch] = useState("");
-  const [actionFilter, setActionFilter] = useState("Semua");
+  const [actionFilter, setActionFilter] = useState<"Semua" | AuditAction>("Semua");
   const [dateFrom, setDateFrom] = useState("");
+  const [page, setPage] = useState(1);
+  const [selectedLog, setSelectedLog] = useState<AuditLogRow | null>(null);
 
-  const actions = ["Semua", "LOGIN", "CREATE", "UPDATE", "DELETE", "APPROVE"];
-
-  const filtered = logs.filter((l) => {
-    const matchSearch = search === "" || l.user.includes(search) || l.resource.toLowerCase().includes(search.toLowerCase()) || l.detail.toLowerCase().includes(search.toLowerCase());
-    const matchAction = actionFilter === "Semua" || l.action === actionFilter;
-    return matchSearch && matchAction;
+  const filtered = logs.filter((log) => {
+    const q = search.trim().toLowerCase();
+    const matchSearch =
+      !q ||
+      log.user.toLowerCase().includes(q) ||
+      log.resource.toLowerCase().includes(q) ||
+      log.detail.toLowerCase().includes(q);
+    const matchAction = actionFilter === "Semua" || log.action === actionFilter;
+    const logDate = log.timestamp.slice(0, 10);
+    const matchDate = !dateFrom || logDate >= dateFrom;
+    return matchSearch && matchAction && matchDate;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Admin Ravira" userRole="Super Admin" userInitial="A">
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 22, fontWeight: 800, color: "#0A1B3D", marginBottom: 4 }}>Audit Log</h1>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8" }}>Rekam jejak semua aktivitas admin pada sistem Ravira</p>
-      </div>
+    <DashboardLayout sidebarItems={adminSidebarItems}>
+      <section className="admin-page" aria-labelledby="audit-log-title">
+        <header className="admin-page-header">
+          <div>
+            <p className="admin-page-context">Trust &amp; governance</p>
+            <h1 id="audit-log-title">Audit log</h1>
+            <p>
+              Rekam jejak aktivitas administratif, perubahan konfigurasi, dan keputusan moderasi pada sistem RAVIRA.
+            </p>
+          </div>
+        </header>
 
-      {/* Filters */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 18, alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", borderRadius: 10, border: "1px solid rgba(22,119,255,0.15)", padding: "8px 12px", flex: 1, maxWidth: 300 }}>
-          <Search size={14} color="#6a88b8" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari user, resource, detail..." style={{ border: "none", outline: "none", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D", background: "transparent", width: "100%" }} />
-        </div>
-        <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D", border: "1px solid rgba(22,119,255,0.2)", borderRadius: 8, padding: "8px 12px", outline: "none", background: "#fff" }}>
-          {actions.map((a) => <option key={a} value={a}>{a}</option>)}
-        </select>
-        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#0A1B3D", border: "1px solid rgba(22,119,255,0.2)", borderRadius: 8, padding: "8px 10px", outline: "none" }} />
-      </div>
-
-      {/* Table */}
-      <div style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(22,119,255,0.1)", overflow: "hidden", boxShadow: "0 2px 10px rgba(10,27,61,0.04)" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "rgba(22,119,255,0.04)", borderBottom: "1px solid rgba(22,119,255,0.1)" }}>
-              {["Timestamp", "User", "Action", "Resource", "IP Address", "Detail", ""].map((h) => (
-                <th key={h} style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#6a88b8", textAlign: "left", padding: "12px 16px" }}>{h}</th>
+        <div className="admin-work-panel">
+          <div className="admin-work-panel-header">
+            <div>
+              <h2>Riwayat aktivitas admin</h2>
+              <p>Saring catatan berdasarkan jenis aksi, rentang tanggal, atau aktor.</p>
+            </div>
+            <div className="admin-segmented-control" aria-label="Filter jenis aksi">
+              {actions.map((action) => (
+                <button
+                  key={action}
+                  type="button"
+                  aria-pressed={actionFilter === action}
+                  onClick={() => {
+                    setActionFilter(action);
+                    setPage(1);
+                  }}
+                >
+                  {action}
+                </button>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((log, i) => (
-              <tr key={log.id} style={{ borderBottom: i < filtered.length - 1 ? "1px solid rgba(22,119,255,0.06)" : "none" }}>
-                <td style={{ padding: "12px 16px", fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#6a88b8", whiteSpace: "nowrap" }}>{log.timestamp}</td>
-                <td style={{ padding: "12px 16px", fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#0A1B3D", fontWeight: 500 }}>{log.user}</td>
-                <td style={{ padding: "12px 16px" }}>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: actionColor[log.action], background: actionBg[log.action], borderRadius: 5, padding: "3px 7px", border: `1px solid ${actionColor[log.action]}40` }}>{log.action}</span>
-                </td>
-                <td style={{ padding: "12px 16px", fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#4a6080" }}>{log.resource}</td>
-                <td style={{ padding: "12px 16px", fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#9ab4cc" }}>{log.ip}</td>
-                <td style={{ padding: "12px 16px", fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>{log.detail}</td>
-                <td style={{ padding: "12px 16px" }}>
-                  <button onClick={() => toast.info(`Detail audit: ${log.action} — ${log.resource}`)} style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, fontWeight: 600, color: "#1677FF", background: "rgba(22,119,255,0.08)", border: "1px solid rgba(22,119,255,0.2)", borderRadius: 7, padding: "5px 10px", cursor: "pointer" }}>
-                    Lihat Detail
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </div>
+          </div>
 
-        {/* Pagination */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid rgba(22,119,255,0.08)" }}>
-          <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8" }}>Menampilkan {filtered.length} dari 360 log</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8" }}>Halaman 1 dari 24</span>
-            <button style={{ padding: "6px", borderRadius: 7, border: "1px solid rgba(22,119,255,0.2)", background: "#f8fafb", cursor: "pointer", display: "flex", alignItems: "center" }}><ChevronLeft size={14} color="#6a88b8" /></button>
-            <button style={{ padding: "6px", borderRadius: 7, border: "1px solid rgba(22,119,255,0.2)", background: "#f8fafb", cursor: "pointer", display: "flex", alignItems: "center" }}><ChevronRight size={14} color="#1677FF" /></button>
+          <div className="admin-toolbar">
+            <div className="admin-toolbar-group">
+              <div className="admin-search-field">
+                <Search size={15} color="#64748b" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Cari user, resource, atau detail..."
+                  aria-label="Cari audit log"
+                />
+              </div>
+              <input
+                type="date"
+                className="admin-input"
+                value={dateFrom}
+                onChange={(e) => {
+                  setDateFrom(e.target.value);
+                  setPage(1);
+                }}
+                aria-label="Filter mulai tanggal"
+              />
+              {dateFrom && (
+                <button
+                  type="button"
+                  className="admin-button admin-button-secondary"
+                  onClick={() => {
+                    setDateFrom("");
+                    setPage(1);
+                  }}
+                >
+                  Reset tanggal
+                </button>
+              )}
+            </div>
+            <span className="admin-cell-subtitle">
+              Total {filtered.length} catatan cocok
+            </span>
+          </div>
+
+          {paginated.length === 0 ? (
+            <div className="admin-state">
+              <FileText size={28} aria-hidden="true" />
+              <strong>Tidak ada catatan audit</strong>
+              <p>Sesuaikan kata kunci pencarian, jenis aksi, atau tanggal untuk melihat catatan lainnya.</p>
+            </div>
+          ) : (
+            <div className="admin-responsive-table">
+              <table className="admin-data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Waktu &amp; aktor</th>
+                    <th scope="col">Aksi</th>
+                    <th scope="col">Resource</th>
+                    <th scope="col">IP Address</th>
+                    <th scope="col">Detail</th>
+                    <th scope="col">Pemeriksaan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map((log) => (
+                    <tr key={log.id}>
+                      <td>
+                        <span className="admin-cell-title">{log.user}</span>
+                        <span className="admin-cell-subtitle">{log.timestamp}</span>
+                      </td>
+                      <td>
+                        <span className={actionBadgeClass[log.action]}>{log.action}</span>
+                      </td>
+                      <td>{log.resource}</td>
+                      <td>{log.ip}</td>
+                      <td>{log.detail}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="admin-button admin-button-secondary"
+                          onClick={() => setSelectedLog(log)}
+                        >
+                          <Eye size={14} aria-hidden="true" />
+                          Detail
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="admin-pagination">
+            <span>
+              Menampilkan {paginated.length} dari {filtered.length} log
+            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span>
+                Halaman {currentPage} dari {totalPages}
+              </span>
+              <button
+                type="button"
+                className="admin-button admin-button-secondary"
+                disabled={currentPage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                aria-label="Halaman sebelumnya"
+                style={{ minHeight: 36, padding: "6px 10px" }}
+              >
+                <ChevronLeft size={15} />
+              </button>
+              <button
+                type="button"
+                className="admin-button admin-button-secondary"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                aria-label="Halaman berikutnya"
+                style={{ minHeight: 36, padding: "6px 10px" }}
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {selectedLog && (
+        <div className="admin-dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="audit-detail-title">
+          <div className="admin-dialog">
+            <div className="admin-dialog-header">
+              <div>
+                <p className="admin-page-context">{selectedLog.action}</p>
+                <h2 id="audit-detail-title">{selectedLog.resource}</h2>
+              </div>
+              <button
+                type="button"
+                className="admin-icon-button"
+                onClick={() => setSelectedLog(null)}
+                aria-label="Tutup detail audit"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="admin-dialog-body">
+              <p>
+                <strong>Aktor:</strong> {selectedLog.user} · <strong>IP:</strong> {selectedLog.ip}
+              </p>
+              <p>
+                <strong>Waktu:</strong> {selectedLog.timestamp}
+              </p>
+              <p>
+                <strong>Keterangan:</strong> {selectedLog.detail}
+              </p>
+            </div>
+            <div className="admin-dialog-actions">
+              <button type="button" className="admin-button admin-button-secondary" onClick={() => setSelectedLog(null)}>
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

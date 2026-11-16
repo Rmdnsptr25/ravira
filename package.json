@@ -10,6 +10,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "node scripts/seed.js",
+    "admin:provision": "node scripts/provision-admin.js",
     "seed:e2e": "node tests/e2e/seed-e2e.cjs",
     "test:backend": "node --test tests/backend/*.test.cjs",
     "test:e2e": "node tests/e2e/qa02-browser-e2e.cjs",

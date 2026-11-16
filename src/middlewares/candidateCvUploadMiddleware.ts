@@ -8,11 +8,8 @@ import { AppError } from "../utils/appError";
 export const CV_UPLOAD_DIR = path.join(process.cwd(), "uploads", "cv");
 const MAX_CV_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
-const allowedExtensions = new Set([".pdf", ".docx"]);
-const allowedMimeTypes = new Set([
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-]);
+const allowedExtensions = new Set([".pdf"]);
+const allowedMimeTypes = new Set(["application/pdf"]);
 
 const ensureUploadDir = () => {
   fs.mkdirSync(CV_UPLOAD_DIR, { recursive: true });
@@ -41,7 +38,7 @@ const fileFilter = (
   const isAllowedMimeType = allowedMimeTypes.has(file.mimetype);
 
   if (!isAllowedExtension || !isAllowedMimeType) {
-    return callback(new AppError("Only PDF or DOCX CV files are allowed.", 400));
+    return callback(new AppError("Only PDF CV files are allowed.", 400));
   }
 
   return callback(null, true);

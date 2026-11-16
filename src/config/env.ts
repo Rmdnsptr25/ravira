@@ -20,5 +20,12 @@ export const env = {
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? "7d",
   BCRYPT_SALT_ROUNDS: Number(process.env.BCRYPT_SALT_ROUNDS ?? 10),
-  CORS_ORIGIN: process.env.CORS_ORIGIN ?? "*"
+  CORS_ORIGIN: process.env.CORS_ORIGIN ?? "*",
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
+  GEMINI_MODEL: process.env.GEMINI_MODEL ?? "gemini-3.8-flash",
+  SUPABASE_URL: process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  SUPABASE_SERVICE_ROLE_KEY:
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY ?? "",
+  SUPABASE_IMAGE_BUCKET: process.env.SUPABASE_IMAGE_BUCKET ?? "image",
+  SUPABASE_DOC_BUCKET: process.env.SUPABASE_DOC_BUCKET ?? "cv"
 };

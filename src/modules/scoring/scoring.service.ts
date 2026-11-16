@@ -3,6 +3,10 @@ import prisma from "../../config/prisma";
 import { AppError } from "../../utils/appError";
 import { createAuditLog } from "../audit-logs/auditLog.service";
 import { requireApprovedRecruiter } from "../recruiters/recruiterAccess.service";
+import {
+  evaluateJobMatchWithGemini,
+  evaluateJobRecommendationsWithGemini
+} from "../ai/jobMatchingAi.service";
 
 const SCORING_RULE_VERSION = "mvp-rule-v1";
 
@@ -375,7 +379,11 @@ export const upsertAiMatchScore = async (
 ) => {
   const candidate = await getCandidateById(candidateId, client);
   const job = requirePublished ? await getPublishedJobById(jobId, client) : await getJobById(jobId, client);
-  const result = calculateAiMatchScore(candidate, job);
+  const baseline = calculateAiMatchScore(candidate, job);
+  const result =
+    client === prisma
+      ? ((await evaluateJobMatchWithGemini(candidate, job, baseline)) ?? baseline)
+      : baseline;
   const breakdownJson = toJsonValue(result.breakdown);
 
   await client.matchScore.upsert({
@@ -488,9 +496,15 @@ export const getCandidateJobRecommendations = async (userId: string) => {
     orderBy: { createdAt: "desc" }
   });
 
+  const jobsWithBaseline = jobs.map((job) => ({
+    job,
+    baseline: calculateAiMatchScore(candidate, job)
+  }));
+  const aiMatchMap = await evaluateJobRecommendationsWithGemini(candidate, jobsWithBaseline);
+
   const recommendations = await Promise.all(
-    jobs.map(async (job) => {
-      const matchScore = calculateAiMatchScore(candidate, job);
+    jobsWithBaseline.map(async ({ job, baseline }) => {
+      const matchScore = aiMatchMap.get(job.id) ?? baseline;
       const breakdownJson = toJsonValue(matchScore.breakdown);
       await prisma.matchScore.upsert({
         where: {

@@ -25,6 +25,7 @@ import {
 } from "recharts";
 import { DashboardLayout } from "../components/DashboardLayout";
 import { adminSidebarItems } from "../constants/adminSidebar";
+import { useAppContext } from "../contexts/AppContext";
 import {
   listPendingCompanies,
   listFraudCases,
@@ -112,6 +113,7 @@ const CustomTooltip = ({ active, payload, label }: AdminCustomTooltipProps) => {
 };
 
 export default function AdminDashboardPage() {
+  const { user } = useAppContext();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -188,9 +190,6 @@ export default function AdminDashboardPage() {
   return (
     <DashboardLayout
       sidebarItems={adminSidebarItems}
-      userName="Admin Ravira"
-      userRole="Super Admin"
-      userInitial="A"
     >
       {/* Framed Hero Banner matching Beranda */}
       <section
@@ -219,7 +218,7 @@ export default function AdminDashboardPage() {
               margin: "0 0 8px",
             }}
           >
-            Admin Console · Super Admin
+            {user?.role === "SUPER_ADMIN" ? "Konsol Super Admin" : "Operasional Admin"}
           </p>
           <h1
             style={{

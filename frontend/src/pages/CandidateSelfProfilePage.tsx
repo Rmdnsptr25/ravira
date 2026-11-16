@@ -287,6 +287,7 @@ export default function CandidateSelfProfilePage() {
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [skills, setSkills] = useState<CandidateSkill[]>([]);
   const [cvDocuments, setCvDocuments] = useState<CandidateDocument[]>([]);
+  const [isDraggingCv, setIsDraggingCv] = useState(false);
 
   const [formFullName, setFormFullName] = useState("");
   const [formPhone, setFormPhone] = useState("");
@@ -406,13 +407,12 @@ export default function CandidateSelfProfilePage() {
     }
   };
 
-  const handleCvFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processCvFile = async (file?: File) => {
+    if (!file || isUploadingCv) return;
 
     const extension = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
-    if (extension !== ".pdf" && extension !== ".docx") {
-      toast.error("Hanya file dokumen PDF atau DOCX yang diperbolehkan.");
+    if (extension !== ".pdf" && file.type !== "application/pdf") {
+      toast.error("Hanya file dokumen PDF yang diperbolehkan.");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -442,6 +442,10 @@ export default function CandidateSelfProfilePage() {
       setIsUploadingCv(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handleCvFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await processCvFile(e.target.files?.[0]);
   };
 
   const handleDeleteCv = async (cvId: string) => {
@@ -968,13 +972,23 @@ export default function CandidateSelfProfilePage() {
               ) : (
                 <div
                   onClick={() => !isUploadingCv && fileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (!isUploadingCv) setIsDraggingCv(true);
+                  }}
+                  onDragLeave={() => setIsDraggingCv(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingCv(false);
+                    void processCvFile(e.dataTransfer.files?.[0]);
+                  }}
                   style={{
-                    border: "1.5px dashed #94A3B8",
+                    border: `1.5px dashed ${isDraggingCv ? "#0E67CC" : "#94A3B8"}`,
                     borderRadius: 16,
                     padding: "24px",
                     textAlign: "center",
                     cursor: isUploadingCv ? "not-allowed" : "pointer",
-                    background: "#FFFFFF",
+                    background: isDraggingCv ? "#EFF6FF" : "#FFFFFF",
                   }}
                 >
                   {isUploadingCv ? (
@@ -1017,7 +1031,7 @@ export default function CandidateSelfProfilePage() {
                           marginTop: 4,
                         }}
                       >
-                        PDF, DOCX maks. 5MB
+                        Hanya file PDF maks. 5MB
                       </div>
                       <button
                         type="button"
@@ -1044,7 +1058,7 @@ export default function CandidateSelfProfilePage() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    accept=".pdf,application/pdf"
                     style={{ display: "none" }}
                     disabled={isUploadingCv}
                     onChange={(e) => void handleCvFileChange(e)}

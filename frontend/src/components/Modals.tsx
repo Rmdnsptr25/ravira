@@ -163,15 +163,15 @@ export function ContactModal({ onClose }: { onClose: () => void }) {
                 <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Tuliskan pertanyaan atau kebutuhan Anda..." rows={4}
                   style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(22,119,255,0.2)", fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
               </div>
-              <div style={{ display: "flex", gap: 12, marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(22,119,255,0.04)", border: "1px solid rgba(22,119,255,0.1)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(22,119,255,0.04)", border: "1px solid rgba(22,119,255,0.1)" }}>
+                <a href="mailto:raviraindonesia@gmail.com" style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none", cursor: "pointer" }}>
                   <Mail size={13} color="#1677FF" />
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>hello@ravira.id</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>raviraindonesia@gmail.com</span>
+                </a>
+                <a href="https://wa.me/6285700398224" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none", cursor: "pointer" }}>
                   <Phone size={13} color="#1677FF" />
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>+62 21 1234 5678</span>
-                </div>
+                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>+62 857-0039-8224</span>
+                </a>
               </div>
               <button onClick={handleSend} style={{
                 width: "100%", padding: "11px", borderRadius: 10, border: "none",

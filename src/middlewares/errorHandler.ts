@@ -18,6 +18,13 @@ export const errorHandler = (
   if (error instanceof AppError) {
     statusCode = error.statusCode;
     message = error.message;
+  } else if (
+    error instanceof SyntaxError &&
+    "status" in error &&
+    (error as { status?: number }).status === 400
+  ) {
+    statusCode = 400;
+    message = "Invalid JSON payload.";
   }
 
   if (error instanceof Prisma.PrismaClientKnownRequestError) {

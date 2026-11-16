@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
+import path from "path";
 import { env } from "./config/env";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
 import adminRoutes from "./modules/admin/admin.routes";
@@ -15,16 +16,33 @@ import recruiterRoutes from "./modules/recruiters/recruiterJobs.routes";
 import { sendSuccess } from "./utils/response";
 
 const app = express();
+app.disable("x-powered-by");
 
 const allowedOrigins =
   env.CORS_ORIGIN === "*"
     ? "*"
-    : env.CORS_ORIGIN.split(",").map((origin) => origin.trim());
+    : env.CORS_ORIGIN.split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean);
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    xContentTypeOptions: true,
+    hsts:
+      env.NODE_ENV === "production"
+        ? { maxAge: 31536000, includeSubDomains: true }
+        : false
+  })
+);
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use(
+  "/uploads/company-logos",
+  express.static(path.join(process.cwd(), "uploads", "company-logos"))
+);
 
 if (env.NODE_ENV !== "test") {
   app.use(morgan("dev"));

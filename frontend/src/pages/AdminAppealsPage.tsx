@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-  FileText,
   AlertTriangle,
-  X,
+  ExternalLink,
+  FileText,
   Loader2,
+  MessageSquare,
   RefreshCw,
   Search,
-  ExternalLink,
-  MessageSquare,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
@@ -19,26 +19,27 @@ import {
   type AppealStatus,
 } from "../services/raviraApi";
 
-const statusColor: Record<AppealStatus, { color: string; bg: string }> = {
-  OPEN: { color: "#1677FF", bg: "rgba(22,119,255,0.1)" },
-  IN_REVIEW: { color: "#8b5cf6", bg: "rgba(139,92,246,0.1)" },
-  NEED_INFO: { color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
-  APPROVED: { color: "#10d98e", bg: "rgba(16,217,142,0.1)" },
-  REJECTED: { color: "#ff6b6b", bg: "rgba(255,107,107,0.1)" },
-  RESOLVED: { color: "#059669", bg: "rgba(5,150,105,0.1)" },
+const statusBadgeClass: Record<AppealStatus, string> = {
+  OPEN: "admin-status admin-status-neutral",
+  IN_REVIEW: "admin-status admin-status-pending",
+  NEED_INFO: "admin-status admin-status-pending",
+  APPROVED: "admin-status admin-status-approved",
+  REJECTED: "admin-status admin-status-rejected",
+  RESOLVED: "admin-status admin-status-approved",
 };
 
 const appealDecisionOptions: Array<{
   value: "IN_REVIEW" | "NEED_INFO" | "APPROVED" | "REJECTED" | "RESOLVED";
   label: string;
-  desc: string;
 }> = [
-  { value: "IN_REVIEW", label: "Sedang Ditinjau (IN_REVIEW)", desc: "Sanggahan dalam proses review internal" },
-  { value: "NEED_INFO", label: "Butuh Bukti Tambahan (NEED_INFO)", desc: "Meminta informasi atau bukti pendukung lebih lanjut" },
-  { value: "APPROVED", label: "Setujui Sanggahan (APPROVED)", desc: "Sanggahan diterima dan klaim dipulihkan" },
-  { value: "REJECTED", label: "Tolak Sanggahan (REJECTED)", desc: "Sanggahan ditolak karena bukti tidak memadai" },
-  { value: "RESOLVED", label: "Selesai (RESOLVED)", desc: "Proses sanggahan tuntas" },
+  { value: "IN_REVIEW", label: "Sedang Ditinjau (IN_REVIEW)" },
+  { value: "NEED_INFO", label: "Butuh Bukti Tambahan (NEED_INFO)" },
+  { value: "APPROVED", label: "Setujui Sanggahan (APPROVED)" },
+  { value: "REJECTED", label: "Tolak Sanggahan (REJECTED)" },
+  { value: "RESOLVED", label: "Selesai (RESOLVED)" },
 ];
+
+const tabs = ["Semua", "OPEN", "IN_REVIEW", "NEED_INFO", "APPROVED", "REJECTED", "RESOLVED"];
 
 export default function AdminAppealsPage() {
   const [appeals, setAppeals] = useState<AdminAppeal[]>([]);
@@ -47,9 +48,10 @@ export default function AdminAppealsPage() {
   const [filter, setFilter] = useState<string>("Semua");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Decision Modal State
   const [selectedAppeal, setSelectedAppeal] = useState<AdminAppeal | null>(null);
-  const [decisionStatus, setDecisionStatus] = useState<"IN_REVIEW" | "NEED_INFO" | "APPROVED" | "REJECTED" | "RESOLVED">("APPROVED");
+  const [decisionStatus, setDecisionStatus] = useState<
+    "IN_REVIEW" | "NEED_INFO" | "APPROVED" | "REJECTED" | "RESOLVED"
+  >("APPROVED");
   const [decisionReason, setDecisionReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -106,8 +108,6 @@ export default function AdminAppealsPage() {
     }
   };
 
-  const tabs = ["Semua", "OPEN", "IN_REVIEW", "NEED_INFO", "APPROVED", "REJECTED", "RESOLVED"];
-
   const filteredAppeals = appeals.filter((a) => {
     if (filter !== "Semua" && a.status !== filter) return false;
     if (!searchQuery) return true;
@@ -120,427 +120,247 @@ export default function AdminAppealsPage() {
     );
   });
 
-  const stats = [
-    { label: "Total Sanggahan", value: appeals.length, color: "#1677FF" },
-    {
-      label: "Menunggu Review",
-      value: appeals.filter((a) => a.status === "OPEN" || a.status === "IN_REVIEW").length,
-      color: "#f59e0b",
-    },
-    {
-      label: "Disetujui",
-      value: appeals.filter((a) => a.status === "APPROVED").length,
-      color: "#10d98e",
-    },
-    {
-      label: "Ditolak",
-      value: appeals.filter((a) => a.status === "REJECTED").length,
-      color: "#ff6b6b",
-    },
-  ];
+  const pendingReviewCount = appeals.filter(
+    (a) => a.status === "OPEN" || a.status === "IN_REVIEW"
+  ).length;
+  const completedCount = appeals.filter(
+    (a) => a.status === "APPROVED" || a.status === "REJECTED" || a.status === "RESOLVED"
+  ).length;
 
   return (
-    <DashboardLayout sidebarItems={adminSidebarItems} userName="Admin Ravira" userRole="Super Admin" userInitial="A">
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 22, fontWeight: 800, color: "#0A1B3D", marginBottom: 4 }}>
-          Sanggahan Kandidat (Appeals)
-        </h1>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8" }}>
-          Kelola sanggahan dan klarifikasi kandidat terkait fraud flag, penolakan verifikasi, atau scoring
-        </p>
-      </div>
-
-      {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            style={{
-              background: "#fff",
-              borderRadius: 14,
-              border: "1px solid rgba(22,119,255,0.1)",
-              padding: "16px 20px",
-              boxShadow: "0 2px 8px rgba(10,27,61,0.04)",
-            }}
-          >
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 28, fontWeight: 800, color: s.color }}>
-              {s.value}
-            </div>
-            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", marginTop: 4 }}>
-              {s.label}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Filters and search */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
-          marginBottom: 18,
-        }}
-      >
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => setFilter(t)}
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 13,
-                fontWeight: filter === t ? 600 : 400,
-                color: filter === t ? "#1677FF" : "#6a88b8",
-                background: filter === t ? "rgba(22,119,255,0.08)" : "transparent",
-                border: filter === t ? "1px solid rgba(22,119,255,0.25)" : "1px solid transparent",
-                borderRadius: 8,
-                padding: "6px 14px",
-                cursor: "pointer",
-              }}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "#fff",
-            borderRadius: 8,
-            border: "1px solid rgba(22,119,255,0.15)",
-            padding: "6px 12px",
-          }}
-        >
-          <Search size={14} color="#6a88b8" />
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari kandidat atau alasan..."
-            style={{
-              border: "none",
-              outline: "none",
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 13,
-              color: "#0A1B3D",
-              background: "transparent",
-              width: 180,
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Appeals List Container */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 18,
-          border: "1px solid rgba(22,119,255,0.1)",
-          overflow: "hidden",
-          boxShadow: "0 2px 10px rgba(10,27,61,0.04)",
-        }}
-      >
-        {loading ? (
-          <div style={{ padding: 48, textAlign: "center", color: "#6a88b8" }}>
-            <Loader2 size={32} className="animate-spin" style={{ margin: "0 auto 12px", color: "#1677FF" }} />
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14 }}>Memuat daftar sanggahan...</p>
-          </div>
-        ) : error ? (
-          <div style={{ padding: 36, textAlign: "center" }}>
-            <AlertTriangle size={32} color="#ff6b6b" style={{ margin: "0 auto 12px" }} />
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#ff6b6b", marginBottom: 12 }}>
-              {error}
-            </p>
-            <button
-              onClick={() => void fetchAppeals()}
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 12,
-                fontWeight: 600,
-                color: "#1677FF",
-                background: "rgba(22,119,255,0.08)",
-                border: "1px solid rgba(22,119,255,0.25)",
-                borderRadius: 8,
-                padding: "8px 16px",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <RefreshCw size={14} /> Coba Lagi
-            </button>
-          </div>
-        ) : filteredAppeals.length === 0 ? (
-          <div style={{ padding: 48, textAlign: "center", color: "#6a88b8" }}>
-            <FileText size={36} color="#6a88b8" style={{ margin: "0 auto 12px", opacity: 0.5 }} />
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 500 }}>
-              Tidak ada sanggahan kandidat yang ditemukan.
+    <DashboardLayout sidebarItems={adminSidebarItems}>
+      <section className="admin-page" aria-labelledby="appeals-title">
+        <header className="admin-page-header">
+          <div>
+            <p className="admin-page-context">Trust &amp; governance</p>
+            <h1 id="appeals-title">Sanggahan kandidat</h1>
+            <p>
+              Kelola sanggahan dan klarifikasi kandidat terkait fraud flag, hasil parsing CV, atau penilaian kecocokan.
             </p>
           </div>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ background: "rgba(22,119,255,0.04)", borderBottom: "1px solid rgba(22,119,255,0.1)" }}>
-                {["Kandidat", "Kategori Entitas", "Alasan Sanggahan", "Bukti", "Status", "Reviewer / Waktu", "Aksi"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      style={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#6a88b8",
-                        textAlign: "left",
-                        padding: "12px 16px",
-                      }}
-                    >
-                      {h}
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAppeals.map((a, i) => {
-                const badge = statusColor[a.status] || { color: "#6a88b8", bg: "rgba(106,136,184,0.1)" };
-
-                return (
-                  <tr
-                    key={a.id}
-                    style={{
-                      borderBottom: i < filteredAppeals.length - 1 ? "1px solid rgba(22,119,255,0.06)" : "none",
-                    }}
-                  >
-                    <td style={{ padding: "14px 16px" }}>
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D" }}>
-                        {a.candidate.user.fullName}
-                      </div>
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8" }}>
-                        {a.candidate.user.email}
-                      </div>
-                    </td>
-                    <td style={{ padding: "14px 16px" }}>
-                      <span
-                        style={{
-                          fontFamily: "'JetBrains Mono', monospace",
-                          fontSize: 10,
-                          fontWeight: 600,
-                          color: "#1677FF",
-                          background: "rgba(22,119,255,0.08)",
-                          borderRadius: 6,
-                          padding: "2px 7px",
-                        }}
-                      >
-                        {a.relatedEntity.toUpperCase()}
-                      </span>
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px 16px",
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: 12,
-                        color: "#4a6080",
-                        maxWidth: 240,
-                      }}
-                    >
-                      <div
-                        style={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                        }}
-                      >
-                        {a.reason}
-                      </div>
-                    </td>
-                    <td style={{ padding: "14px 16px", fontFamily: "'Inter', sans-serif", fontSize: 12 }}>
-                      {a.evidenceUrl ? (
-                        <a
-                          href={a.evidenceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            color: "#1677FF",
-                            textDecoration: "none",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            fontWeight: 500,
-                          }}
-                        >
-                          Lihat Dokumen <ExternalLink size={11} />
-                        </a>
-                      ) : (
-                        <span style={{ color: "#9ab4cc" }}>Tidak ada</span>
-                      )}
-                    </td>
-                    <td style={{ padding: "14px 16px" }}>
-                      <span
-                        style={{
-                          fontFamily: "'JetBrains Mono', monospace",
-                          fontSize: 10,
-                          fontWeight: 700,
-                          color: badge.color,
-                          background: badge.bg,
-                          borderRadius: 6,
-                          padding: "3px 8px",
-                          border: `1px solid ${badge.color}40`,
-                        }}
-                      >
-                        {a.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: "14px 16px", fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8" }}>
-                      {a.reviewer ? (
-                        <>
-                          <div style={{ color: "#0A1B3D", fontWeight: 500 }}>{a.reviewer.fullName}</div>
-                          {a.resolvedAt && (
-                            <div style={{ fontSize: 10, color: "#9ab4cc" }}>
-                              {new Date(a.resolvedAt).toLocaleDateString("id-ID")}
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <span style={{ color: "#9ab4cc" }}>Belum ditinjau</span>
-                      )}
-                    </td>
-                    <td style={{ padding: "14px 16px" }}>
-                      <button
-                        onClick={() => handleOpenDecisionModal(a)}
-                        style={{
-                          fontFamily: "'Inter', sans-serif",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: "#1677FF",
-                          background: "rgba(22,119,255,0.08)",
-                          border: "1px solid rgba(22,119,255,0.25)",
-                          borderRadius: 7,
-                          padding: "5px 12px",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        <MessageSquare size={12} /> Putuskan
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Decision Modal */}
-      {selectedAppeal && (
-        <div
-          onClick={() => !isSubmitting && setSelectedAppeal(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1000,
-            background: "rgba(10,27,61,0.55)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 24,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "#fff",
-              borderRadius: 20,
-              width: "100%",
-              maxWidth: 500,
-              boxShadow: "0 24px 80px rgba(10,27,61,0.18)",
-              border: "1px solid rgba(22,119,255,0.1)",
-              overflow: "hidden",
-            }}
+          <button
+            type="button"
+            className="admin-button admin-button-secondary"
+            onClick={() => void fetchAppeals()}
+            disabled={loading}
           >
-            <div
-              style={{
-                padding: "24px 28px 0",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 17, fontWeight: 700, color: "#0A1B3D" }}>
-                Putuskan Sanggahan Kandidat
-              </h2>
+            <RefreshCw size={16} aria-hidden="true" />
+            Perbarui antrean
+          </button>
+        </header>
+
+        <div className="admin-queue-summary" aria-label="Ringkasan sanggahan kandidat">
+          <div className="admin-queue-primary">
+            <span>Menunggu review ({appeals.length} total sanggahan)</span>
+            <strong>{pendingReviewCount}</strong>
+            <p>Pengajuan klarifikasi kandidat yang masih membutuhkan pemeriksaan dan keputusan admin.</p>
+          </div>
+          <div className="admin-queue-note">
+            <span>Sudah diputuskan</span>
+            <strong>{completedCount}</strong>
+            <p>Setiap keputusan tercatat dalam audit log beserta alasan pemeriksaan yang jelas.</p>
+          </div>
+        </div>
+
+        <div className="admin-work-panel">
+          <div className="admin-work-panel-header">
+            <div>
+              <h2>Antrean sanggahan</h2>
+              <p>Saring pengajuan sanggahan berdasarkan status proses atau kata kunci.</p>
+            </div>
+            <div className="admin-segmented-control" aria-label="Filter status sanggahan" style={{ flexWrap: "wrap" }}>
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  aria-pressed={filter === tab}
+                  onClick={() => setFilter(tab)}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-toolbar">
+            <div className="admin-toolbar-group">
+              <div className="admin-search-field">
+                <Search size={15} color="#64748b" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari kandidat atau alasan..."
+                  aria-label="Cari sanggahan kandidat"
+                />
+              </div>
+            </div>
+            <span className="admin-cell-subtitle">
+              Menampilkan {filteredAppeals.length} sanggahan
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="admin-state" role="status">
+              <Loader2 className="admin-spinner" size={28} aria-hidden="true" />
+              <strong>Memuat daftar sanggahan kandidat</strong>
+              <p>RAVIRA sedang mengambil data pengajuan sanggahan terbaru.</p>
+            </div>
+          ) : error ? (
+            <div className="admin-state admin-state-error" role="alert">
+              <AlertTriangle size={28} aria-hidden="true" />
+              <strong>Daftar sanggahan tidak dapat dimuat</strong>
+              <p>{error}</p>
               <button
-                onClick={() => !isSubmitting && setSelectedAppeal(null)}
-                disabled={isSubmitting}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#6a88b8" }}
+                type="button"
+                className="admin-button admin-button-secondary"
+                onClick={() => void fetchAppeals()}
               >
-                <X size={20} />
+                <RefreshCw size={14} aria-hidden="true" />
+                Coba lagi
               </button>
             </div>
-            <div style={{ padding: 28 }}>
+          ) : filteredAppeals.length === 0 ? (
+            <div className="admin-state">
+              <FileText size={28} aria-hidden="true" />
+              <strong>Tidak ada sanggahan kandidat</strong>
+              <p>Tidak ada sanggahan kandidat yang sesuai dengan filter saat ini.</p>
+            </div>
+          ) : (
+            <div className="admin-responsive-table">
+              <table className="admin-data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Kandidat</th>
+                    <th scope="col">Kategori entitas</th>
+                    <th scope="col">Alasan sanggahan</th>
+                    <th scope="col">Bukti</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Reviewer / waktu</th>
+                    <th scope="col">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAppeals.map((appeal) => (
+                    <tr key={appeal.id}>
+                      <td>
+                        <span className="admin-cell-title">{appeal.candidate.user.fullName}</span>
+                        <span className="admin-cell-subtitle">{appeal.candidate.user.email}</span>
+                      </td>
+                      <td>
+                        <span className="admin-status admin-status-neutral">
+                          {appeal.relatedEntity.toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{ maxWidth: 260 }}>{appeal.reason}</td>
+                      <td>
+                        {appeal.evidenceUrl ? (
+                          <a
+                            href={appeal.evidenceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="admin-text-link"
+                            style={{ marginTop: 0, display: "inline-flex", alignItems: "center", gap: 4 }}
+                          >
+                            Lihat Dokumen <ExternalLink size={12} aria-hidden="true" />
+                          </a>
+                        ) : (
+                          <span className="admin-cell-subtitle">Tidak ada</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className={statusBadgeClass[appeal.status] ?? "admin-status admin-status-neutral"}>
+                          {appeal.status}
+                        </span>
+                      </td>
+                      <td>
+                        {appeal.reviewer ? (
+                          <>
+                            <span className="admin-cell-title">{appeal.reviewer.fullName}</span>
+                            {appeal.resolvedAt && (
+                              <span className="admin-cell-subtitle">
+                                {new Date(appeal.resolvedAt).toLocaleDateString("id-ID")}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="admin-cell-subtitle">Belum ditinjau</span>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="admin-button admin-button-secondary"
+                          onClick={() => handleOpenDecisionModal(appeal)}
+                        >
+                          <MessageSquare size={14} aria-hidden="true" />
+                          Putuskan
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {selectedAppeal && (
+        <div
+          className="admin-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="appeal-decision-title"
+          onClick={() => !isSubmitting && setSelectedAppeal(null)}
+        >
+          <div className="admin-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-dialog-header">
+              <div>
+                <p className="admin-page-context">{selectedAppeal.relatedEntity}</p>
+                <h2 id="appeal-decision-title">Putuskan Sanggahan Kandidat</h2>
+              </div>
+              <button
+                type="button"
+                className="admin-icon-button"
+                onClick={() => !isSubmitting && setSelectedAppeal(null)}
+                disabled={isSubmitting}
+                aria-label="Tutup dialog"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="admin-dialog-body">
               <div
                 style={{
-                  background: "#f8fafc",
+                  background: "#f5f7f9",
+                  border: "1px solid #e4e9ef",
                   borderRadius: 10,
                   padding: "12px 14px",
                   marginBottom: 16,
-                  border: "1px solid rgba(0,0,0,0.06)",
                 }}
               >
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D", fontWeight: 600 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#172033" }}>
                   {selectedAppeal.candidate.user.fullName}
                 </div>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8", marginTop: 2 }}>
-                  Kategori: <strong>{selectedAppeal.relatedEntity}</strong>
-                </div>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#4a6080", marginTop: 4 }}>
-                  "{selectedAppeal.reason}"
+                <div style={{ fontSize: 12, color: "#526074", marginTop: 4 }}>
+                  &ldquo;{selectedAppeal.reason}&rdquo;
                 </div>
               </div>
 
-              {/* Status selection */}
-              <div style={{ marginBottom: 16 }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "#0A1B3D",
-                    marginBottom: 6,
-                  }}
-                >
-                  Status Keputusan <span style={{ color: "#ff6b6b" }}>*</span>
-                </label>
+              <div className="admin-field" style={{ marginBottom: 16 }}>
+                <label htmlFor="appeal-status-select">Status Keputusan *</label>
                 <select
+                  id="appeal-status-select"
+                  className="admin-select"
+                  style={{ width: "100%" }}
                   value={decisionStatus}
                   onChange={(e) =>
                     setDecisionStatus(
                       e.target.value as "IN_REVIEW" | "NEED_INFO" | "APPROVED" | "REJECTED" | "RESOLVED"
                     )
                   }
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: 10,
-                    border: "1px solid rgba(22,119,255,0.25)",
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: 13,
-                    color: "#0A1B3D",
-                    background: "#fff",
-                    outline: "none",
-                  }}
                 >
                   {appealDecisionOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -550,81 +370,35 @@ export default function AdminAppealsPage() {
                 </select>
               </div>
 
-              {/* Reason textarea */}
-              <div style={{ marginBottom: 20 }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "#0A1B3D",
-                    marginBottom: 6,
-                  }}
-                >
-                  Alasan Keputusan & Catatan Audit <span style={{ color: "#ff6b6b" }}>*</span>
-                </label>
+              <div>
+                <label htmlFor="appeal-decision-reason">Alasan Keputusan &amp; Catatan Audit *</label>
                 <textarea
+                  id="appeal-decision-reason"
                   value={decisionReason}
                   onChange={(e) => setDecisionReason(e.target.value)}
                   placeholder="Jelaskan alasan verifikasi sanggahan ini untuk kandidat dan audit log..."
                   rows={4}
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: 10,
-                    border: "1px solid rgba(22,119,255,0.2)",
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: 13,
-                    color: "#0A1B3D",
-                    outline: "none",
-                    resize: "vertical",
-                    boxSizing: "border-box",
-                  }}
                 />
               </div>
+            </div>
 
-              {/* Actions */}
-              <div style={{ display: "flex", gap: 10 }}>
-                <button
-                  onClick={() => setSelectedAppeal(null)}
-                  disabled={isSubmitting}
-                  style={{
-                    flex: 1,
-                    padding: "11px",
-                    borderRadius: 10,
-                    border: "1px solid rgba(22,119,255,0.2)",
-                    background: "#f0f7ff",
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: 13,
-                    color: "#6a88b8",
-                    cursor: isSubmitting ? "not-allowed" : "pointer",
-                  }}
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={() => void handleSubmitDecision()}
-                  disabled={!decisionReason.trim() || isSubmitting}
-                  style={{
-                    flex: 2,
-                    padding: "11px",
-                    borderRadius: 10,
-                    border: "none",
-                    background:
-                      decisionReason.trim() && !isSubmitting
-                        ? "linear-gradient(135deg, #1677FF, #0D47A1)"
-                        : "rgba(22,119,255,0.3)",
-                    fontFamily: "'Poppins', sans-serif",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: "#fff",
-                    cursor: decisionReason.trim() && !isSubmitting ? "pointer" : "not-allowed",
-                  }}
-                >
-                  {isSubmitting ? "Menyimpan..." : "Simpan Keputusan"}
-                </button>
-              </div>
+            <div className="admin-dialog-actions">
+              <button
+                type="button"
+                className="admin-button admin-button-secondary"
+                onClick={() => setSelectedAppeal(null)}
+                disabled={isSubmitting}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="admin-button admin-button-primary"
+                onClick={() => void handleSubmitDecision()}
+                disabled={!decisionReason.trim() || isSubmitting}
+              >
+                {isSubmitting ? "Menyimpan..." : "Simpan Keputusan"}
+              </button>
             </div>
           </div>
         </div>

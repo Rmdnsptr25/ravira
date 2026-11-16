@@ -944,6 +944,7 @@ export type RecruiterCompanyProfile = {
   location?: string | null
   website?: string | null
   description?: string | null
+  logoUrl?: string | null
   verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED'
   verifiedAt?: string | null
   createdAt: string
@@ -968,6 +969,26 @@ export async function updateRecruiterCompanyProfile(
   signal?: AbortSignal
 ) {
   return api.patch<RecruiterCompanyProfile>('/recruiter/company', body, signal)
+}
+
+export async function uploadRecruiterCompanyLogo(file: File, signal?: AbortSignal) {
+  const formData = new FormData()
+  formData.append('logo', file)
+  return api.post<{ logoUrl: string }>('/recruiter/company/logo', formData, signal)
+}
+
+export function resolveBackendAssetUrl(assetPath?: string | null): string | null {
+  if (!assetPath) return null
+  if (/^https?:\/\//i.test(assetPath) || assetPath.startsWith('blob:') || assetPath.startsWith('data:')) {
+    return assetPath
+  }
+  const apiBase = import.meta.env?.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1'
+  try {
+    const origin = new URL(apiBase).origin
+    return `${origin}${assetPath.startsWith('/') ? assetPath : `/${assetPath}`}`
+  } catch {
+    return assetPath
+  }
 }
 
 export function logout() {

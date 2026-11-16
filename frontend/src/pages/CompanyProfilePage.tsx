@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard,
   GitBranch,
@@ -12,7 +12,8 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  Loader2
+  Loader2,
+  UploadCloud
 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardLayout } from "../components/DashboardLayout";
@@ -20,7 +21,9 @@ import type { SidebarItem } from "../components/DashboardLayout";
 import { useAppContext } from "../contexts/AppContext";
 import {
   getRecruiterCompanyProfile,
+  resolveBackendAssetUrl,
   updateRecruiterCompanyProfile,
+  uploadRecruiterCompanyLogo,
   type RecruiterCompanyProfile,
   type UpdateRecruiterCompanyInput
 } from "../services/raviraApi";
@@ -64,7 +67,11 @@ export default function CompanyProfilePage() {
   const [company, setCompany] = useState<RecruiterCompanyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   const [form, setForm] = useState({
     nama: "",
@@ -87,6 +94,7 @@ export default function CompanyProfilePage() {
       .then((data) => {
         if (!active) return;
         setCompany(data);
+        setLogoUrl(data.logoUrl ?? null);
         setForm({
           nama: data.name || "",
           industri: data.industry || "",
@@ -112,6 +120,33 @@ export default function CompanyProfilePage() {
 
   const handleChange = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleLogoFile = async (file?: File) => {
+    if (!file || uploadingLogo) return;
+    const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
+    const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    if (!allowedTypes.has(file.type) && ![".png", ".jpg", ".jpeg", ".webp"].includes(ext)) {
+      toast.error("Format logo harus PNG, JPG, JPEG, atau WEBP.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Ukuran logo maksimal 2MB.");
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const result = await uploadRecruiterCompanyLogo(file);
+      setLogoUrl(result.logoUrl);
+      setCompany((prev) => (prev ? { ...prev, logoUrl: result.logoUrl } : prev));
+      toast.success("Logo perusahaan berhasil diunggah.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengunggah logo perusahaan.");
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,13 +253,14 @@ export default function CompanyProfilePage() {
               style={{ backgroundColor: "#fff", borderRadius: "14px", padding: "32px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
             >
               {/* Logo */}
-              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "28px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "28px", flexWrap: "wrap" }}>
                 <div
                   style={{
                     width: "80px",
                     height: "80px",
                     borderRadius: "16px",
-                    backgroundColor: "#1677FF",
+                    backgroundColor: logoUrl ? "#f8faff" : "#1677FF",
+                    border: logoUrl ? "1px solid #e5eaf3" : "none",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -232,17 +268,75 @@ export default function CompanyProfilePage() {
                     fontFamily: "Poppins, sans-serif",
                     fontSize: "28px",
                     fontWeight: 800,
+                    overflow: "hidden",
+                    flexShrink: 0,
                   }}
                 >
-                  {companyLogoInitial}
+                  {logoUrl ? (
+                    <img
+                      src={resolveBackendAssetUrl(logoUrl) ?? undefined}
+                      alt={`Logo ${displayCompany}`}
+                      style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                    />
+                  ) : (
+                    companyLogoInitial
+                  )}
                 </div>
-                <div>
-                  <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "18px", fontWeight: 700, color: "#0A1B3D" }}>
-                    Logo Perusahaan
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => !uploadingLogo && logoInputRef.current?.click()}
+                  onKeyDown={(e) => {
+                    if ((e.key === "Enter" || e.key === " ") && !uploadingLogo) {
+                      e.preventDefault();
+                      logoInputRef.current?.click();
+                    }
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (!uploadingLogo) setIsDraggingLogo(true);
+                  }}
+                  onDragLeave={() => setIsDraggingLogo(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingLogo(false);
+                    const file = e.dataTransfer.files?.[0];
+                    void handleLogoFile(file);
+                  }}
+                  style={{
+                    flex: "1 1 260px",
+                    border: `1.5px dashed ${isDraggingLogo ? "#0E67CC" : "#cbd5e1"}`,
+                    backgroundColor: isDraggingLogo ? "#eff6ff" : "#f8faff",
+                    borderRadius: "12px",
+                    padding: "14px 18px",
+                    cursor: uploadingLogo ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    transition: "border-color 140ms ease, background-color 140ms ease",
+                  }}
+                >
+                  {uploadingLogo ? (
+                    <Loader2 size={20} color="#0E67CC" className="animate-spin" />
+                  ) : (
+                    <UploadCloud size={20} color="#0E67CC" />
+                  )}
+                  <div>
+                    <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "14px", fontWeight: 700, color: "#0A1B3D" }}>
+                      {uploadingLogo ? "Mengunggah logo..." : "Seret & lepas logo perusahaan atau klik untuk pilih"}
+                    </div>
+                    <div style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#64748b", marginTop: "2px" }}>
+                      Format PNG, JPG, JPEG, WEBP · Maks. 2MB
+                    </div>
                   </div>
-                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#9ca3af", marginTop: "4px" }}>
-                    Format JPG, PNG, SVG. Logo otomatis digenerate dari inisial perusahaan.
-                  </div>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
+                    style={{ display: "none" }}
+                    disabled={uploadingLogo}
+                    onChange={(e) => void handleLogoFile(e.target.files?.[0])}
+                  />
                 </div>
               </div>
 

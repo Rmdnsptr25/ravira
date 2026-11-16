@@ -1,5 +1,12 @@
 import prisma from "../../config/prisma";
+import { env } from "../../config/env";
 import { AppError } from "../../utils/appError";
+import {
+  findLocalCompanyLogoUrl,
+  isSupabaseStorageConfigured,
+  saveLocalCompanyLogo,
+  uploadBufferToSupabaseStorage
+} from "../storage/supabaseStorage.service";
 import { getRecruiterContext } from "./recruiterAccess.service";
 
 interface UpdateCompanyData {
@@ -35,7 +42,10 @@ export const getRecruiterCompany = async (userId: string) => {
     throw new AppError("Company profile not found.", 404);
   }
 
-  return company;
+  return {
+    ...company,
+    logoUrl: await findLocalCompanyLogoUrl(company.id)
+  };
 };
 
 export const updateRecruiterCompany = async (
@@ -113,5 +123,40 @@ export const updateRecruiterCompany = async (
     }
   });
 
-  return updatedCompany;
+  return {
+    ...updatedCompany,
+    logoUrl: await findLocalCompanyLogoUrl(updatedCompany.id)
+  };
+};
+
+export const uploadRecruiterCompanyLogo = async (
+  userId: string,
+  file: Express.Multer.File
+) => {
+  const recruiter = await getRecruiterContext(userId);
+  const companyId = recruiter.companyId;
+  const fileName = await saveLocalCompanyLogo(companyId, file.originalname, file.buffer);
+
+  const logoUrl = `/uploads/company-logos/${fileName}?v=${Date.now()}`;
+  if (isSupabaseStorageConfigured()) {
+    await uploadBufferToSupabaseStorage({
+      bucket: env.SUPABASE_IMAGE_BUCKET,
+      objectPath: `company-logos/${fileName}`,
+      buffer: file.buffer,
+      contentType: file.mimetype
+    });
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: userId,
+      actorRole: "RECRUITER",
+      action: "UPLOAD_COMPANY_LOGO",
+      entity: "Company",
+      entityId: companyId,
+      after: { logoUrl }
+    }
+  });
+
+  return { logoUrl };
 };

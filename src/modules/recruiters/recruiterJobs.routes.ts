@@ -21,9 +21,11 @@ import {
 } from "./recruiterJobs.validation";
 import {
   getRecruiterCompanyProfile,
-  updateRecruiterCompanyProfile
+  updateRecruiterCompanyProfile,
+  uploadRecruiterCompanyLogo
 } from "./recruiterCompany.controller";
 import { updateRecruiterCompanySchema } from "./recruiterCompany.validation";
+import { companyLogoUploadMiddleware } from "../../middlewares/companyLogoUploadMiddleware";
 import { getRecruiterJobCandidateScores } from "../scoring/scoring.controller";
 
 const router = Router();
@@ -35,6 +37,11 @@ router.patch(
   "/company",
   validateBody(updateRecruiterCompanySchema),
   updateRecruiterCompanyProfile
+);
+router.post(
+  "/company/logo",
+  companyLogoUploadMiddleware,
+  uploadRecruiterCompanyLogo
 );
 
 router.post("/jobs", validateBody(createRecruiterJobSchema), createRecruiterJob);
