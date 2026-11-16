@@ -173,7 +173,7 @@ export default function CompanyProfilePage() {
       userRole={displayRole}
       userInitial={displayInitial}
     >
-      <div style={{ padding: "32px", minHeight: "100vh", backgroundColor: "#f0f7ff" }}>
+      <div style={{ minHeight: "100vh" }}>
         <div style={{ marginBottom: "28px" }}>
           <h1 style={{ fontFamily: "Poppins, sans-serif", fontSize: "24px", fontWeight: 700, color: "#0A1B3D", margin: 0 }}>
             Profil Perusahaan

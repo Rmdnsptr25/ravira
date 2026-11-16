@@ -1,8 +1,29 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
-  Home, Briefcase, Bookmark, BarChart2, BookOpen, FileText, Globe, User, Settings,
-  MapPin, Mail, Phone, Calendar, Download, Edit2, CheckCircle,
-  GraduationCap, Star, FolderOpen, UploadCloud, Trash2, Plus, Loader2, AlertCircle,
+  Home,
+  Briefcase,
+  Bookmark,
+  BarChart2,
+  BookOpen,
+  FileText,
+  Globe,
+  User,
+  Settings,
+  MapPin,
+  Mail,
+  Phone,
+  Calendar,
+  Download,
+  Edit2,
+  CheckCircle,
+  GraduationCap,
+  Star,
+  FolderOpen,
+  UploadCloud,
+  Trash2,
+  Plus,
+  Loader2,
+  AlertCircle,
   FileCheck2,
 } from "lucide-react";
 import { DashboardLayout } from "../components/DashboardLayout";
@@ -66,35 +87,72 @@ function SectionCard({
   const isEditing = editingSection === sectionKey;
 
   return (
-    <div style={{
-      background: "#fff", borderRadius: 16, padding: "22px 24px",
-      boxShadow: "0 2px 12px rgba(10,27,61,0.07)", border: "1px solid rgba(22,119,255,0.08)",
-      marginBottom: 20, position: "relative",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 15, fontWeight: 700, color: "#0A1B3D" }}>{title}</div>
+    <div
+      style={{
+        background: "#F4F5F7",
+        borderRadius: 24,
+        padding: "24px",
+        border: "1px solid #E2E8F0",
+        marginBottom: 20,
+        position: "relative",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 18,
+          gap: 12,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: 16,
+            fontWeight: 600,
+            color: "#0D1117",
+          }}
+        >
+          {title}
+        </div>
         {isEditing ? (
           <div style={{ display: "flex", gap: 8 }}>
             <button
+              type="button"
               onClick={() => onEditStart("")}
               disabled={isSaving}
               style={{
-                fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 500,
-                padding: "6px 12px", borderRadius: 8, border: "1px solid rgba(106,136,184,0.3)",
-                background: "#f8fbff", color: "#6a88b8", cursor: "pointer",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 12.5,
+                fontWeight: 600,
+                padding: "7px 14px",
+                borderRadius: 999,
+                border: "1px solid #CBD5E1",
+                background: "#FFFFFF",
+                color: "#0D1117",
+                cursor: "pointer",
               }}
             >
               Batal
             </button>
             <button
+              type="button"
               onClick={onEditSave}
               disabled={isSaving}
               style={{
-                display: "flex", alignItems: "center", gap: 5,
-                fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600,
-                padding: "6px 14px", borderRadius: 8, border: "none",
-                background: "linear-gradient(135deg, #1677FF, #4DB8FF)",
-                color: "#fff", cursor: isSaving ? "not-allowed" : "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 12.5,
+                fontWeight: 700,
+                padding: "7px 16px",
+                borderRadius: 999,
+                border: "none",
+                background: "#0D1117",
+                color: "#D4FF59",
+                cursor: isSaving ? "not-allowed" : "pointer",
                 opacity: isSaving ? 0.7 : 1,
               }}
             >
@@ -104,13 +162,21 @@ function SectionCard({
           </div>
         ) : (
           <button
+            type="button"
             onClick={() => onEditStart(sectionKey)}
             style={{
-              display: "flex", alignItems: "center", gap: 5,
-              fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600,
-              padding: "6px 12px", borderRadius: 8,
-              border: "1.5px solid rgba(22,119,255,0.2)",
-              background: "#fff", color: "#1677FF", cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 12.5,
+              fontWeight: 600,
+              padding: "7px 14px",
+              borderRadius: 999,
+              border: "1px solid #CBD5E1",
+              background: "#FFFFFF",
+              color: "#0D1117",
+              cursor: "pointer",
             }}
           >
             <Edit2 size={12} /> Edit
@@ -118,12 +184,19 @@ function SectionCard({
         )}
       </div>
       {isEditing && (
-        <div style={{
-          marginBottom: 16, padding: "14px 16px", borderRadius: 10,
-          background: "#f0f7ff", border: "1px dashed rgba(22,119,255,0.3)",
-          fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8",
-        }}>
-          Mode edit aktif — ubah informasi di bawah ini lalu klik "Simpan Perubahan".
+        <div
+          style={{
+            marginBottom: 16,
+            padding: "12px 16px",
+            borderRadius: 14,
+            background: "#FFFFFF",
+            border: "1px solid #E2E8F0",
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 13,
+            color: "#4A5568",
+          }}
+        >
+          Mode edit aktif — ubah informasi di bawah ini lalu klik &ldquo;Simpan Perubahan&rdquo;.
         </div>
       )}
       {children}
@@ -131,25 +204,75 @@ function SectionCard({
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 14, borderBottom: "1px solid #f0f7ff" }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: "#f0f7ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "12px 14px",
+        borderRadius: 14,
+        background: "#FFFFFF",
+        border: "1px solid #E2E8F0",
+      }}
+    >
+      <div
+        aria-hidden="true"
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: 10,
+          background: "#0D1117",
+          color: "#D4FF59",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
         {icon}
       </div>
       <div>
-        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8" }}>{label}</div>
-        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D", marginTop: 1 }}>{value}</div>
+        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11.5, color: "#4A5568" }}>
+          {label}
+        </div>
+        <div
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 13.5,
+            fontWeight: 600,
+            color: "#0D1117",
+            marginTop: 1,
+          }}
+        >
+          {value}
+        </div>
       </div>
     </div>
   );
 }
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "10px 14px", borderRadius: 10,
-  border: "1px solid rgba(22,119,255,0.2)", outline: "none",
-  fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D",
-  background: "#f8fbff", boxSizing: "border-box", marginBottom: 12,
+  width: "100%",
+  padding: "11px 14px",
+  borderRadius: 12,
+  border: "1px solid #CBD5E1",
+  outline: "none",
+  fontFamily: "'Inter', sans-serif",
+  fontSize: 13.5,
+  color: "#0D1117",
+  background: "#FFFFFF",
+  boxSizing: "border-box",
+  marginBottom: 12,
 };
 
 export default function CandidateSelfProfilePage() {
@@ -159,14 +282,12 @@ export default function CandidateSelfProfilePage() {
   const [showCvUpload, setShowCvUpload] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // API State
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [skills, setSkills] = useState<CandidateSkill[]>([]);
   const [cvDocuments, setCvDocuments] = useState<CandidateDocument[]>([]);
 
-  // Form edit states
   const [formFullName, setFormFullName] = useState("");
   const [formPhone, setFormPhone] = useState("");
   const [formLocation, setFormLocation] = useState("");
@@ -174,9 +295,9 @@ export default function CandidateSelfProfilePage() {
   const [formExperienceSummary, setFormExperienceSummary] = useState("");
   const [formSalaryExpectation, setFormSalaryExpectation] = useState<number | string>("");
   const [formMobilityPreference, setFormMobilityPreference] = useState("");
-  const [formVisibilityStatus, setFormVisibilityStatus] = useState<ProfileVisibilityStatus>("PRIVATE");
+  const [formVisibilityStatus, setFormVisibilityStatus] =
+    useState<ProfileVisibilityStatus>("PRIVATE");
 
-  // Action states
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingCv, setIsUploadingCv] = useState(false);
   const [newSkillName, setNewSkillName] = useState("");
@@ -198,7 +319,6 @@ export default function CandidateSelfProfilePage() {
       setSkills(skillsData);
       setCvDocuments(cvData);
 
-      // Populate form states
       setFormFullName(profileData.fullName || "");
       setFormPhone(profileData.phone || "");
       setFormLocation(profileData.location || "");
@@ -226,7 +346,6 @@ export default function CandidateSelfProfilePage() {
     return () => controller.abort();
   }, [loadData]);
 
-  // Profile completion calculation
   const completionPercentage = useMemo(() => {
     let score = 0;
     if (profile?.fullName) score += 15;
@@ -250,14 +369,19 @@ export default function CandidateSelfProfilePage() {
         if (formPhone.trim()) payload.phone = formPhone.trim();
         if (formLocation.trim()) payload.location = formLocation.trim();
       } else if (editingSection === "ringkasan") {
-        if (formExperienceSummary.trim()) payload.experienceSummary = formExperienceSummary.trim();
+        if (formExperienceSummary.trim())
+          payload.experienceSummary = formExperienceSummary.trim();
       } else if (editingSection === "preferensi") {
         if (formLocation.trim()) payload.location = formLocation.trim();
         if (formSalaryExpectation !== "" && formSalaryExpectation !== null) {
-          const num = typeof formSalaryExpectation === "number" ? formSalaryExpectation : parseInt(String(formSalaryExpectation).replace(/\D/g, ""), 10);
+          const num =
+            typeof formSalaryExpectation === "number"
+              ? formSalaryExpectation
+              : parseInt(String(formSalaryExpectation).replace(/\D/g, ""), 10);
           if (!isNaN(num) && num >= 0) payload.salaryExpectation = num;
         }
-        if (formMobilityPreference.trim()) payload.mobilityPreference = formMobilityPreference.trim();
+        if (formMobilityPreference.trim())
+          payload.mobilityPreference = formMobilityPreference.trim();
         if (formVisibilityStatus) payload.visibilityStatus = formVisibilityStatus;
       } else if (editingSection === "pendidikan") {
         if (formEducation.trim()) payload.education = formEducation.trim();
@@ -302,11 +426,10 @@ export default function CandidateSelfProfilePage() {
     setIsUploadingCv(true);
     try {
       const doc = await uploadCandidateCv(file);
-      setCvDocuments(prev => [doc, ...prev]);
+      setCvDocuments((prev) => [doc, ...prev]);
       setShowCvUpload(false);
       toast.success(`CV "${doc.fileName}" berhasil diunggah!`);
 
-      // Refresh skills if new skills were extracted by backend parser
       if (doc.extractedSkills && doc.extractedSkills.length > 0) {
         const refreshedSkills = await listCandidateSkills();
         setSkills(refreshedSkills);
@@ -325,7 +448,7 @@ export default function CandidateSelfProfilePage() {
     setDeletingCvId(cvId);
     try {
       await deleteCandidateCv(cvId);
-      setCvDocuments(prev => prev.filter(c => c.id !== cvId));
+      setCvDocuments((prev) => prev.filter((c) => c.id !== cvId));
       toast.success("Dokumen CV berhasil dihapus.");
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Gagal menghapus CV.";
@@ -343,8 +466,7 @@ export default function CandidateSelfProfilePage() {
       return;
     }
 
-    // Check duplicate locally
-    if (skills.some(s => s.skillName.toLowerCase() === trimmed.toLowerCase())) {
+    if (skills.some((s) => s.skillName.toLowerCase() === trimmed.toLowerCase())) {
       toast.error(`Skill "${trimmed}" sudah ada di profil Anda.`);
       return;
     }
@@ -356,7 +478,7 @@ export default function CandidateSelfProfilePage() {
         level: newSkillLevel,
         source: "CANDIDATE",
       });
-      setSkills(prev => [created, ...prev]);
+      setSkills((prev) => [created, ...prev]);
       setNewSkillName("");
       toast.success(`Skill "${created.skillName}" berhasil ditambahkan!`);
     } catch (err) {
@@ -371,7 +493,7 @@ export default function CandidateSelfProfilePage() {
     setDeletingSkillId(skillId);
     try {
       await deleteCandidateSkill(skillId);
-      setSkills(prev => prev.filter(s => s.id !== skillId));
+      setSkills((prev) => prev.filter((s) => s.id !== skillId));
       toast.success(`Skill "${skillName}" berhasil dihapus.`);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Gagal menghapus skill.";
@@ -379,14 +501,6 @@ export default function CandidateSelfProfilePage() {
     } finally {
       setDeletingSkillId(null);
     }
-  };
-
-  const card: React.CSSProperties = {
-    background: "#fff",
-    borderRadius: 16,
-    padding: "24px",
-    boxShadow: "0 2px 12px rgba(10,27,61,0.07)",
-    border: "1px solid rgba(22,119,255,0.08)",
   };
 
   const displayName = profile?.fullName || user?.fullName || "Kandidat";
@@ -400,17 +514,61 @@ export default function CandidateSelfProfilePage() {
       userRole="Kandidat"
       userInitial={displayInitial}
     >
-      {/* Header */}
-      <div style={{ marginBottom: 24, display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+      {/* Framed Hero Banner */}
+      <section
+        style={{
+          borderRadius: 26,
+          background: "linear-gradient(180deg, #0849A8 0%, #0E67CC 52%, #2B8CFF 100%)",
+          padding: "28px 30px",
+          marginBottom: 24,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 16,
+          boxShadow: "0 16px 40px rgba(8, 73, 168, 0.12)",
+        }}
+      >
         <div>
-          <h1 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 24, fontWeight: 700, color: "#0A1B3D", margin: 0 }}>
+          <p
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#D4FF59",
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              margin: "0 0 8px",
+            }}
+          >
+            Identitas &amp; Kompetensi
+          </p>
+          <h1
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: "clamp(24px, 3vw, 32px)",
+              fontWeight: 600,
+              color: "#FFFFFF",
+              letterSpacing: "-0.03em",
+              margin: "0 0 6px",
+              lineHeight: 1.15,
+            }}
+          >
             Profil Saya
           </h1>
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#6a88b8", marginTop: 6 }}>
+          <p
+            style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 14.5,
+              color: "rgba(255, 255, 255, 0.9)",
+              margin: 0,
+            }}
+          >
             Kelola informasi profil, keahlian, dan dokumen resume Anda.
           </p>
         </div>
         <button
+          type="button"
           onClick={() => {
             if (cvDocuments.length > 0) {
               toast.success(`CV aktif: ${cvDocuments[0].fileName}`);
@@ -419,41 +577,91 @@ export default function CandidateSelfProfilePage() {
             }
           }}
           style={{
-            display: "flex", alignItems: "center", gap: 7,
-            fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
-            padding: "10px 20px", borderRadius: 10, border: "none",
-            background: "linear-gradient(135deg, #0A1B3D, #1677FF)",
-            color: "#fff", cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            padding: "12px 24px",
+            minHeight: 44,
+            borderRadius: 999,
+            border: "none",
+            background: "#D4FF59",
+            color: "#0D1117",
+            cursor: "pointer",
           }}
         >
           <Download size={14} /> Download CV
         </button>
-      </div>
+      </section>
 
       {loading ? (
-        <div style={{ ...card, textAlign: "center", padding: "48px 24px" }}>
-          <Loader2 size={32} color="#1677FF" className="animate-spin" style={{ margin: "0 auto 16px" }} />
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 16, fontWeight: 600, color: "#0A1B3D" }}>
+        <div
+          style={{
+            background: "#F4F5F7",
+            borderRadius: 24,
+            border: "1px solid #E2E8F0",
+            textAlign: "center",
+            padding: "48px 24px",
+          }}
+        >
+          <Loader2 size={32} color="#0E67CC" className="animate-spin" style={{ margin: "0 auto 16px" }} />
+          <div
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 16,
+              fontWeight: 600,
+              color: "#0D1117",
+            }}
+          >
             Memuat Profil Kandidat...
           </div>
-          <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8", marginTop: 4 }}>
+          <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13.5, color: "#4A5568", marginTop: 4 }}>
             Mengambil data profil, keterampilan, dan dokumen dari server.
           </div>
         </div>
       ) : error ? (
-        <div style={{ ...card, background: "#fff5f5", borderColor: "rgba(255,107,107,0.3)", textAlign: "center", padding: "36px 24px" }}>
-          <AlertCircle size={36} color="#ff6b6b" style={{ margin: "0 auto 12px" }} />
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 16, fontWeight: 700, color: "#0A1B3D" }}>
+        <div
+          style={{
+            background: "#FEF2F2",
+            borderRadius: 24,
+            border: "1px solid #FECACA",
+            textAlign: "center",
+            padding: "36px 24px",
+          }}
+        >
+          <AlertCircle size={36} color="#B91C1C" style={{ margin: "0 auto 12px" }} />
+          <div
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 16,
+              fontWeight: 600,
+              color: "#991B1B",
+            }}
+          >
             Gagal Memuat Profil
           </div>
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#ff6b6b", marginTop: 6 }}>
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13.5, color: "#991B1B", marginTop: 6 }}>
             {error}
           </p>
           <button
+            type="button"
             onClick={() => void loadData()}
             style={{
-              marginTop: 14, padding: "8px 20px", borderRadius: 8, border: "none",
-              background: "#1677FF", color: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer",
+              marginTop: 14,
+              padding: "10px 22px",
+              minHeight: 42,
+              borderRadius: 999,
+              border: "none",
+              background: "#0D1117",
+              color: "#D4FF59",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
             }}
           >
             Coba Lagi
@@ -462,118 +670,270 @@ export default function CandidateSelfProfilePage() {
       ) : (
         <>
           {/* Profile completion bar */}
-          <div style={{ ...card, marginBottom: 24, padding: "16px 22px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div
+            style={{
+              background: "#0D1117",
+              borderRadius: 24,
+              marginBottom: 20,
+              padding: "22px 24px",
+              color: "#FFFFFF",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 10,
+                flexWrap: "wrap",
+                gap: 8,
+              }}
+            >
               <div>
-                <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#0A1B3D" }}>Kelengkapan Profil </span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 800, color: "#1677FF" }}>{completionPercentage}%</span>
+                <span
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "#FFFFFF",
+                  }}
+                >
+                  Kelengkapan Profil{" "}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: "#D4FF59",
+                  }}
+                >
+                  {completionPercentage}%
+                </span>
               </div>
-              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#6a88b8" }}>Lengkapi profil untuk meningkatkan akurasi matching AI</span>
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12.5, color: "#CBD5E1" }}>
+                Lengkapi profil untuk meningkatkan akurasi matching AI
+              </span>
             </div>
-            <div style={{ position: "relative", height: 10, background: "#eef4ff", borderRadius: 99 }}>
-              <div style={{
-                position: "absolute", left: 0, top: 0, height: "100%",
-                width: `${completionPercentage}%`, borderRadius: 99,
-                background: "linear-gradient(90deg, #1677FF, #4DB8FF)",
-                transition: "width 0.4s ease",
-              }} />
+            <div
+              style={{
+                position: "relative",
+                height: 8,
+                background: "rgba(255, 255, 255, 0.14)",
+                borderRadius: 999,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${completionPercentage}%`,
+                  borderRadius: 999,
+                  background: "#D4FF59",
+                  transition: "width 0.3s ease",
+                }}
+              />
             </div>
-            <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 16, marginTop: 14, flexWrap: "wrap" }}>
               {[
-                { label: "Data Diri", done: Boolean(profile?.fullName && profile?.phone && profile?.location) },
+                {
+                  label: "Data Diri",
+                  done: Boolean(profile?.fullName && profile?.phone && profile?.location),
+                },
                 { label: "Pendidikan", done: Boolean(profile?.education) },
                 { label: "Pengalaman", done: Boolean(profile?.experienceSummary) },
                 { label: "Skill", done: skills.length > 0 },
                 { label: "Resume / CV", done: cvDocuments.length > 0 },
               ].map((item) => (
-                <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <CheckCircle size={12} color={item.done ? "#10d98e" : "#d0dff2"} />
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: item.done ? "#10d98e" : "#b0c4de" }}>{item.label}</span>
+                <div key={item.label} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <CheckCircle size={13} color={item.done ? "#D4FF59" : "#64748B"} />
+                  <span
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 12,
+                      fontWeight: item.done ? 600 : 400,
+                      color: item.done ? "#FFFFFF" : "#94A3B8",
+                    }}
+                  >
+                    {item.label}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Profile header card */}
-          <div style={{ ...card, marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
-              {/* Avatar */}
-              <div style={{
-                width: 80, height: 80, borderRadius: "50%",
-                background: "linear-gradient(135deg, #1677FF, #4DB8FF)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "'Poppins', sans-serif", fontSize: 32, fontWeight: 800, color: "#fff",
-                flexShrink: 0, boxShadow: "0 4px 16px rgba(22,119,255,0.3)",
-              }}>
+          <div
+            style={{
+              background: "#F4F5F7",
+              borderRadius: 24,
+              border: "1px solid #E2E8F0",
+              padding: "24px",
+              marginBottom: 20,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
+              <div
+                aria-hidden="true"
+                style={{
+                  width: 76,
+                  height: 76,
+                  borderRadius: "50%",
+                  background: "#0D1117",
+                  color: "#D4FF59",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: 30,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
                 {displayInitial}
               </div>
 
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 22, fontWeight: 800, color: "#0A1B3D" }}>{displayName}</div>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#1677FF", fontWeight: 600, marginTop: 2 }}>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: 22,
+                    fontWeight: 600,
+                    color: "#0D1117",
+                  }}
+                >
+                  {displayName}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 14,
+                    color: "#0E67CC",
+                    fontWeight: 600,
+                    marginTop: 2,
+                  }}
+                >
                   {profile?.education || "Pendidikan belum diisi"}
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6, fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#6a88b8" }}>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    marginTop: 6,
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13,
+                    color: "#4A5568",
+                  }}
+                >
                   <MapPin size={13} /> {profile?.location || "Lokasi belum diisi (Pulau Jawa)"}
                 </div>
-                <div style={{ marginTop: 10, fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#4a6080", lineHeight: 1.6, maxWidth: 600 }}>
-                  {profile?.experienceSummary || "Belum ada ringkasan profil. Klik edit pada bagian Ringkasan Profil untuk menambahkan bio diri Anda."}
+                <div
+                  style={{
+                    marginTop: 10,
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13.5,
+                    color: "#334155",
+                    lineHeight: 1.65,
+                    maxWidth: 640,
+                  }}
+                >
+                  {profile?.experienceSummary ||
+                    "Belum ada ringkasan profil. Klik edit pada bagian Ringkasan Profil untuk menambahkan bio diri Anda."}
                 </div>
               </div>
             </div>
 
             {/* CV Section */}
-            <div style={{ marginTop: 20, borderTop: "1px solid #f0f7ff", paddingTop: 16 }}>
+            <div style={{ marginTop: 20, borderTop: "1px solid #E2E8F0", paddingTop: 18 }}>
               {cvDocuments.length > 0 && (
                 <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 8 }}>
+                  <div
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                      marginBottom: 8,
+                    }}
+                  >
                     Dokumen CV Terunggah:
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {cvDocuments.map((doc) => {
-                      const isParsing = doc.parsingStatus === "PENDING";
                       const isSuccess = doc.parsingStatus === "SUCCESS";
-                      const isFailed = doc.parsingStatus === "FAILED";
-                      const statusColor = isSuccess ? "#10d98e" : isParsing ? "#1677FF" : isFailed ? "#ff6b6b" : "#f59e0b";
-                      const statusBg = isSuccess ? "rgba(16,217,142,0.1)" : isParsing ? "rgba(22,119,255,0.1)" : isFailed ? "rgba(255,107,107,0.1)" : "rgba(245,158,11,0.1)";
-
                       return (
                         <div
                           key={doc.id}
                           style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            padding: "10px 14px", borderRadius: 10, background: "#f8fbff",
-                            border: "1px solid rgba(22,119,255,0.15)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "12px 16px",
+                            borderRadius: 14,
+                            background: "#FFFFFF",
+                            border: "1px solid #E2E8F0",
                           }}
                         >
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <FileCheck2 size={18} color="#1677FF" />
+                            <FileCheck2 size={18} color="#0E67CC" />
                             <div>
-                              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A1B3D" }}>
+                              <div
+                                style={{
+                                  fontFamily: "'Inter', sans-serif",
+                                  fontSize: 13.5,
+                                  fontWeight: 600,
+                                  color: "#0D1117",
+                                }}
+                              >
                                 {doc.fileName}
                               </div>
-                              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#6a88b8" }}>
-                                {(doc.fileSize / 1024).toFixed(1)} KB · Diunggah {new Date(doc.uploadedAt).toLocaleDateString("id-ID")}
+                              <div
+                                style={{
+                                  fontFamily: "'Inter', sans-serif",
+                                  fontSize: 11.5,
+                                  color: "#4A5568",
+                                }}
+                              >
+                                {(doc.fileSize / 1024).toFixed(1)} KB · Diunggah{" "}
+                                {new Date(doc.uploadedAt).toLocaleDateString("id-ID")}
                               </div>
                             </div>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{
-                              fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700,
-                              color: statusColor, background: statusBg, padding: "3px 8px", borderRadius: 6,
-                            }}>
+                            <span
+                              style={{
+                                fontFamily: "'Inter', sans-serif",
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                color: "#0D1117",
+                                background: isSuccess ? "#D4FF59" : "#F4F5F7",
+                                padding: "3px 10px",
+                                borderRadius: 999,
+                              }}
+                            >
                               {doc.parsingStatus}
                             </span>
                             <button
+                              type="button"
                               onClick={() => void handleDeleteCv(doc.id)}
                               disabled={deletingCvId === doc.id}
                               style={{
-                                background: "none", border: "none", cursor: "pointer", color: "#ff6b6b",
-                                padding: 4, display: "flex", alignItems: "center",
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                color: "#B91C1C",
+                                padding: 6,
+                                display: "inline-flex",
+                                alignItems: "center",
                               }}
                               title="Hapus CV"
                             >
-                              {deletingCvId === doc.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                              {deletingCvId === doc.id ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={14} />
+                              )}
                             </button>
                           </div>
                         </div>
@@ -585,13 +945,22 @@ export default function CandidateSelfProfilePage() {
 
               {!showCvUpload ? (
                 <button
+                  type="button"
                   onClick={() => setShowCvUpload(true)}
                   style={{
-                    display: "flex", alignItems: "center", gap: 7,
-                    fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
-                    padding: "9px 18px", borderRadius: 10,
-                    border: "1.5px solid rgba(22,119,255,0.25)",
-                    background: "#f8fbff", color: "#1677FF", cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    padding: "10px 20px",
+                    minHeight: 42,
+                    borderRadius: 999,
+                    border: "none",
+                    background: "#0D1117",
+                    color: "#D4FF59",
+                    cursor: "pointer",
                   }}
                 >
                   <UploadCloud size={15} /> Upload CV Baru
@@ -600,33 +969,72 @@ export default function CandidateSelfProfilePage() {
                 <div
                   onClick={() => !isUploadingCv && fileInputRef.current?.click()}
                   style={{
-                    border: "2px dashed rgba(22,119,255,0.3)", borderRadius: 12,
-                    padding: "24px", textAlign: "center", cursor: isUploadingCv ? "not-allowed" : "pointer",
-                    background: "#f8fbff", transition: "background 0.15s",
+                    border: "1.5px dashed #94A3B8",
+                    borderRadius: 16,
+                    padding: "24px",
+                    textAlign: "center",
+                    cursor: isUploadingCv ? "not-allowed" : "pointer",
+                    background: "#FFFFFF",
                   }}
                 >
                   {isUploadingCv ? (
                     <>
-                      <Loader2 size={32} color="#1677FF" className="animate-spin" style={{ margin: "0 auto 8px" }} />
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#1677FF", fontWeight: 600 }}>
+                      <Loader2
+                        size={32}
+                        color="#0E67CC"
+                        className="animate-spin"
+                        style={{ margin: "0 auto 8px" }}
+                      />
+                      <div
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 13.5,
+                          color: "#0E67CC",
+                          fontWeight: 600,
+                        }}
+                      >
                         Mengunggah dan mengekstrak CV...
                       </div>
                     </>
                   ) : (
                     <>
-                      <UploadCloud size={32} color="#1677FF" style={{ marginBottom: 8 }} />
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#0A1B3D", fontWeight: 600 }}>
+                      <UploadCloud size={32} color="#0E67CC" style={{ margin: "0 auto 8px" }} />
+                      <div
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 13.5,
+                          color: "#0D1117",
+                          fontWeight: 600,
+                        }}
+                      >
                         Seret file ke sini atau klik untuk unggah
                       </div>
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", marginTop: 4 }}>
+                      <div
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 12,
+                          color: "#4A5568",
+                          marginTop: 4,
+                        }}
+                      >
                         PDF, DOCX maks. 5MB
                       </div>
                       <button
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); setShowCvUpload(false); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowCvUpload(false);
+                        }}
                         style={{
-                          marginTop: 10, background: "none", border: "none",
-                          fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", cursor: "pointer", textDecoration: "underline",
+                          marginTop: 10,
+                          background: "none",
+                          border: "none",
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "#4A5568",
+                          cursor: "pointer",
+                          textDecoration: "underline",
                         }}
                       >
                         Batal
@@ -646,21 +1054,41 @@ export default function CandidateSelfProfilePage() {
             </div>
           </div>
 
-          {/* Tabs */}
-          <div style={{ display: "flex", gap: 4, marginBottom: 20, background: "#fff", padding: "6px", borderRadius: 14, boxShadow: "0 2px 12px rgba(10,27,61,0.07)", border: "1px solid rgba(22,119,255,0.08)", width: "fit-content" }}>
+          {/* Pill Tabs */}
+          <div
+            style={{
+              display: "inline-flex",
+              gap: 6,
+              marginBottom: 20,
+              background: "#F4F5F7",
+              padding: "6px",
+              borderRadius: 999,
+              border: "1px solid #E2E8F0",
+              flexWrap: "wrap",
+            }}
+          >
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               return (
                 <button
                   key={tab.key}
+                  type="button"
                   onClick={() => setActiveTab(tab.key)}
                   style={{
-                    display: "flex", alignItems: "center", gap: 6,
-                    fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: isActive ? 600 : 400,
-                    padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer",
-                    background: isActive ? "#1677FF" : "transparent",
-                    color: isActive ? "#fff" : "#6a88b8",
-                    transition: "all 0.15s",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    padding: "9px 18px",
+                    minHeight: 38,
+                    borderRadius: 999,
+                    border: "none",
+                    cursor: "pointer",
+                    background: isActive ? "#0D1117" : "transparent",
+                    color: isActive ? "#D4FF59" : "#4A5568",
+                    transition: "all 0.15s ease",
                   }}
                 >
                   {tab.icon} {tab.label}
@@ -672,7 +1100,6 @@ export default function CandidateSelfProfilePage() {
           {/* Tab Content */}
           {activeTab === "profil" && (
             <>
-              {/* Informasi Pribadi */}
               <SectionCard
                 title="Informasi Pribadi"
                 sectionKey="informasi"
@@ -683,21 +1110,51 @@ export default function CandidateSelfProfilePage() {
               >
                 {editingSection === "informasi" ? (
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <label style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>Nama Lengkap</label>
+                    <label
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: "#0D1117",
+                        marginBottom: 4,
+                      }}
+                    >
+                      Nama Lengkap
+                    </label>
                     <input
                       style={inputStyle}
                       value={formFullName}
                       onChange={(e) => setFormFullName(e.target.value)}
                       placeholder="Nama lengkap sesuai identitas"
                     />
-                    <label style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>Nomor Telepon</label>
+                    <label
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: "#0D1117",
+                        marginBottom: 4,
+                      }}
+                    >
+                      Nomor Telepon
+                    </label>
                     <input
                       style={inputStyle}
                       value={formPhone}
                       onChange={(e) => setFormPhone(e.target.value)}
                       placeholder="Contoh: 081234567890"
                     />
-                    <label style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 4 }}>Lokasi Domisili (Pulau Jawa)</label>
+                    <label
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: "#0D1117",
+                        marginBottom: 4,
+                      }}
+                    >
+                      Lokasi Domisili (Pulau Jawa)
+                    </label>
                     <input
                       style={inputStyle}
                       value={formLocation}
@@ -706,17 +1163,32 @@ export default function CandidateSelfProfilePage() {
                     />
                   </div>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    <InfoRow icon={<User size={14} color="#1677FF" />} label="Nama Lengkap" value={displayName} />
-                    <InfoRow icon={<Mail size={14} color="#1677FF" />} label="Email" value={displayEmail} />
-                    <InfoRow icon={<Phone size={14} color="#1677FF" />} label="Telepon" value={profile?.phone || "Belum diisi"} />
-                    <InfoRow icon={<MapPin size={14} color="#1677FF" />} label="Lokasi" value={profile?.location || "Belum diisi"} />
-                    <InfoRow icon={<Calendar size={14} color="#1677FF" />} label="Terdaftar Sejak" value={profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString("id-ID") : "-"} />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <InfoRow icon={<User size={15} />} label="Nama Lengkap" value={displayName} />
+                    <InfoRow icon={<Mail size={15} />} label="Email" value={displayEmail} />
+                    <InfoRow
+                      icon={<Phone size={15} />}
+                      label="Telepon"
+                      value={profile?.phone || "Belum diisi"}
+                    />
+                    <InfoRow
+                      icon={<MapPin size={15} />}
+                      label="Lokasi"
+                      value={profile?.location || "Belum diisi"}
+                    />
+                    <InfoRow
+                      icon={<Calendar size={15} />}
+                      label="Terdaftar Sejak"
+                      value={
+                        profile?.createdAt
+                          ? new Date(profile.createdAt).toLocaleDateString("id-ID")
+                          : "-"
+                      }
+                    />
                   </div>
                 )}
               </SectionCard>
 
-              {/* Ringkasan Profil */}
               <SectionCard
                 title="Ringkasan Profil"
                 sectionKey="ringkasan"
@@ -727,8 +1199,17 @@ export default function CandidateSelfProfilePage() {
               >
                 {editingSection === "ringkasan" ? (
                   <div>
-                    <label style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 4, display: "block" }}>
-                      Ringkasan Pengalaman & Latar Belakang
+                    <label
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: "#0D1117",
+                        marginBottom: 4,
+                        display: "block",
+                      }}
+                    >
+                      Ringkasan Pengalaman &amp; Latar Belakang
                     </label>
                     <textarea
                       rows={4}
@@ -739,16 +1220,23 @@ export default function CandidateSelfProfilePage() {
                     />
                   </div>
                 ) : (
-                  <div style={{
-                    fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4a6080", lineHeight: 1.7,
-                    padding: "14px 16px", borderRadius: 10, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.08)",
-                  }}>
+                  <div
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 14,
+                      color: "#334155",
+                      lineHeight: 1.7,
+                      padding: "16px",
+                      borderRadius: 14,
+                      background: "#FFFFFF",
+                      border: "1px solid #E2E8F0",
+                    }}
+                  >
                     {profile?.experienceSummary || "Belum ada ringkasan profil."}
                   </div>
                 )}
               </SectionCard>
 
-              {/* Preferensi Kerja */}
               <SectionCard
                 title="Preferensi Kerja & Mobilitas"
                 sectionKey="preferensi"
@@ -758,9 +1246,26 @@ export default function CandidateSelfProfilePage() {
                 isSaving={isSaving}
               >
                 {editingSection === "preferensi" ? (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                      gap: 14,
+                    }}
+                  >
                     <div>
-                      <label style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 4, display: "block" }}>Lokasi Preferensi</label>
+                      <label
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          color: "#0D1117",
+                          marginBottom: 4,
+                          display: "block",
+                        }}
+                      >
+                        Lokasi Preferensi
+                      </label>
                       <input
                         style={inputStyle}
                         value={formLocation}
@@ -769,7 +1274,18 @@ export default function CandidateSelfProfilePage() {
                       />
                     </div>
                     <div>
-                      <label style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 4, display: "block" }}>Ekspektasi Gaji (Rp / bulan)</label>
+                      <label
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          color: "#0D1117",
+                          marginBottom: 4,
+                          display: "block",
+                        }}
+                      >
+                        Ekspektasi Gaji (Rp / bulan)
+                      </label>
                       <input
                         type="number"
                         style={inputStyle}
@@ -779,7 +1295,18 @@ export default function CandidateSelfProfilePage() {
                       />
                     </div>
                     <div>
-                      <label style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 4, display: "block" }}>Preferensi Mobilitas / Relokasi</label>
+                      <label
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          color: "#0D1117",
+                          marginBottom: 4,
+                          display: "block",
+                        }}
+                      >
+                        Preferensi Mobilitas / Relokasi
+                      </label>
                       <input
                         style={inputStyle}
                         value={formMobilityPreference}
@@ -788,11 +1315,24 @@ export default function CandidateSelfProfilePage() {
                       />
                     </div>
                     <div>
-                      <label style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 4, display: "block" }}>Visibilitas Profil</label>
+                      <label
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          color: "#0D1117",
+                          marginBottom: 4,
+                          display: "block",
+                        }}
+                      >
+                        Visibilitas Profil
+                      </label>
                       <select
                         style={{ ...inputStyle, cursor: "pointer" }}
                         value={formVisibilityStatus}
-                        onChange={(e) => setFormVisibilityStatus(e.target.value as ProfileVisibilityStatus)}
+                        onChange={(e) =>
+                          setFormVisibilityStatus(e.target.value as ProfileVisibilityStatus)
+                        }
                       >
                         <option value="PUBLIC">Publik (Terlihat oleh semua recruiter)</option>
                         <option value="LIMITED">Terbatas (Hanya recruiter tertentu)</option>
@@ -801,24 +1341,130 @@ export default function CandidateSelfProfilePage() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                    <div style={{ padding: "14px 16px", borderRadius: 12, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.08)" }}>
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", marginBottom: 4 }}>Lokasi Preferensi</div>
-                      <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#1677FF" }}>{profile?.location || "Belum ditentukan"}</div>
-                    </div>
-                    <div style={{ padding: "14px 16px", borderRadius: 12, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.08)" }}>
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", marginBottom: 4 }}>Ekspektasi Gaji</div>
-                      <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#10d98e" }}>
-                        {profile?.salaryExpectation ? `Rp ${new Intl.NumberFormat("id-ID").format(profile.salaryExpectation)}` : "Belum ditentukan"}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                      gap: 14,
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "16px",
+                        borderRadius: 14,
+                        background: "#FFFFFF",
+                        border: "1px solid #E2E8F0",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 11.5,
+                          color: "#4A5568",
+                          marginBottom: 4,
+                        }}
+                      >
+                        Lokasi Preferensi
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "#0D1117",
+                        }}
+                      >
+                        {profile?.location || "Belum ditentukan"}
                       </div>
                     </div>
-                    <div style={{ padding: "14px 16px", borderRadius: 12, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.08)" }}>
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", marginBottom: 4 }}>Status Relokasi</div>
-                      <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#ff9a3c" }}>{profile?.mobilityPreference || "Belum ditentukan"}</div>
+                    <div
+                      style={{
+                        padding: "16px",
+                        borderRadius: 14,
+                        background: "#FFFFFF",
+                        border: "1px solid #E2E8F0",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 11.5,
+                          color: "#4A5568",
+                          marginBottom: 4,
+                        }}
+                      >
+                        Ekspektasi Gaji
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "#0D1117",
+                        }}
+                      >
+                        {profile?.salaryExpectation
+                          ? `Rp ${new Intl.NumberFormat("id-ID").format(profile.salaryExpectation)}`
+                          : "Belum ditentukan"}
+                      </div>
                     </div>
-                    <div style={{ padding: "14px 16px", borderRadius: 12, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.08)" }}>
-                      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#6a88b8", marginBottom: 4 }}>Visibilitas Profil</div>
-                      <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#4DB8FF" }}>{profile?.visibilityStatus || "PRIVATE"}</div>
+                    <div
+                      style={{
+                        padding: "16px",
+                        borderRadius: 14,
+                        background: "#FFFFFF",
+                        border: "1px solid #E2E8F0",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 11.5,
+                          color: "#4A5568",
+                          marginBottom: 4,
+                        }}
+                      >
+                        Status Relokasi
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "#0D1117",
+                        }}
+                      >
+                        {profile?.mobilityPreference || "Belum ditentukan"}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        padding: "16px",
+                        borderRadius: 14,
+                        background: "#FFFFFF",
+                        border: "1px solid #E2E8F0",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 11.5,
+                          color: "#4A5568",
+                          marginBottom: 4,
+                        }}
+                      >
+                        Visibilitas Profil
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "#0E67CC",
+                        }}
+                      >
+                        {profile?.visibilityStatus || "PRIVATE"}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -835,16 +1481,54 @@ export default function CandidateSelfProfilePage() {
               onEditSave={() => void handleEditSave()}
               isSaving={isSaving}
             >
-              <div style={{ display: "flex", gap: 16 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #eef4ff, #dbeeff)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Briefcase size={18} color="#1677FF" />
+              <div
+                style={{
+                  display: "flex",
+                  gap: 16,
+                  padding: 16,
+                  background: "#FFFFFF",
+                  borderRadius: 14,
+                  border: "1px solid #E2E8F0",
+                }}
+              >
+                <div
+                  aria-hidden="true"
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    background: "#0D1117",
+                    color: "#D4FF59",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Briefcase size={18} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D" }}>
+                  <div
+                    style={{
+                      fontFamily: "'Poppins', sans-serif",
+                      fontSize: 14.5,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                    }}
+                  >
                     Ringkasan Pengalaman
                   </div>
-                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#4a6080", marginTop: 6, lineHeight: 1.6 }}>
-                    {profile?.experienceSummary || "Belum ada catatan pengalaman kerja. Anda dapat menambahkan ringkasan di tab Profil atau mengunggah CV."}
+                  <div
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13.5,
+                      color: "#4A5568",
+                      marginTop: 6,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {profile?.experienceSummary ||
+                      "Belum ada catatan pengalaman kerja. Anda dapat menambahkan ringkasan di tab Profil atau mengunggah CV."}
                   </div>
                 </div>
               </div>
@@ -862,7 +1546,16 @@ export default function CandidateSelfProfilePage() {
             >
               {editingSection === "pendidikan" ? (
                 <div>
-                  <label style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "#0A1B3D", marginBottom: 4, display: "block" }}>
+                  <label
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: "#0D1117",
+                      marginBottom: 4,
+                      display: "block",
+                    }}
+                  >
                     Riwayat Pendidikan
                   </label>
                   <textarea
@@ -874,15 +1567,52 @@ export default function CandidateSelfProfilePage() {
                   />
                 </div>
               ) : (
-                <div style={{ display: "flex", gap: 16 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg, #eef4ff, #dbeeff)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <GraduationCap size={20} color="#1677FF" />
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 16,
+                    padding: 16,
+                    background: "#FFFFFF",
+                    borderRadius: 14,
+                    border: "1px solid #E2E8F0",
+                  }}
+                >
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: "#0D1117",
+                      color: "#D4FF59",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <GraduationCap size={20} />
                   </div>
                   <div>
-                    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: "#0A1B3D" }}>
+                    <div
+                      style={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: 14.5,
+                        fontWeight: 600,
+                        color: "#0D1117",
+                      }}
+                    >
                       Riwayat Pendidikan
                     </div>
-                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#1677FF", fontWeight: 600, marginTop: 4 }}>
+                    <div
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 13.5,
+                        color: "#4A5568",
+                        fontWeight: 500,
+                        marginTop: 4,
+                      }}
+                    >
                       {profile?.education || "Belum ada riwayat pendidikan."}
                     </div>
                   </div>
@@ -900,9 +1630,25 @@ export default function CandidateSelfProfilePage() {
               onEditSave={() => void handleEditSave()}
               isSaving={isSaving}
             >
-              {/* Form Tambah Skill */}
-              <form onSubmit={(e) => void handleAddSkill(e)} style={{ marginBottom: 20, padding: "16px", borderRadius: 12, background: "#f8fbff", border: "1px solid rgba(22,119,255,0.12)" }}>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700, color: "#0A1B3D", marginBottom: 10 }}>
+              <form
+                onSubmit={(e) => void handleAddSkill(e)}
+                style={{
+                  marginBottom: 20,
+                  padding: "18px",
+                  borderRadius: 16,
+                  background: "#FFFFFF",
+                  border: "1px solid #E2E8F0",
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: 13.5,
+                    fontWeight: 600,
+                    color: "#0D1117",
+                    marginBottom: 10,
+                  }}
+                >
                   Tambah Skill Baru
                 </div>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -915,7 +1661,13 @@ export default function CandidateSelfProfilePage() {
                     disabled={isAddingSkill}
                   />
                   <select
-                    style={{ ...inputStyle, width: "auto", minWidth: 130, marginBottom: 0, cursor: "pointer" }}
+                    style={{
+                      ...inputStyle,
+                      width: "auto",
+                      minWidth: 130,
+                      marginBottom: 0,
+                      cursor: "pointer",
+                    }}
                     value={newSkillLevel}
                     onChange={(e) => setNewSkillLevel(e.target.value)}
                     disabled={isAddingSkill}
@@ -929,77 +1681,162 @@ export default function CandidateSelfProfilePage() {
                     type="submit"
                     disabled={isAddingSkill}
                     style={{
-                      display: "flex", alignItems: "center", gap: 5,
-                      padding: "10px 18px", borderRadius: 10, border: "none",
-                      background: "linear-gradient(135deg, #1677FF, #4DB8FF)",
-                      color: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "10px 20px",
+                      minHeight: 42,
+                      borderRadius: 999,
+                      border: "none",
+                      background: "#0D1117",
+                      color: "#D4FF59",
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 700,
                       cursor: isAddingSkill ? "not-allowed" : "pointer",
                       opacity: isAddingSkill ? 0.7 : 1,
                     }}
                   >
-                    {isAddingSkill ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+                    {isAddingSkill ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Plus size={14} />
+                    )}
                     {isAddingSkill ? "Menambahkan..." : "Tambah Skill"}
                   </button>
                 </div>
               </form>
 
-              {/* Daftar Skill */}
               {skills.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "28px 16px", color: "#6a88b8", fontFamily: "'Inter', sans-serif", fontSize: 13 }}>
-                  Belum ada skill yang ditambahkan. Gunakan form di atas atau unggah CV Anda untuk ekstraksi skill otomatis.
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "28px 16px",
+                    color: "#4A5568",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13.5,
+                  }}
+                >
+                  Belum ada skill yang ditambahkan. Gunakan form di atas atau unggah CV Anda untuk
+                  ekstraksi skill otomatis.
                 </div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                    gap: 14,
+                  }}
+                >
                   {skills.map((skill) => {
                     const isDeleting = deletingSkillId === skill.id;
-                    const levelPercentage = skill.level === "Ahli" ? 95 : skill.level === "Mahir" ? 85 : skill.level === "Pemula" ? 40 : 65;
-                    const color = levelPercentage >= 80 ? "#10d98e" : levelPercentage >= 60 ? "#1677FF" : "#ff9a3c";
+                    const levelPercentage =
+                      skill.level === "Ahli"
+                        ? 95
+                        : skill.level === "Mahir"
+                          ? 85
+                          : skill.level === "Pemula"
+                            ? 40
+                            : 65;
 
                     return (
                       <div
                         key={skill.id}
                         style={{
-                          padding: "12px 14px", borderRadius: 12, background: "#f8fbff",
-                          border: "1px solid rgba(22,119,255,0.1)", display: "flex", flexDirection: "column", gap: 6,
+                          padding: "14px 16px",
+                          borderRadius: 16,
+                          background: "#FFFFFF",
+                          border: "1px solid #E2E8F0",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 8,
                         }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
                           <div>
-                            <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 700, color: "#0A1B3D" }}>
+                            <span
+                              style={{
+                                fontFamily: "'Poppins', sans-serif",
+                                fontSize: 13.5,
+                                fontWeight: 600,
+                                color: "#0D1117",
+                              }}
+                            >
                               {skill.skillName}
                             </span>
                             {skill.source && (
-                              <span style={{
-                                marginLeft: 6, fontFamily: "'JetBrains Mono', monospace", fontSize: 9,
-                                padding: "2px 6px", borderRadius: 4, background: "rgba(22,119,255,0.08)", color: "#1677FF",
-                              }}>
+                              <span
+                                style={{
+                                  marginLeft: 6,
+                                  fontFamily: "'Inter', sans-serif",
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  padding: "2px 8px",
+                                  borderRadius: 999,
+                                  background: "#F4F5F7",
+                                  color: "#4A5568",
+                                }}
+                              >
                                 {skill.source}
                               </span>
                             )}
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, fontWeight: 700, color }}>
+                            <span
+                              style={{
+                                fontFamily: "'Inter', sans-serif",
+                                fontSize: 11.5,
+                                fontWeight: 700,
+                                color: "#0E67CC",
+                              }}
+                            >
                               {skill.level || `${levelPercentage}%`}
                             </span>
                             <button
+                              type="button"
                               onClick={() => void handleDeleteSkill(skill.id, skill.skillName)}
                               disabled={isDeleting}
                               style={{
-                                background: "none", border: "none", cursor: isDeleting ? "not-allowed" : "pointer",
-                                color: "#ff6b6b", padding: 2, display: "flex", alignItems: "center",
+                                background: "none",
+                                border: "none",
+                                cursor: isDeleting ? "not-allowed" : "pointer",
+                                color: "#B91C1C",
+                                padding: 4,
+                                display: "inline-flex",
+                                alignItems: "center",
                               }}
                               title={`Hapus skill ${skill.skillName}`}
                             >
-                              {isDeleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                              {isDeleting ? (
+                                <Loader2 size={13} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={13} />
+                              )}
                             </button>
                           </div>
                         </div>
-                        <div style={{ position: "relative", height: 6, background: "#eef4ff", borderRadius: 99 }}>
-                          <div style={{
-                            position: "absolute", left: 0, top: 0, height: "100%",
-                            width: `${levelPercentage}%`, borderRadius: 99,
-                            background: `linear-gradient(90deg, ${color}88, ${color})`,
-                          }} />
+                        <div
+                          style={{
+                            height: 6,
+                            background: "#E2E8F0",
+                            borderRadius: 999,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: "100%",
+                              width: `${levelPercentage}%`,
+                              borderRadius: 999,
+                              background: "#0E67CC",
+                            }}
+                          />
                         </div>
                       </div>
                     );
@@ -1018,8 +1855,20 @@ export default function CandidateSelfProfilePage() {
               onEditSave={() => void handleEditSave()}
               isSaving={isSaving}
             >
-              <div style={{ textAlign: "center", padding: "28px 16px", color: "#6a88b8", fontFamily: "'Inter', sans-serif", fontSize: 13 }}>
-                Proyek dan tautan portofolio dapat ditambahkan pada pembaruan berikutnya atau dilampirkan dalam dokumen resume CV Anda.
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "28px 16px",
+                  color: "#4A5568",
+                  background: "#FFFFFF",
+                  borderRadius: 14,
+                  border: "1px solid #E2E8F0",
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 13.5,
+                }}
+              >
+                Proyek dan tautan portofolio dapat ditambahkan pada pembaruan berikutnya atau
+                dilampirkan dalam dokumen resume CV Anda.
               </div>
             </SectionCard>
           )}

@@ -159,7 +159,7 @@ export default function ActiveJobsPage() {
         </div>
       )}
 
-      <div style={{ padding: "32px", minHeight: "100vh", backgroundColor: "#f0f7ff" }}>
+      <div style={{ minHeight: "100vh" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
           <div>
             <h1 style={{ fontFamily: "Poppins, sans-serif", fontSize: "24px", fontWeight: 700, color: "#0A1B3D", margin: 0 }}>
