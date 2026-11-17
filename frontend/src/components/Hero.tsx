@@ -468,12 +468,9 @@ export function Hero() {
                   ✦
                 </span>
               </div>
-              <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 600, color: "#ffffff", lineHeight: 1.38 }}>
-                DS RECRUITMENT{" "}
-                <span style={{ color: "#D4FF59" }}>ECOSYSTEM</span> · AI
-              </div>
-              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 10.5, color: "#CBD5E1" }}>
-                AI-Powered Matching
+              <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 15, fontWeight: 700, color: "#ffffff", lineHeight: 1.35 }}>
+                AI-Powered{" "}
+                <span style={{ color: "#D4FF59" }}>Matching</span>
               </div>
             </div>
 

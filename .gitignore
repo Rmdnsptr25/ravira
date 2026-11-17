@@ -12,3 +12,4 @@ uploads/
 .qa/
 tests/e2e/.artifacts/
 *.log
+.vercel
